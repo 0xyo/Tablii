@@ -1,0 +1,79 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}Call Waiter — {{ restaurant.name }}{% endblock %}
+
+{% block customer_content %}
+<section class="px-4 pt-6">
+    <h2 class="text-xl font-bold mb-6 text-center">Need something?</h2>
+
+    <!-- Quick action buttons -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <button onclick="callWaiter('water')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
+            <span class="text-3xl">💧</span>
+            <span class="text-sm font-medium">Water</span>
+        </button>
+        <button onclick="callWaiter('bill')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
+            <span class="text-3xl">🧾</span>
+            <span class="text-sm font-medium">Bill</span>
+        </button>
+        <button onclick="callWaiter('help')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
+            <span class="text-3xl">🆘</span>
+            <span class="text-sm font-medium">Help</span>
+        </button>
+    </div>
+
+    <!-- Custom message -->
+    <div class="card">
+        <label for="custom-msg" class="block text-sm font-medium text-gray-700 mb-2">Custom message</label>
+        <textarea id="custom-msg" class="input-field" rows="3" placeholder="Type your request..."></textarea>
+        <button onclick="callWaiter('custom', document.getElementById('custom-msg').value)" class="btn-primary w-full mt-3">
+            Send Request
+        </button>
+    </div>
+
+    <!-- Confirmation overlay -->
+    <div id="call-confirm" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 text-center max-w-xs mx-4">
+            <p class="text-5xl mb-4">✅</p>
+            <h3 class="text-lg font-bold">Request Sent!</h3>
+            <p class="text-gray-500 text-sm mt-1">A waiter will be with you shortly.</p>
+            <button onclick="document.getElementById('call-confirm').classList.add('hidden')" class="btn-primary mt-4">OK</button>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block bottom_bar %}
+<a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
+    ← Back to Menu
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const slug = "{{ restaurant.slug }}";
+    const tableId = {{ table.id }};
+
+    async function callWaiter(callType, message = "") {
+        try {
+            const res = await fetch(`/r/${slug}/table/${tableId}/call-waiter`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ call_type: callType, message })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById("call-confirm").classList.remove("hidden");
+                if (document.getElementById("custom-msg")) {
+                    document.getElementById("custom-msg").value = "";
+                }
+            } else {
+                showToast(data.error || "Failed to send request.", "error");
+            }
+        } catch (err) {
+            showToast("Network error.", "error");
+        }
+    }
+</script>
+{% endblock %}

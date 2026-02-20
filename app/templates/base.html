@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Tablii{% endblock %}</title>
+
+    <!-- Tailwind CSS (compiled) -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- PWA -->
+    <link
+      rel="manifest"
+      href="{{ url_for('static', filename='manifest.json') }}"
+    />
+    <meta name="theme-color" content="#f97316" />
+
+    {% block head %}{% endblock %}
+  </head>
+  <body class="font-sans bg-gray-50 text-gray-900 antialiased">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div id="flash-messages" class="fixed top-4 right-4 z-50 space-y-2">
+      {% for category, message in messages %}
+      <div
+        class="flash-msg px-4 py-3 rounded-lg shadow-lg text-white text-sm {% if category == 'error' %}bg-red-500 {% elif category == 'success' %}bg-green-500 {% elif category == 'warning' %}bg-yellow-500 text-gray-900 {% else %}bg-blue-500{% endif %}"
+        role="alert"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %} {% block content %}{% endblock %}
+
+    <!-- Socket.IO (loaded on every page, connected only where needed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+
+    <!-- Global JS utilities -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+
+    <script>
+      // Auto-dismiss flash messages after 5 seconds
+      setTimeout(() => {
+        document.querySelectorAll(".flash-msg").forEach((el) => {
+          el.style.transition = "opacity 0.5s";
+          el.style.opacity = "0";
+          setTimeout(() => el.remove(), 500);
+        });
+      }, 5000);
+    </script>
+  </body>
+</html>

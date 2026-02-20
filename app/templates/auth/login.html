@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Login — Tablii{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="card w-full max-w-md">
+    <!-- Logo / Title -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-orange-500">🍽️ Tablii</h1>
+      <p class="text-gray-500 mt-1">Sign in to your account</p>
+    </div>
+
+    <!-- Tab Buttons -->
+    <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
+      <button
+        id="tab-owner"
+        onclick="switchTab('owner')"
+        class="tab-btn flex-1 py-2 text-sm font-medium rounded-md transition-colors"
+      >
+        Owner
+      </button>
+      <button
+        id="tab-staff"
+        onclick="switchTab('staff')"
+        class="tab-btn flex-1 py-2 text-sm font-medium rounded-md transition-colors"
+      >
+        Staff
+      </button>
+    </div>
+
+    <!-- Owner Login Form -->
+    <form id="form-owner" method="POST" action="{{ url_for('auth.login_post') }}" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="login_type" value="owner" />
+
+      <div>
+        <label for="owner-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input
+          id="owner-email"
+          name="email"
+          type="email"
+          required
+          class="input-field"
+          placeholder="you@example.com"
+        />
+      </div>
+
+      <div>
+        <label for="owner-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <input
+          id="owner-password"
+          name="password"
+          type="password"
+          required
+          class="input-field"
+          placeholder="••••••••"
+        />
+      </div>
+
+      <button type="submit" class="btn-primary w-full">Sign In</button>
+    </form>
+
+    <!-- Staff Login Form -->
+    <form id="form-staff" method="POST" action="{{ url_for('auth.login_post') }}" class="space-y-4 hidden">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="login_type" value="staff" />
+
+      <div>
+        <label for="staff-slug" class="block text-sm font-medium text-gray-700 mb-1">Restaurant ID</label>
+        <input
+          id="staff-slug"
+          name="restaurant_slug"
+          type="text"
+          required
+          class="input-field"
+          placeholder="my-restaurant-ab12"
+        />
+      </div>
+
+      <div>
+        <label for="staff-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+        <input
+          id="staff-username"
+          name="username"
+          type="text"
+          required
+          class="input-field"
+          placeholder="cashier1"
+        />
+      </div>
+
+      <div>
+        <label for="staff-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <input
+          id="staff-password"
+          name="password"
+          type="password"
+          required
+          class="input-field"
+          placeholder="••••••••"
+        />
+      </div>
+
+      <button type="submit" class="btn-primary w-full">Sign In</button>
+    </form>
+
+    <!-- Register link -->
+    <p class="text-center text-sm text-gray-500 mt-6">
+      Don't have an account?
+      <a href="{{ url_for('auth.register') }}" class="text-orange-500 hover:text-orange-600 font-medium">Register here</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function switchTab(type) {
+    const ownerForm = document.getElementById("form-owner");
+    const staffForm = document.getElementById("form-staff");
+    const tabOwner = document.getElementById("tab-owner");
+    const tabStaff = document.getElementById("tab-staff");
+
+    if (type === "owner") {
+      ownerForm.classList.remove("hidden");
+      staffForm.classList.add("hidden");
+      tabOwner.classList.add("bg-white", "shadow-sm", "text-orange-600");
+      tabOwner.classList.remove("text-gray-500");
+      tabStaff.classList.remove("bg-white", "shadow-sm", "text-orange-600");
+      tabStaff.classList.add("text-gray-500");
+    } else {
+      staffForm.classList.remove("hidden");
+      ownerForm.classList.add("hidden");
+      tabStaff.classList.add("bg-white", "shadow-sm", "text-orange-600");
+      tabStaff.classList.remove("text-gray-500");
+      tabOwner.classList.remove("bg-white", "shadow-sm", "text-orange-600");
+      tabOwner.classList.add("text-gray-500");
+    }
+  }
+
+  // Initialize tab from query param or default
+  switchTab("{{ login_type }}");
+</script>
+{% endblock %}

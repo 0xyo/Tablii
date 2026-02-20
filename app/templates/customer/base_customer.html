@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-lg mx-auto min-h-screen bg-white">
+    <!-- Header -->
+    <header class="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            {% if restaurant.logo_url %}
+            <img src="{{ restaurant.logo_url }}" alt="{{ restaurant.name }}" class="w-8 h-8 rounded-full object-cover">
+            {% endif %}
+            <h1 class="text-lg font-semibold">{{ restaurant.name }}</h1>
+        </div>
+        <span class="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">
+            Table {{ table.table_number }}
+        </span>
+    </header>
+
+    <!-- Page content -->
+    <main class="pb-24">
+        {% block customer_content %}{% endblock %}
+    </main>
+
+    <!-- Bottom bar -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-100 px-4 py-3 flex items-center justify-between">
+        {% block bottom_bar %}{% endblock %}
+    </nav>
+</div>
+{% endblock %}

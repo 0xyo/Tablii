@@ -1,0 +1,137 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}Cart — {{ restaurant.name }}{% endblock %}
+
+{% block customer_content %}
+<section class="px-4 pt-4">
+    <h2 class="text-xl font-bold mb-4">Your Cart</h2>
+
+    <!-- Empty state -->
+    <div id="cart-empty" class="hidden text-center py-12">
+        <p class="text-5xl mb-4">🛒</p>
+        <p class="text-gray-500">Your cart is empty</p>
+        <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="btn-primary inline-block mt-4">Browse Menu</a>
+    </div>
+
+    <!-- Cart items -->
+    <div id="cart-items" class="space-y-3"></div>
+
+    <!-- Special notes -->
+    <div id="cart-notes-section" class="mt-6">
+        <label for="special-notes" class="block text-sm font-medium text-gray-700 mb-1">Special Notes</label>
+        <textarea id="special-notes" class="input-field" rows="2" placeholder="Any allergies or preferences?"></textarea>
+    </div>
+
+    <!-- Summary -->
+    <div id="cart-summary" class="mt-6 card">
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Subtotal</span>
+            <span id="summary-subtotal">0.000 {{ restaurant.currency }}</span>
+        </div>
+        {% if restaurant.tax_rate > 0 %}
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Tax ({{ restaurant.tax_rate }}%)</span>
+            <span id="summary-tax">0.000 {{ restaurant.currency }}</span>
+        </div>
+        {% endif %}
+        <div class="flex justify-between text-base font-bold border-t pt-2 mt-2">
+            <span>Total</span>
+            <span id="summary-total">0.000 {{ restaurant.currency }}</span>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block bottom_bar %}
+<a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
+    ← Back to Menu
+</a>
+<a href="{{ url_for('customer.checkout', slug=restaurant.slug, table_id=table.id) }}" id="checkout-btn" class="btn-primary">
+    Checkout
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+<script>
+    const cart = new Cart("{{ restaurant.slug }}", {{ table.id }});
+    const currency = "{{ restaurant.currency }}";
+    const taxRate = {{ restaurant.tax_rate }};
+
+    function renderCart() {
+        const items = cart.getItems();
+        const container = document.getElementById("cart-items");
+        const emptyState = document.getElementById("cart-empty");
+        const summary = document.getElementById("cart-summary");
+        const notesSection = document.getElementById("cart-notes-section");
+        const checkoutBtn = document.getElementById("checkout-btn");
+
+        if (items.length === 0) {
+            emptyState.classList.remove("hidden");
+            container.innerHTML = "";
+            summary.classList.add("hidden");
+            notesSection.classList.add("hidden");
+            checkoutBtn.classList.add("hidden");
+            return;
+        }
+
+        emptyState.classList.add("hidden");
+        summary.classList.remove("hidden");
+        notesSection.classList.remove("hidden");
+        checkoutBtn.classList.remove("hidden");
+
+        let html = "";
+        items.forEach((item, idx) => {
+            const optExtra = item.options.reduce((s, o) => s + o.extra_price, 0);
+            const lineTotal = (item.price + optExtra) * item.quantity;
+            html += `
+                <div class="card flex gap-3">
+                    ${item.image_url ? `<img src="${item.image_url}" class="w-16 h-16 rounded-lg object-cover shrink-0">` : `<div class="w-16 h-16 rounded-lg bg-orange-50 flex items-center justify-center text-2xl shrink-0">🍽️</div>`}
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-medium text-sm truncate">${item.name}</h3>
+                        ${item.options.length ? `<p class="text-xs text-gray-400">${item.options.map(o => o.name || '').filter(n => n).join(", ")}</p>` : ""}
+                        <div class="flex items-center justify-between mt-2">
+                            <div class="flex items-center border border-gray-200 rounded-lg">
+                                <button onclick="updateQty(${idx}, -1)" class="px-2 py-1 text-gray-500 hover:text-orange-500">−</button>
+                                <span class="px-2 text-sm font-semibold">${item.quantity}</span>
+                                <button onclick="updateQty(${idx}, 1)" class="px-2 py-1 text-gray-500 hover:text-orange-500">+</button>
+                            </div>
+                            <span class="text-sm font-semibold text-orange-600">${lineTotal.toFixed(3)} ${currency}</span>
+                        </div>
+                    </div>
+                    <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 self-start text-lg">✕</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+
+        // Update summary
+        const subtotal = cart.getSubtotal();
+        const tax = cart.getTax(taxRate);
+        const total = cart.getTotal(taxRate);
+        document.getElementById("summary-subtotal").textContent = subtotal.toFixed(3) + " " + currency;
+        if (document.getElementById("summary-tax")) {
+            document.getElementById("summary-tax").textContent = tax.toFixed(3) + " " + currency;
+        }
+        document.getElementById("summary-total").textContent = total.toFixed(3) + " " + currency;
+    }
+
+    function updateQty(idx, delta) {
+        const items = cart.getItems();
+        const newQty = items[idx].quantity + delta;
+        if (newQty <= 0) {
+            cart.removeItem(idx);
+        } else {
+            cart.updateQuantity(idx, newQty);
+        }
+        renderCart();
+    }
+
+    function removeItem(idx) {
+        cart.removeItem(idx);
+        renderCart();
+    }
+
+    renderCart();
+</script>
+{% endblock %}

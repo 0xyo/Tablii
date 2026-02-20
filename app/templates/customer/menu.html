@@ -1,0 +1,245 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}{{ restaurant.name }} — Menu{% endblock %}
+
+{% block customer_content %}
+<!-- Search bar -->
+<section class="px-4 pt-4">
+    <div class="relative">
+        <input id="menu-search" type="text" placeholder="Search menu..." class="input-field pl-10">
+        <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+    </div>
+</section>
+
+<!-- Category tabs -->
+<section class="px-4 pt-4">
+    <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" id="category-tabs">
+        <button onclick="filterCategory('all')" class="category-tab active shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-orange-500 text-white transition-colors">
+            All
+        </button>
+        {% for category in categories %}
+        <button onclick="filterCategory('cat-{{ category.id }}')" class="category-tab shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-orange-100 transition-colors">
+            {{ category.icon or '🍽️' }} {{ category.name_fr }}
+        </button>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Menu items grid -->
+{% for category in categories %}
+{% if category.active_items %}
+<section class="px-4 pt-6 menu-category" data-category="cat-{{ category.id }}">
+    <h2 class="text-lg font-semibold mb-3">{{ category.icon or '🍽️' }} {{ category.name_fr }}</h2>
+    <div class="grid grid-cols-2 gap-3">
+        {% for item in category.active_items %}
+        <article class="menu-item-card card p-0 overflow-hidden cursor-pointer" data-name="{{ item.name_fr|lower }}" onclick="openItemModal({{ item.id }})">
+            {% if item.image_url %}
+            <img src="{{ item.image_url }}" alt="{{ item.name_fr }}" class="w-full h-28 object-cover">
+            {% else %}
+            <div class="w-full h-28 bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-3xl">🍽️</div>
+            {% endif %}
+            <div class="p-3">
+                <h3 class="font-medium text-sm leading-tight">{{ item.name_fr }}</h3>
+                {% if item.is_popular %}
+                <span class="text-xs text-orange-500 font-medium">⭐ Popular</span>
+                {% endif %}
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-orange-600 font-semibold text-sm">{{ '%.3f'|format(item.price) }} {{ restaurant.currency }}</span>
+                    <button onclick="event.stopPropagation(); quickAdd({{ item.id }}, '{{ item.name_fr|e }}', {{ item.price }}, '{{ item.image_url or '' }}')" class="w-7 h-7 bg-orange-500 text-white rounded-full flex items-center justify-center text-lg hover:bg-orange-600 transition-colors">+</button>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endfor %}
+
+<!-- Item Detail Modal -->
+<div id="item-modal" class="fixed inset-0 z-50 bg-black/50 hidden items-end justify-center" onclick="closeItemModal(event)">
+    <div class="bg-white w-full max-w-lg rounded-t-2xl max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div id="modal-content"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block bottom_bar %}
+<a href="{{ url_for('customer.call_waiter_page', slug=restaurant.slug, table_id=table.id) }}" class="flex items-center gap-2 text-gray-500 hover:text-orange-500 transition-colors">
+    <span class="text-xl">🔔</span>
+    <span class="text-sm font-medium">Call Waiter</span>
+</a>
+<a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" class="flex items-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-full hover:bg-orange-600 transition-colors">
+    <span>🛒</span>
+    <span id="cart-count" class="text-sm font-semibold">0</span>
+    <span class="text-sm">•</span>
+    <span id="cart-total" class="text-sm font-semibold">0.000 {{ restaurant.currency }}</span>
+</a>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+<script>
+    // Initialize cart
+    const cart = new Cart("{{ restaurant.slug }}", {{ table.id }});
+    updateCartBadge();
+
+    // Store menu items data for modal
+    const menuItems = {
+        {% for category in categories %}
+        {% for item in category.active_items %}
+        {{ item.id }}: {
+            id: {{ item.id }},
+            name: "{{ item.name_fr|e }}",
+            description: "{{ (item.description_fr or '')|e }}",
+            price: {{ item.price }},
+            image_url: "{{ item.image_url or '' }}",
+            calories: {{ item.calories or 'null' }},
+            prep_time: {{ item.prep_time or 'null' }},
+            allergens: "{{ (item.allergens or '')|e }}",
+            customizations: [
+                {% for cust in item.active_customizations %}
+                {
+                    id: {{ cust.id }},
+                    name: "{{ cust.group_name_fr|e }}",
+                    type: "{{ cust.selection_type }}",
+                    required: {{ 'true' if cust.is_required else 'false' }},
+                    options: [
+                        {% for opt in cust.active_options %}
+                        { id: {{ opt.id }}, name: "{{ opt.name_fr|e }}", extra_price: {{ opt.extra_price }} },
+                        {% endfor %}
+                    ]
+                },
+                {% endfor %}
+            ]
+        },
+        {% endfor %}
+        {% endfor %}
+    };
+
+    const currency = "{{ restaurant.currency }}";
+
+    // Quick add (no customizations)
+    function quickAdd(id, name, price, imageUrl) {
+        cart.addItem({ id, name, price, quantity: 1, options: [], image_url: imageUrl });
+        updateCartBadge();
+        showToast("Added to cart!", "success");
+    }
+
+    // Update floating cart badge
+    function updateCartBadge() {
+        document.getElementById("cart-count").textContent = cart.getItemCount();
+        document.getElementById("cart-total").textContent = cart.getSubtotal().toFixed(3) + " " + currency;
+    }
+
+    // Item modal
+    function openItemModal(itemId) {
+        const item = menuItems[itemId];
+        if (!item) return;
+
+        let html = `
+            ${item.image_url ? `<img src="${item.image_url}" class="w-full h-48 object-cover" alt="${item.name}">` : `<div class="w-full h-48 bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-5xl">🍽️</div>`}
+            <div class="p-5">
+                <h2 class="text-xl font-bold">${item.name}</h2>
+                ${item.description ? `<p class="text-gray-500 text-sm mt-1">${item.description}</p>` : ''}
+                <div class="flex gap-3 mt-2 text-xs text-gray-400">
+                    ${item.prep_time ? `<span>⏱️ ${item.prep_time} min</span>` : ''}
+                    ${item.calories ? `<span>🔥 ${item.calories} cal</span>` : ''}
+                    ${item.allergens ? `<span>⚠️ ${item.allergens}</span>` : ''}
+                </div>
+                <div class="mt-3 text-orange-600 font-bold text-lg">${item.price.toFixed(3)} ${currency}</div>
+        `;
+
+        // Customizations
+        item.customizations.forEach(cust => {
+            html += `<div class="mt-4"><h3 class="font-medium text-sm text-gray-700 mb-2">${cust.name} ${cust.required ? '<span class="text-red-500">*</span>' : ''}</h3>`;
+            cust.options.forEach(opt => {
+                const inputType = cust.type === 'single' ? 'radio' : 'checkbox';
+                html += `
+                    <label class="flex items-center gap-3 py-2 border-b border-gray-50">
+                        <input type="${inputType}" name="cust_${cust.id}" value="${opt.id}" data-extra="${opt.extra_price}" class="modal-option accent-orange-500">
+                        <span class="flex-1 text-sm">${opt.name}</span>
+                        ${opt.extra_price > 0 ? `<span class="text-xs text-gray-400">+${opt.extra_price.toFixed(3)} ${currency}</span>` : ''}
+                    </label>
+                `;
+            });
+            html += `</div>`;
+        });
+
+        // Quantity + Add to cart
+        html += `
+                <div class="flex items-center gap-4 mt-5">
+                    <div class="flex items-center border border-gray-200 rounded-lg">
+                        <button onclick="changeQty(-1)" class="px-3 py-2 text-lg text-gray-500 hover:text-orange-500">−</button>
+                        <span id="modal-qty" class="px-3 text-lg font-semibold">1</span>
+                        <button onclick="changeQty(1)" class="px-3 py-2 text-lg text-gray-500 hover:text-orange-500">+</button>
+                    </div>
+                    <button onclick="addFromModal(${item.id})" class="btn-primary flex-1">Add to Cart</button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("modal-content").innerHTML = html;
+        const modal = document.getElementById("item-modal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    function closeItemModal(e) {
+        const modal = document.getElementById("item-modal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+
+    let modalQty = 1;
+    function changeQty(delta) {
+        modalQty = Math.max(1, Math.min(20, modalQty + delta));
+        document.getElementById("modal-qty").textContent = modalQty;
+    }
+
+    function addFromModal(itemId) {
+        const item = menuItems[itemId];
+        const selectedOptions = [];
+        document.querySelectorAll(".modal-option:checked").forEach(el => {
+            selectedOptions.push({ id: parseInt(el.value), extra_price: parseFloat(el.dataset.extra) });
+        });
+
+        cart.addItem({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: modalQty,
+            options: selectedOptions,
+            image_url: item.image_url
+        });
+
+        modalQty = 1;
+        closeItemModal();
+        updateCartBadge();
+        showToast("Added to cart!", "success");
+    }
+
+    // Category filter
+    function filterCategory(catId) {
+        document.querySelectorAll(".category-tab").forEach(t => {
+            t.classList.remove("bg-orange-500", "text-white", "active");
+            t.classList.add("bg-gray-100", "text-gray-600");
+        });
+        event.target.classList.add("bg-orange-500", "text-white", "active");
+        event.target.classList.remove("bg-gray-100", "text-gray-600");
+
+        document.querySelectorAll(".menu-category").forEach(sec => {
+            sec.style.display = (catId === "all" || sec.dataset.category === catId) ? "" : "none";
+        });
+    }
+
+    // Search
+    document.getElementById("menu-search").addEventListener("input", function() {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll(".menu-item-card").forEach(card => {
+            card.style.display = card.dataset.name.includes(q) ? "" : "none";
+        });
+    });
+</script>
+{% endblock %}
