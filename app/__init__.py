@@ -48,6 +48,10 @@ def create_app(config_name=None):
     socketio.init_app(app, cors_allowed_origins="*")
     csrf.init_app(app)
 
+    # Register WebSocket event handlers
+    from app.events import register_events
+    register_events(socketio)
+
     # Configure Flask-Login
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'warning'

@@ -46,6 +46,13 @@ def _ensure_session(table, restaurant):
         table.status = 'occupied'
         db.session.commit()
 
+        # Real-time: notify staff that a table is now occupied
+        try:
+            from app.events.waiter_events import notify_table_occupied
+            notify_table_occupied(table)
+        except Exception:
+            pass
+
     session['session_token'] = table_session.session_token
     return table_session
 
@@ -232,6 +239,14 @@ def call_waiter(slug, table_id):
         )
         db.session.add(waiter_call)
         db.session.commit()
+
+        # Real-time: push waiter call to staff
+        try:
+            from app.events.waiter_events import notify_waiter_call
+            notify_waiter_call(waiter_call)
+        except Exception:
+            pass
+
         return jsonify(success=True)
     except Exception:
         db.session.rollback()
@@ -322,3 +337,57 @@ def review_submit(slug, table_id, order_id):
             'customer/review.html',
             restaurant=restaurant, table=table, order=order,
         )
+
+
+# ──────────────────────────────────────────────
+# Route 8: Online Payment (Flouci)
+# ──────────────────────────────────────────────
+
+@customer_bp.route('/r/<slug>/table/<int:table_id>/order/<int:order_id>/pay')
+def payment_initiate(slug, table_id, order_id):
+    """Redirect customer to Flouci online payment page."""
+    from flask import current_app
+    from app.services.payment_service import initiate_flouci_payment
+
+    restaurant, table = _get_restaurant_and_table(slug, table_id)
+    order = Order.query.filter_by(
+        id=order_id, restaurant_id=restaurant.id
+    ).first_or_404()
+
+    if order.payment_status != 'pending':
+        flash('This order has already been paid.', 'info')
+        return redirect(url_for('customer.track_order',
+                                slug=slug, table_id=table_id, order_id=order_id))
+
+    success_url = url_for('customer.payment_callback', _external=True,
+                          slug=slug, table_id=table_id, order_id=order_id)
+    fail_url = url_for('customer.payment_callback', _external=True,
+                       slug=slug, table_id=table_id, order_id=order_id, failed='1')
+
+    result = initiate_flouci_payment(order_id, order.total_amount, success_url, fail_url)
+
+    if result is None:
+        flash('Payment service is unavailable. Please pay at the counter.', 'error')
+        return redirect(url_for('customer.track_order',
+                                slug=slug, table_id=table_id, order_id=order_id))
+
+    return redirect(result['payment_url'])
+
+
+@customer_bp.route('/r/<slug>/table/<int:table_id>/order/<int:order_id>/payment/callback')
+def payment_callback(slug, table_id, order_id):
+    """Verify Flouci payment and update order status."""
+    from app.services.payment_service import verify_flouci_payment
+
+    restaurant, table = _get_restaurant_and_table(slug, table_id)
+    payment_id = request.args.get('payment_id', '')
+
+    if request.args.get('failed'):
+        flash('Payment was not completed. Please try again or pay at the counter.', 'error')
+    elif payment_id and verify_flouci_payment(payment_id):
+        flash('Payment successful! Your order is confirmed.', 'success')
+    else:
+        flash('Payment could not be verified. Please contact staff.', 'warning')
+
+    return redirect(url_for('customer.track_order',
+                            slug=slug, table_id=table_id, order_id=order_id))

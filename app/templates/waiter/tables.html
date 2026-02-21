@@ -89,6 +89,10 @@
         {% endif %}
     </main>
 
+    <!-- WebSocket -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+
     <script>
         const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
         let currentCallId = null;
@@ -115,28 +119,30 @@
             if ((await res.json()).success) {
                 document.getElementById('call-banner').classList.add('hidden');
                 currentCallId = null;
-                pollCalls();
             }
         }
 
-        async function pollCalls() {
-            try {
-                const data = await (await fetch('/waiter/calls')).json();
-                if (data.calls.length) {
-                    const call = data.calls[0];
-                    currentCallId = call.id;
-                    document.getElementById('call-text').textContent =
-                        `Table ${call.table_id}: ${call.call_type.replace('_', ' ')}`;
-                    document.getElementById('call-sub').textContent = call.message || '';
-                    document.getElementById('call-banner').classList.remove('hidden');
-                } else {
-                    document.getElementById('call-banner').classList.add('hidden');
-                }
-            } catch (_) {}
+        function showCallBanner(call) {
+            currentCallId = call.call_id || call.id;
+            document.getElementById('call-text').textContent =
+                `Table ${call.table_number || call.table_id}: ${(call.call_type || '').replace('_', ' ')}`;
+            document.getElementById('call-sub').textContent = call.message || '';
+            document.getElementById('call-banner').classList.remove('hidden');
+            playSound('call_waiter');
         }
 
-        pollCalls();
-        setInterval(pollCalls, 15000); // poll every 15 seconds
+        // Connect via WebSocket (instant calls, no polling)
+        connectAsWaiter({{ restaurant.id }}, {{ current_user.id }});
+
+        onEvent('waiter_call', function (data) {
+            showCallBanner(data);
+        });
+
+        onEvent('order_ready', function (data) {
+            // Optionally update table card badge
+            console.log('Order ready:', data.order_number, 'Table', data.table_number);
+            playSound('order_ready');
+        });
     </script>
 </body>
 </html>

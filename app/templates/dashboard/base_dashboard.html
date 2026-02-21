@@ -58,6 +58,10 @@
            class="sidebar-link {{ 'active' if 'order' in (request.endpoint or '') }}">
             📋 <span>Orders</span>
         </a>
+        <a href="{{ url_for('dashboard.analytics') }}"
+           class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.analytics' }}">
+            📈 <span>Analytics</span>
+        </a>
         <a href="{{ url_for('dashboard.settings') }}"
            class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.settings' }}">
             ⚙️ <span>Settings</span>

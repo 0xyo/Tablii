@@ -115,6 +115,11 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/kitchen_display.js') }}"></script>
+
+    <!-- WebSocket -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+
     <script>
         // Start all timers on load
         document.querySelectorAll('.kitchen-timer[data-start]').forEach(el => startTimer(el));
@@ -126,6 +131,30 @@
         }
         updateClock();
         setInterval(updateClock, 1000);
+
+        // Connect to kitchen SocketIO room
+        connectAsKitchen({{ restaurant.id }});
+
+        // Real-time: new order accepted → card appears in queue
+        onEvent('kitchen_new_order', function (data) {
+            addToKitchenBoard(data);
+            playSound('new_order');
+        });
+
+        // Real-time: order moved past kitchen (ready/served/completed) → remove card
+        onEvent('order_status_update', function (data) {
+            if (['ready', 'served', 'completed', 'cancelled'].includes(data.status)) {
+                const card = document.getElementById('kcard-' + data.order_id);
+                if (card) {
+                    card.classList.add('removing');
+                    setTimeout(() => {
+                        const col = card.closest('[id^="col-"]');
+                        card.remove();
+                        if (col) _updateCount(col.id.replace('col-', ''));
+                    }, 300);
+                }
+            }
+        });
     </script>
 </body>
 </html>

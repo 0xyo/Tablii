@@ -107,6 +107,13 @@ def create_order(session_id, items, payment_method, special_notes, restaurant):
 
     db.session.commit()
 
+    # Real-time notification
+    try:
+        from app.events.order_events import notify_new_order
+        notify_new_order(order)
+    except Exception:
+        logger.exception('notify_new_order failed silently')
+
     return order
 
 
@@ -172,6 +179,20 @@ def update_order_status(
         db.session.rollback()
         logger.exception('Failed to update order %s to %s', order_id, new_status)
         return (False, 'Database error.')
+
+    # Real-time notifications
+    try:
+        from app.events.order_events import notify_order_status_change
+        notify_order_status_change(order, new_status)
+
+        if new_status == 'accepted':
+            from app.events.kitchen_events import notify_kitchen_new_order
+            notify_kitchen_new_order(order)
+        elif new_status == 'ready':
+            from app.events.kitchen_events import notify_order_ready
+            notify_order_ready(order)
+    except Exception:
+        logger.exception('Status change notification failed silently')
 
     return (True, 'OK')
 

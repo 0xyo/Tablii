@@ -902,3 +902,48 @@ def settings():
     db.session.commit()
     flash('Settings saved.', 'success')
     return redirect(url_for('dashboard.settings'))
+
+
+# ──────────────────────────────────────────────
+# 9. Analytics
+# ──────────────────────────────────────────────
+
+@dashboard_bp.route('/analytics')
+@login_required
+@restaurant_required
+def analytics():
+    """Analytics & reporting dashboard."""
+    from datetime import timedelta, date as _date
+
+    from app.services.analytics_service import (
+        get_daily_stats,
+        get_revenue_by_period,
+        get_popular_items,
+        get_peak_hours,
+        get_average_service_time,
+    )
+
+    restaurant = g.restaurant
+    period = request.args.get('period', '7d')
+    period_map = {'7d': 7, '30d': 30, '90d': 90}
+    days = period_map.get(period, 7)
+
+    today = _date.today()
+    start = today - timedelta(days=days - 1)
+
+    daily_stats = get_daily_stats(restaurant.id, today)
+    revenue_data = get_revenue_by_period(restaurant.id, start, today)
+    popular_items = get_popular_items(restaurant.id, period_days=days)
+    peak_hours = get_peak_hours(restaurant.id, period_days=days)
+    service_time = get_average_service_time(restaurant.id, period_days=days)
+
+    return render_template(
+        'dashboard/analytics/reports.html',
+        restaurant=restaurant,
+        period=period,
+        daily_stats=daily_stats,
+        revenue_data=revenue_data,
+        popular_items=popular_items,
+        peak_hours=peak_hours,
+        service_time=service_time,
+    )

@@ -64,5 +64,35 @@
     </div>
 
     {% block scripts %}{% endblock %}
+
+    <!-- WebSocket -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+    {% if restaurant %}
+    <script>
+        // Connect cashier to their rooms
+        connectAsCashier({{ restaurant.id }});
+
+        // New order → add to board + sound
+        onEvent('new_order', function (data) {
+            if (typeof addOrderToBoard === 'function') {
+                addOrderToBoard(data);
+            }
+            playSound('new_order');
+        });
+
+        // Status change → move or remove card
+        onEvent('order_status_update', function (data) {
+            if (typeof moveOrderCard === 'function') {
+                const terminal = ['served', 'completed', 'cancelled'];
+                if (terminal.includes(data.status)) {
+                    if (typeof removeOrderCard === 'function') removeOrderCard(data.order_id);
+                } else {
+                    moveOrderCard(data.order_id, data.status);
+                }
+            }
+        });
+    </script>
+    {% endif %}
 </body>
 </html>
