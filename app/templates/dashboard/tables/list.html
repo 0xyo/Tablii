@@ -1,0 +1,81 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Tables{% endblock %}
+{% block page_title %}Tables{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex gap-6 flex-col xl:flex-row">
+    <!-- Table grid -->
+    <div class="flex-1">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            {% for table in tables %}
+            {% set status_colors = {
+                'free': 'border-green-300 bg-green-50',
+                'occupied': 'border-orange-300 bg-orange-50',
+                'reserved': 'border-blue-300 bg-blue-50',
+            } %}
+            <div class="bg-white rounded-xl shadow-sm border-2 {{ status_colors.get(table.status, 'border-gray-200 bg-white') }} p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-2xl font-bold text-gray-800">T{{ table.table_number }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                          {{ 'bg-green-100 text-green-700' if table.status == 'free'
+                          else 'bg-orange-100 text-orange-700' if table.status == 'occupied'
+                          else 'bg-blue-100 text-blue-700' }}">
+                        {{ table.status|title }}
+                    </span>
+                </div>
+                <div class="text-xs text-gray-500">
+                    <div>Capacity: {{ table.capacity }}</div>
+                    {% if table.assigned_waiter %}
+                    <div>Waiter: {{ table.assigned_waiter.name }}</div>
+                    {% endif %}
+                    {% if table.qr_code_url %}
+                    <a href="{{ url_for('dashboard.table_qr', id=table.id) }}" class="text-orange-500 hover:text-orange-600">📥 Download QR</a>
+                    {% endif %}
+                </div>
+                <!-- Assign waiter -->
+                <form method="POST" action="{{ url_for('dashboard.table_assign_waiter', id=table.id) }}" class="flex gap-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="waiter_id" class="flex-1 border border-gray-200 rounded text-xs px-1 py-1">
+                        <option value="">No waiter</option>
+                        {% for w in waiters %}
+                        <option value="{{ w.id }}" {{ 'selected' if table.assigned_waiter_id == w.id }}>{{ w.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 rounded">✓</button>
+                </form>
+                <!-- Delete -->
+                <form method="POST" action="{{ url_for('dashboard.table_delete', id=table.id) }}" onsubmit="return confirm('Delete table?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="w-full text-xs text-red-400 hover:text-red-600 text-left">Delete</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="col-span-full bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
+                No tables yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Add table form -->
+    <div class="xl:w-64">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">Add Table</h3>
+            <form method="POST" action="{{ url_for('dashboard.table_add') }}" class="space-y-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Table Number *</label>
+                    <input type="number" name="table_number" min="1" required
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Capacity</label>
+                    <input type="number" name="capacity" min="1" value="4"
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">Add Table</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

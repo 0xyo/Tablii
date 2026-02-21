@@ -1,0 +1,54 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}{{ 'Edit' if mode == 'edit' else 'Add' }} Staff{% endblock %}
+{% block page_title %}{{ 'Edit' if mode == 'edit' else 'Add' }} Staff Member{% endblock %}
+
+{% block dashboard_content %}
+<a href="{{ url_for('dashboard.staff') }}" class="text-sm text-gray-500 hover:text-orange-500 mb-4 inline-block">← Back to Staff</a>
+<div class="max-w-lg bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <form method="POST" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Full Name *</label>
+            <input type="text" name="name" required
+                   value="{{ (form.name if form else None) or (member.name if member else '') }}"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        </div>
+        {% if mode == 'create' %}
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Username *</label>
+            <input type="text" name="username" required
+                   value="{{ form.username if form else '' }}"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        </div>
+        {% endif %}
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">
+                {{ 'New Password (leave blank to keep)' if mode == 'edit' else 'Password *' }}
+            </label>
+            <input type="password" name="password" {{ 'required' if mode == 'create' }}
+                   minlength="6"
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Role *</label>
+            <select name="role" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                <option value="cashier" {{ 'selected' if member and member.role == 'cashier' }}>Cashier</option>
+                <option value="kitchen" {{ 'selected' if member and member.role == 'kitchen' }}>Kitchen</option>
+                <option value="waiter" {{ 'selected' if member and member.role == 'waiter' }}>Waiter</option>
+            </select>
+        </div>
+        {% if mode == 'edit' %}
+        <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="is_active" class="accent-orange-500" {{ 'checked' if member and member.is_active }}>
+            <span>Active</span>
+        </label>
+        {% endif %}
+        <div class="flex gap-3 pt-2">
+            <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600">
+                {{ 'Save Changes' if mode == 'edit' else 'Add Staff Member' }}
+            </button>
+            <a href="{{ url_for('dashboard.staff') }}" class="border border-gray-200 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Categories{% endblock %}
+{% block page_title %}Menu — Categories{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex flex-col xl:flex-row gap-6">
+    <!-- Category list -->
+    <div class="flex-1 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">Categories</h2>
+            <div class="flex gap-2">
+                <a href="{{ url_for('dashboard.menu_items') }}" class="text-sm text-orange-500 hover:text-orange-600">View Items →</a>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm" id="categories-table">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3 text-left">Name</th>
+                        <th class="px-6 py-3 text-left">Icon</th>
+                        <th class="px-6 py-3 text-left">Items</th>
+                        <th class="px-6 py-3 text-left">Active</th>
+                        <th class="px-6 py-3 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for cat in categories %}
+                    <tr data-id="{{ cat.id }}">
+                        <td class="px-6 py-3">
+                            <div class="font-medium">{{ cat.name_fr }}</div>
+                            {% if cat.name_ar %}<div class="text-xs text-gray-400">{{ cat.name_ar }}</div>{% endif %}
+                        </td>
+                        <td class="px-6 py-3 text-xl">{{ cat.icon or '—' }}</td>
+                        <td class="px-6 py-3">{{ cat.item_count }}</td>
+                        <td class="px-6 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full {{ 'bg-green-100 text-green-700' if cat.is_active else 'bg-gray-100 text-gray-500' }}">
+                                {{ 'Active' if cat.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 flex gap-2">
+                            <button onclick='openEditModal({{ cat.id }}, {{ cat.name_fr|tojson }}, {{ (cat.name_ar or "")|tojson }}, {{ (cat.name_en or "")|tojson }}, {{ (cat.icon or "")|tojson }}, {{ cat.is_active|tojson }}, {{ (cat.ramadan_type or "")|tojson }})'
+                                    class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                            <form method="POST" action="{{ url_for('dashboard.category_delete', id=cat.id) }}" onsubmit="return confirm('Delete this category?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">No categories yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Category form -->
+    <div class="xl:w-72">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">Add Category</h3>
+            <form method="POST" action="{{ url_for('dashboard.category_add') }}" class="space-y-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (FR) *</label>
+                    <input type="text" name="name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (AR)</label>
+                    <input type="text" name="name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (EN)</label>
+                    <input type="text" name="name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Icon (emoji)</label>
+                    <input type="text" name="icon" maxlength="10" placeholder="🍕" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Ramadan Type</label>
+                    <select name="ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                        <option value="">None</option>
+                        <option value="iftar">Iftar</option>
+                        <option value="suhoor">Suhoor</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">Add Category</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="font-semibold text-gray-800 mb-4">Edit Category</h3>
+        <form id="edit-form" method="POST" class="space-y-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Name (FR) *</label>
+                <input type="text" name="name_fr" id="edit_name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Name (AR)</label>
+                <input type="text" name="name_ar" id="edit_name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Name (EN)</label>
+                <input type="text" name="name_en" id="edit_name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Icon</label>
+                <input type="text" name="icon" id="edit_icon" maxlength="10" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Ramadan Type</label>
+                <select name="ramadan_type" id="edit_ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <option value="">None</option>
+                    <option value="iftar">Iftar</option>
+                    <option value="suhoor">Suhoor</option>
+                </select>
+            </div>
+            <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="is_active" id="edit_is_active" class="accent-orange-500">
+                <span>Active</span>
+            </label>
+            <div class="flex gap-2 pt-2">
+                <button type="submit" class="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Save</button>
+                <button type="button" onclick="closeEditModal()" class="flex-1 border border-gray-200 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function openEditModal(id, nameFr, nameAr, nameEn, icon, isActive, ramadanType) {
+    document.getElementById('edit_name_fr').value = nameFr;
+    document.getElementById('edit_name_ar').value = nameAr;
+    document.getElementById('edit_name_en').value = nameEn;
+    document.getElementById('edit_icon').value = icon;
+    document.getElementById('edit_ramadan_type').value = ramadanType || '';
+    document.getElementById('edit_is_active').checked = isActive;
+    document.getElementById('edit-form').action = `/dashboard/menu/categories/${id}/update`;
+    document.getElementById('edit-modal').classList.remove('hidden');
+}
+function closeEditModal() {
+    document.getElementById('edit-modal').classList.add('hidden');
+}
+</script>
+{% endblock %}

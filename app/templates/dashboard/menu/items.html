@@ -1,0 +1,92 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Menu Items{% endblock %}
+{% block page_title %}Menu — Items{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex items-center justify-between mb-4">
+    <!-- Category filter -->
+    <form method="GET" class="flex items-center gap-2">
+        <select name="category_id" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ 'selected' if selected_category == cat.id }}>{{ cat.name_fr }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <a href="{{ url_for('dashboard.menu_item_new') }}" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">+ Add Item</a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr>
+                <th class="px-6 py-3 text-left">Item</th>
+                <th class="px-6 py-3 text-left">Category</th>
+                <th class="px-6 py-3 text-left">Price</th>
+                <th class="px-6 py-3 text-left">Available</th>
+                <th class="px-6 py-3 text-left">Popular</th>
+                <th class="px-6 py-3 text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+            {% for item in items %}
+            <tr>
+                <td class="px-6 py-3 flex items-center gap-3">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" class="w-10 h-10 rounded-lg object-cover">
+                    {% else %}
+                    <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-lg">🍽️</div>
+                    {% endif %}
+                    <span class="font-medium">{{ item.name_fr }}</span>
+                </td>
+                <td class="px-6 py-3 text-gray-500">{{ item.category.name_fr if item.category else '—' }}</td>
+                <td class="px-6 py-3 font-medium">{{ '%.3f'|format(item.price) }} {{ restaurant.currency }}</td>
+                <td class="px-6 py-3">
+                    <button onclick="toggleItem({{ item.id }}, this)"
+                            class="px-2 py-1 text-xs rounded-full font-medium transition-colors
+                            {{ 'bg-green-100 text-green-700' if item.is_available else 'bg-gray-100 text-gray-500' }}"
+                            data-item-id="{{ item.id }}">
+                        {{ 'Yes' if item.is_available else 'No' }}
+                    </button>
+                </td>
+                <td class="px-6 py-3">
+                    {% if item.is_popular %}<span class="text-yellow-500 text-lg">⭐</span>{% else %}—{% endif %}
+                </td>
+                <td class="px-6 py-3">
+                    <div class="flex gap-2">
+                        <a href="{{ url_for('dashboard.menu_item_edit', id=item.id) }}" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</a>
+                        <a href="{{ url_for('dashboard.customizations', item_id=item.id) }}" class="text-xs text-purple-600 hover:text-purple-800 font-medium">Options</a>
+                        <form method="POST" action="{{ url_for('dashboard.menu_item_delete', id=item.id) }}" onsubmit="return confirm('Delete this item?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">No menu items yet. <a href="{{ url_for('dashboard.menu_item_new') }}" class="text-orange-500">Add one →</a></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function toggleItem(id, btn) {
+    const csrfToken =
+        document.querySelector('meta[name=csrf-token]')?.content ||
+        document.querySelector('input[name=csrf_token]')?.value ||
+        '';
+    const res = await fetch(`/dashboard/menu/item/${id}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+    });
+    const data = await res.json();
+    if (data.success) {
+        btn.textContent = data.is_available ? 'Yes' : 'No';
+        btn.className = `px-2 py-1 text-xs rounded-full font-medium transition-colors ${data.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`;
+    }
+}
+</script>
+{% endblock %}

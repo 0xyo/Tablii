@@ -1,0 +1,92 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Order History{% endblock %}
+{% block page_title %}Orders History{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filters -->
+<form method="GET" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-end">
+    <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+        <select name="status" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <option value="" {{ 'selected' if not status }}>All Statuses</option>
+            {% for s in ['new', 'accepted', 'preparing', 'ready', 'served', 'completed', 'cancelled'] %}
+            <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s|title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">From</label>
+        <input type="date" name="date_from" value="{{ date_from }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">To</label>
+        <input type="date" name="date_to" value="{{ date_to }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+    </div>
+    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Filter</button>
+    <a href="{{ url_for('dashboard.order_history') }}" class="border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-600">Clear</a>
+</form>
+
+<!-- Orders table -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+            <tr>
+                <th class="px-6 py-3 text-left">Order #</th>
+                <th class="px-6 py-3 text-left">Table</th>
+                <th class="px-6 py-3 text-left">Items</th>
+                <th class="px-6 py-3 text-left">Total</th>
+                <th class="px-6 py-3 text-left">Status</th>
+                <th class="px-6 py-3 text-left">Payment</th>
+                <th class="px-6 py-3 text-left">Date/Time</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+            {% for order in orders %}
+            {% set status_colors = {
+                'new': 'bg-blue-100 text-blue-700',
+                'accepted': 'bg-indigo-100 text-indigo-700',
+                'preparing': 'bg-yellow-100 text-yellow-700',
+                'ready': 'bg-green-100 text-green-700',
+                'served': 'bg-gray-100 text-gray-600',
+                'completed': 'bg-gray-100 text-gray-500',
+                'cancelled': 'bg-red-100 text-red-500',
+            } %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-3 font-mono font-medium">{{ order.order_number }}</td>
+                <td class="px-6 py-3">{% if order.table_id %}T{{ order.table_id }}{% else %}—{% endif %}</td>
+                <td class="px-6 py-3">{{ order.items.count() }}</td>
+                <td class="px-6 py-3 font-medium">{{ '%.3f'|format(order.total_amount) }} {{ restaurant.currency }}</td>
+                <td class="px-6 py-3">
+                    <span class="px-2 py-1 text-xs rounded-full font-medium {{ status_colors.get(order.status, 'bg-gray-100') }}">
+                        {{ order.status|title }}
+                    </span>
+                </td>
+                <td class="px-6 py-3">
+                    <span class="px-2 py-1 text-xs rounded-full font-medium {{ 'bg-green-100 text-green-700' if order.payment_status == 'paid' else 'bg-gray-100 text-gray-500' }}">
+                        {{ order.payment_status|title if order.payment_status else 'Pending' }}
+                    </span>
+                </td>
+                <td class="px-6 py-3 text-gray-500">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400">No orders found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div class="flex items-center justify-center gap-2 mt-4">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('dashboard.order_history', page=pagination.prev_num, status=status, date_from=date_from, date_to=date_to) }}"
+       class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">← Prev</a>
+    {% endif %}
+    <span class="text-sm text-gray-500">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a href="{{ url_for('dashboard.order_history', page=pagination.next_num, status=status, date_from=date_from, date_to=date_to) }}"
+       class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Next →</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
