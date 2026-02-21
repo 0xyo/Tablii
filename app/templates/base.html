@@ -60,6 +60,13 @@
           setTimeout(() => el.remove(), 500);
         });
       }, 5000);
+
+      // PWA Service Worker registration
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/static/sw.js')
+          .catch(() => {/* SW registration failed silently */});
+      }
     </script>
   </body>
 </html>
