@@ -1,0 +1,50 @@
+{% macro order_card(order, restaurant, next_status=None, next_label=None, endpoint=None) %}
+{% set age_minutes = ((now - order.created_at).total_seconds() // 60) | int %}
+<div class="order-card bg-white rounded-xl shadow border border-gray-100 p-4 flex flex-col gap-3"
+     id="order-card-{{ order.id }}"
+     data-order-id="{{ order.id }}"
+     data-created="{{ order.created_at.isoformat() }}">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <span class="font-bold text-gray-800 font-mono">#{{ order.order_number }}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
+            T{{ order.table_id or '—' }}
+        </span>
+    </div>
+
+    <!-- Items summary -->
+    <div class="text-xs text-gray-600 space-y-0.5">
+        {% for oi in order.items %}
+        <div class="flex justify-between">
+            <span>{{ oi.quantity }}× {{ oi.menu_item.name_fr if oi.menu_item else '?' }}</span>
+            {% if oi.notes %}<span class="text-gray-400 italic">{{ oi.notes }}</span>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Footer: total + timer + action -->
+    <div class="flex items-center justify-between pt-1 border-t border-gray-50">
+        <span class="text-sm font-semibold text-gray-800">
+            {{ '%.3f'|format(order.total_amount) }} {{ restaurant.currency }}
+        </span>
+        <span class="order-timer text-xs text-gray-400"
+              data-start="{{ order.created_at.isoformat() }}">
+            {{ age_minutes }}m
+        </span>
+    </div>
+
+    {% if next_status and endpoint %}
+    <button onclick="changeOrderStatus({{ order.id }}, '{{ next_status }}')"
+            class="w-full text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white py-1.5 rounded-lg transition-colors">
+        {{ next_label or next_status|title }}
+    </button>
+    {% endif %}
+    {% if order.status in ['new', 'accepted'] %}
+    <button onclick="changeOrderStatus({{ order.id }}, 'cancelled')"
+            class="w-full text-xs font-medium border border-red-200 text-red-500 hover:bg-red-50 py-1 rounded-lg transition-colors">
+        Cancel
+    </button>
+    {% endif %}
+</div>
+{% endmacro %}

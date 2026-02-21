@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Kitchen Display — {{ restaurant.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #111827; color: #f9fafb; }
+        .kitchen-card { transition: box-shadow .2s, opacity .3s, transform .3s; }
+        .kitchen-card.removing { opacity: 0; transform: scale(.95); }
+        .timer-normal { color: #6b7280; }
+        .timer-warn   { color: #f59e0b; }
+        .timer-urgent { color: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Top bar -->
+    <header class="bg-gray-900 border-b border-gray-700 h-14 flex items-center px-8 gap-6">
+        <h1 class="text-xl font-bold text-orange-400">🍳 Kitchen Display</h1>
+        <span class="text-gray-400 text-sm">{{ restaurant.name }}</span>
+        <span class="ml-auto text-gray-400 text-sm" id="clock"></span>
+    </header>
+
+    <!-- Two-column board -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-[calc(100vh-3.5rem)] overflow-auto">
+
+        <!-- Column: Accepted (to start cooking) -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-black text-indigo-400 uppercase tracking-widest">Queue</h2>
+                <span id="count-accepted" class="bg-indigo-900 text-indigo-300 text-sm font-bold px-3 py-1 rounded-full">
+                    {{ accepted|length }}
+                </span>
+            </div>
+            <div id="col-accepted" class="flex flex-col gap-4">
+                {% for order in accepted %}
+                <div class="kitchen-card bg-gray-800 rounded-2xl p-5 border border-gray-700 shadow-lg"
+                     id="kcard-{{ order.id }}"
+                     data-order-id="{{ order.id }}"
+                     data-created="{{ order.created_at.isoformat() }}">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-2xl font-black text-white">#{{ order.order_number }}</span>
+                        <span class="text-indigo-400 font-bold text-lg">
+                            {% if order.table_id %}T{{ order.table_id }}{% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <ul class="space-y-1 mb-4">
+                        {% for oi in order.items %}
+                        <li class="text-lg font-semibold text-gray-100">
+                            {{ oi.quantity }}× {{ oi.menu_item.name_fr if oi.menu_item else '?' }}
+                            {% if oi.notes %}<span class="text-yellow-400 text-sm ml-1">({{ oi.notes }})</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% if order.special_notes %}
+                    <div class="text-yellow-400 text-sm mb-3">📝 {{ order.special_notes }}</div>
+                    {% endif %}
+                    <div class="flex items-center justify-between">
+                        <span class="kitchen-timer text-sm font-mono timer-normal"
+                              data-start="{{ order.created_at.isoformat() }}">…</span>
+                        <button onclick="markAsPreparing({{ order.id }})"
+                                class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors">
+                            Start Cooking →
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Column: Preparing -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-black text-yellow-400 uppercase tracking-widest">Cooking</h2>
+                <span id="count-preparing" class="bg-yellow-900 text-yellow-300 text-sm font-bold px-3 py-1 rounded-full">
+                    {{ preparing|length }}
+                </span>
+            </div>
+            <div id="col-preparing" class="flex flex-col gap-4">
+                {% for order in preparing %}
+                <div class="kitchen-card bg-gray-800 rounded-2xl p-5 border border-yellow-800 shadow-lg"
+                     id="kcard-{{ order.id }}"
+                     data-order-id="{{ order.id }}"
+                     data-created="{{ (order.preparing_at or order.created_at).isoformat() }}">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-2xl font-black text-white">#{{ order.order_number }}</span>
+                        <span class="text-yellow-400 font-bold text-lg">
+                            {% if order.table_id %}T{{ order.table_id }}{% else %}—{% endif %}
+                        </span>
+                    </div>
+                    <ul class="space-y-1 mb-4">
+                        {% for oi in order.items %}
+                        <li class="text-lg font-semibold text-gray-100">
+                            {{ oi.quantity }}× {{ oi.menu_item.name_fr if oi.menu_item else '?' }}
+                            {% if oi.notes %}<span class="text-yellow-400 text-sm ml-1">({{ oi.notes }})</span>{% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="flex items-center justify-between">
+                        <span class="kitchen-timer text-sm font-mono timer-normal"
+                              data-start="{{ (order.preparing_at or order.created_at).isoformat() }}">…</span>
+                        <button onclick="markAsReady({{ order.id }})"
+                                class="bg-green-600 hover:bg-green-500 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors">
+                            ✓ Ready
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/kitchen_display.js') }}"></script>
+    <script>
+        // Start all timers on load
+        document.querySelectorAll('.kitchen-timer[data-start]').forEach(el => startTimer(el));
+
+        // Clock
+        function updateClock() {
+            document.getElementById('clock').textContent =
+                new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

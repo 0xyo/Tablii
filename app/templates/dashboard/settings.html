@@ -103,9 +103,12 @@
             <div class="flex items-center gap-3 text-sm flex-wrap">
                 <span class="w-24 font-medium text-gray-700">{{ days[i] }}</span>
                 <label class="flex items-center gap-1.5">
-                    <input type="checkbox" name="closed_{{ i }}" class="accent-orange-500"
-                           {{ 'checked' if h and h.is_closed }}
-                           onchange="toggleDay({{ i }}, this.checked)">
+                    <input type="checkbox"
+       name="closed_{{ i }}"
+       class="accent-orange-500"
+       {% if h and h.is_closed %}checked{% endif %}
+       data-day="{{ i }}"
+       onchange="toggleDay(Number(this.dataset.day), this.checked)">
                     <span class="text-gray-500">Closed</span>
                 </label>
                 <div id="hours-{{ i }}" class="{{ 'opacity-30 pointer-events-none' if h and h.is_closed else '' }} flex items-center gap-2">

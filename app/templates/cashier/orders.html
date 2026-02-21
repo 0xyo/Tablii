@@ -1,0 +1,85 @@
+{% extends 'cashier/base_cashier.html' %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}Live Orders{% endblock %}
+
+{% block cashier_content %}
+{% set columns = [
+    ('new',      'New',       'accepted',  'Accept',  'bg-blue-50 border-blue-200'),
+    ('accepted', 'Accepted',  'preparing', 'Prepare', 'bg-indigo-50 border-indigo-200'),
+    ('preparing','Preparing', 'ready',     'Ready',   'bg-yellow-50 border-yellow-200'),
+    ('ready',    'Ready',     'served',    'Served',  'bg-green-50 border-green-200'),
+] %}
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 h-full" id="kanban-board">
+    {% for status, label, next_status, next_label, color in columns %}
+    <div class="flex flex-col gap-3" id="col-{{ status }}">
+        <!-- Column header -->
+        <div class="flex items-center justify-between px-1">
+            <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{{ label }}</h2>
+            <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full col-count"
+                  id="count-{{ status }}">{{ grouped[status]|length }}</span>
+        </div>
+
+        <!-- Cards -->
+        <div class="flex flex-col gap-3 min-h-24 border-2 border-dashed {{ color }} rounded-xl p-2"
+             id="cards-{{ status }}">
+            {% for order in grouped[status] %}
+            <div class="order-card bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2"
+                 id="order-card-{{ order.id }}"
+                 data-order-id="{{ order.id }}"
+                 data-status="{{ order.status }}"
+                 data-created="{{ order.created_at.isoformat() }}">
+
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-gray-800 font-mono text-sm">#{{ order.order_number }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
+                        {% if order.table_id %}T{{ order.table_id }}{% else %}—{% endif %}
+                    </span>
+                </div>
+
+                <div class="text-xs text-gray-600 space-y-0.5">
+                    {% for oi in order.items %}
+                    <div class="flex gap-1">
+                        <span class="font-medium">{{ oi.quantity }}×</span>
+                        <span>{{ oi.menu_item.name_fr if oi.menu_item else '?' }}</span>
+                        {% if oi.notes %}<span class="text-gray-400 italic">({{ oi.notes }})</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                    {% if order.special_notes %}
+                    <div class="text-orange-500 text-xs mt-1">📝 {{ order.special_notes }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center justify-between pt-1 border-t border-gray-50">
+                    <span class="text-sm font-semibold">{{ '%.3f'|format(order.total_amount) }} {{ restaurant.currency }}</span>
+                    <span class="order-timer text-xs text-gray-400"
+                          data-start="{{ order.created_at.isoformat() }}">…</span>
+                </div>
+
+                <button onclick="changeOrderStatus({{ order.id }}, '{{ next_status }}')"
+                        class="w-full text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white py-1.5 rounded-lg transition-colors">
+                    → {{ next_label }}
+                </button>
+                {% if status in ['new', 'accepted'] %}
+                <button onclick="changeOrderStatus({{ order.id }}, 'cancelled')"
+                        class="w-full text-xs border border-red-200 text-red-400 hover:bg-red-50 py-1 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cashier_board.js') }}"></script>
+<script>
+    // Start timers
+    document.querySelectorAll('.order-timer[data-start]').forEach(el => {
+        startCardTimer(el);
+    });
+</script>
+{% endblock %}

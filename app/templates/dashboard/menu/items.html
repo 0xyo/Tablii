@@ -42,12 +42,12 @@
                 <td class="px-6 py-3 text-gray-500">{{ item.category.name_fr if item.category else '—' }}</td>
                 <td class="px-6 py-3 font-medium">{{ '%.3f'|format(item.price) }} {{ restaurant.currency }}</td>
                 <td class="px-6 py-3">
-                    <button onclick="toggleItem({{ item.id }}, this)"
-                            class="px-2 py-1 text-xs rounded-full font-medium transition-colors
-                            {{ 'bg-green-100 text-green-700' if item.is_available else 'bg-gray-100 text-gray-500' }}"
-                            data-item-id="{{ item.id }}">
-                        {{ 'Yes' if item.is_available else 'No' }}
-                    </button>
+                    <button onclick="toggleItem(this.dataset.itemId, this)"
+        class="px-2 py-1 text-xs rounded-full font-medium transition-colors
+        {% if item.is_available %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}"
+        data-item-id="{{ item.id }}">
+    {% if item.is_available %}Yes{% else %}No{% endif %}
+</button>
                 </td>
                 <td class="px-6 py-3">
                     {% if item.is_popular %}<span class="text-yellow-500 text-lg">⭐</span>{% else %}—{% endif %}

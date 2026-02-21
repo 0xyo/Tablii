@@ -38,7 +38,15 @@
                             </span>
                         </td>
                         <td class="px-6 py-3 flex gap-2">
-                            <button onclick='openEditModal({{ cat.id }}, {{ cat.name_fr|tojson }}, {{ (cat.name_ar or "")|tojson }}, {{ (cat.name_en or "")|tojson }}, {{ (cat.icon or "")|tojson }}, {{ cat.is_active|tojson }}, {{ (cat.ramadan_type or "")|tojson }})'
+                            <button type="button"
+                                    onclick="openEditModalFromButton(this)"
+                                    data-id="{{ cat.id }}"
+                                    data-name-fr="{{ cat.name_fr|e }}"
+                                    data-name-ar="{{ (cat.name_ar or '')|e }}"
+                                    data-name-en="{{ (cat.name_en or '')|e }}"
+                                    data-icon="{{ (cat.icon or '')|e }}"
+                                    data-is-active="{{ '1' if cat.is_active else '0' }}"
+                                    data-ramadan-type="{{ (cat.ramadan_type or '')|e }}"
                                     class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                             <form method="POST" action="{{ url_for('dashboard.category_delete', id=cat.id) }}" onsubmit="return confirm('Delete this category?')">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -91,7 +99,7 @@
 </div>
 
 <!-- Edit Modal -->
-<div id="edit-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+<div id="edit-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 items-center justify-center">
     <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
         <h3 class="font-semibold text-gray-800 mb-4">Edit Category</h3>
         <form id="edit-form" method="POST" class="space-y-3">
@@ -135,6 +143,17 @@
 
 {% block scripts %}
 <script>
+function openEditModalFromButton(btn) {
+    openEditModal(
+        parseInt(btn.dataset.id, 10),
+        btn.dataset.nameFr || '',
+        btn.dataset.nameAr || '',
+        btn.dataset.nameEn || '',
+        btn.dataset.icon || '',
+        btn.dataset.isActive === '1',
+        btn.dataset.ramadanType || ''
+    );
+}
 function openEditModal(id, nameFr, nameAr, nameEn, icon, isActive, ramadanType) {
     document.getElementById('edit_name_fr').value = nameFr;
     document.getElementById('edit_name_ar').value = nameAr;
@@ -144,9 +163,11 @@ function openEditModal(id, nameFr, nameAr, nameEn, icon, isActive, ramadanType) 
     document.getElementById('edit_is_active').checked = isActive;
     document.getElementById('edit-form').action = `/dashboard/menu/categories/${id}/update`;
     document.getElementById('edit-modal').classList.remove('hidden');
+    document.getElementById('edit-modal').classList.add('flex');
 }
 function closeEditModal() {
     document.getElementById('edit-modal').classList.add('hidden');
+    document.getElementById('edit-modal').classList.remove('flex');
 }
 </script>
 {% endblock %}

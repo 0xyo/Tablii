@@ -12,4 +12,11 @@ def register_blueprints(app):
     from app.routes.dashboard import dashboard_bp
     app.register_blueprint(dashboard_bp)
 
-    # Future blueprints will be registered here in later phases
+    from app.routes.cashier import cashier_bp
+    app.register_blueprint(cashier_bp)
+
+    from app.routes.kitchen import kitchen_bp
+    app.register_blueprint(kitchen_bp)
+
+    from app.routes.waiter import waiter_bp
+    app.register_blueprint(waiter_bp)

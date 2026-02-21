@@ -1,0 +1,131 @@
+{% extends 'cashier/base_cashier.html' %}
+{% block title %}Manual Order{% endblock %}
+{% block page_title %}Manual Order{% endblock %}
+
+{% block cashier_content %}
+<form method="POST" class="flex flex-col xl:flex-row gap-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- Left panel: table + payment + notes -->
+    <div class="xl:w-72 flex flex-col gap-4">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+            <h2 class="font-semibold text-gray-800">Order Details</h2>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Table</label>
+                <select name="table_id" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <option value="">No table (takeaway)</option>
+                    {% for t in tables %}
+                    <option value="{{ t.id }}">Table {{ t.table_number }} — {{ t.status|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Payment Method</label>
+                <select name="payment_method" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                    <option value="online">Online</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Notes</label>
+                <textarea name="special_notes" rows="2" placeholder="Special requests…"
+                          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none"></textarea>
+            </div>
+        </div>
+
+        <!-- Running total -->
+        <div class="bg-orange-50 rounded-xl border border-orange-100 p-4">
+            <div class="flex justify-between text-sm font-medium">
+                <span class="text-gray-600">Subtotal</span>
+                <span id="running-total">0.000</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Tax calculated at checkout</p>
+        </div>
+
+        <button type="submit"
+                class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl transition-colors text-sm">
+            Place Order →
+        </button>
+    </div>
+
+    <!-- Right panel: items by category -->
+    <div class="flex-1">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 class="font-semibold text-gray-800 mb-3">Menu Items</h2>
+
+            <!-- Category tabs -->
+            <div class="flex gap-2 flex-wrap mb-4 border-b border-gray-100 pb-3">
+                <button type="button" onclick="filterCategory('all')"
+                        class="cat-tab px-3 py-1 text-xs rounded-full bg-orange-500 text-white font-medium" data-cat="all">All</button>
+                {% for cat in categories %}
+                <button type="button" onclick="filterCategory('{{ cat.id }}')"
+                        class="cat-tab px-3 py-1 text-xs rounded-full border border-gray-200 text-gray-600 hover:bg-orange-50 font-medium"
+                        data-cat="{{ cat.id }}">{{ cat.icon or '' }} {{ cat.name_fr }}</button>
+                {% endfor %}
+            </div>
+
+            <!-- Items grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="items-grid">
+                {% for item in menu_items %}
+                <div class="item-card border border-gray-100 rounded-xl p-3 flex flex-col gap-2 hover:border-orange-300 transition-colors"
+                     data-cat="{{ item.category_id }}">
+                    <div class="font-medium text-sm text-gray-800 leading-tight">{{ item.name_fr }}</div>
+                    <div class="text-orange-500 text-xs font-semibold">{{ '%.3f'|format(item.price) }} {{ restaurant.currency }}</div>
+                    <div class="flex items-center gap-2 mt-auto">
+                        <button type="button" onclick="decQty({{ item.id }}, {{ item.price }})"
+                                class="w-6 h-6 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 text-sm font-bold">−</button>
+                        <input type="number" name="item_{{ item.id }}" id="qty-{{ item.id }}"
+                               value="0" min="0" max="20" readonly
+                               class="w-8 text-center text-sm font-medium border-0 bg-transparent">
+                        <button type="button" onclick="incQty({{ item.id }}, {{ item.price }})"
+                                class="w-6 h-6 rounded-full border border-orange-400 text-orange-500 hover:bg-orange-50 text-sm font-bold">+</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let runningTotal = 0;
+
+function updateTotal() {
+    document.getElementById('running-total').textContent = runningTotal.toFixed(3);
+}
+
+function incQty(id, price) {
+    const inp = document.getElementById(`qty-${id}`);
+    inp.value = Math.min(20, parseInt(inp.value) + 1);
+    runningTotal += price;
+    updateTotal();
+}
+
+function decQty(id, price) {
+    const inp = document.getElementById(`qty-${id}`);
+    if (parseInt(inp.value) > 0) {
+        inp.value = parseInt(inp.value) - 1;
+        runningTotal = Math.max(0, runningTotal - price);
+        updateTotal();
+    }
+}
+
+function filterCategory(catId) {
+    document.querySelectorAll('.item-card').forEach(el => {
+        el.style.display = (catId === 'all' || el.dataset.cat === catId) ? '' : 'none';
+    });
+    document.querySelectorAll('.cat-tab').forEach(btn => {
+        const active = btn.dataset.cat === catId;
+        btn.className = active
+            ? 'cat-tab px-3 py-1 text-xs rounded-full bg-orange-500 text-white font-medium'
+            : 'cat-tab px-3 py-1 text-xs rounded-full border border-gray-200 text-gray-600 hover:bg-orange-50 font-medium';
+    });
+}
+</script>
+{% endblock %}

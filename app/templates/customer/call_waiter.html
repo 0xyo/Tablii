@@ -32,12 +32,12 @@
     </div>
 
     <!-- Confirmation overlay -->
-    <div id="call-confirm" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div id="call-confirm" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 items-center justify-center">
         <div class="bg-white rounded-2xl p-8 text-center max-w-xs mx-4">
             <p class="text-5xl mb-4">✅</p>
             <h3 class="text-lg font-bold">Request Sent!</h3>
             <p class="text-gray-500 text-sm mt-1">A waiter will be with you shortly.</p>
-            <button onclick="document.getElementById('call-confirm').classList.add('hidden')" class="btn-primary mt-4">OK</button>
+            <button onclick="hideCallConfirm()" class="btn-primary mt-4">OK</button>
         </div>
     </div>
 </section>
@@ -52,7 +52,19 @@
 {% block scripts %}
 <script>
     const slug = "{{ restaurant.slug }}";
-    const tableId = {{ table.id }};
+    const tableId = Number("{{ table.id|int }}");
+
+    function showCallConfirm() {
+        const modal = document.getElementById("call-confirm");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    function hideCallConfirm() {
+        const modal = document.getElementById("call-confirm");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
 
     async function callWaiter(callType, message = "") {
         try {
@@ -64,7 +76,7 @@
             const data = await res.json();
 
             if (data.success) {
-                document.getElementById("call-confirm").classList.remove("hidden");
+                showCallConfirm();
                 if (document.getElementById("custom-msg")) {
                     document.getElementById("custom-msg").value = "";
                 }

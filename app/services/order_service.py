@@ -108,3 +108,101 @@ def create_order(session_id, items, payment_method, special_notes, restaurant):
     db.session.commit()
 
     return order
+
+
+# ---------------------------------------------------------------------------
+# State machine
+# ---------------------------------------------------------------------------
+
+VALID_TRANSITIONS = {
+    'new': ['accepted', 'cancelled'],
+    'accepted': ['preparing', 'cancelled'],
+    'preparing': ['ready'],
+    'ready': ['served'],
+    'served': ['completed'],
+}
+
+STATUS_TIMESTAMP = {
+    'accepted': 'accepted_at',
+    'preparing': 'preparing_at',
+    'ready': 'ready_at',
+    'served': 'served_at',
+    'completed': 'completed_at',
+}
+
+
+def update_order_status(
+    order_id: int, new_status: str, restaurant_id: int
+) -> tuple[bool, str]:
+    """Advance an order through the status state machine.
+
+    Args:
+        order_id: Primary key of the order.
+        new_status: Target status string.
+        restaurant_id: Used to enforce multi-tenant isolation.
+
+    Returns:
+        ``(True, 'OK')`` on success or ``(False, error_message)`` on failure.
+    """
+    from app.models.order import Order  # local import avoids circular deps
+
+    order = Order.query.filter_by(
+        id=order_id, restaurant_id=restaurant_id
+    ).first()
+
+    if not order:
+        return (False, 'Order not found.')
+
+    allowed = VALID_TRANSITIONS.get(order.status, [])
+    if new_status not in allowed:
+        return (
+            False,
+            f'Cannot transition from \'{order.status}\' to \'{new_status}\'.',
+        )
+
+    now = datetime.now(timezone.utc)
+    order.status = new_status
+    ts_field = STATUS_TIMESTAMP.get(new_status)
+    if ts_field:
+        setattr(order, ts_field, now)
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        logger.exception('Failed to update order %s to %s', order_id, new_status)
+        return (False, 'Database error.')
+
+    return (True, 'OK')
+
+
+def get_active_orders(restaurant_id: int) -> dict:
+    """Return non-terminal orders grouped by status.
+
+    Args:
+        restaurant_id: Filter by restaurant.
+
+    Returns:
+        Dict mapping each active status to a list of Order objects.
+    """
+    from app.models.order import Order  # local import avoids circular deps
+
+    terminal = ('completed', 'cancelled')
+    orders = (
+        Order.query
+        .filter(
+            Order.restaurant_id == restaurant_id,
+            ~Order.status.in_(terminal),
+        )
+        .order_by(Order.created_at.asc())
+        .all()
+    )
+
+    grouped: dict[str, list] = {
+        'new': [], 'accepted': [], 'preparing': [], 'ready': [], 'served': []
+    }
+    for order in orders:
+        if order.status in grouped:
+            grouped[order.status].append(order)
+
+    return grouped
