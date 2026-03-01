@@ -1,28 +1,58 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-lg mx-auto min-h-screen bg-white">
-    <!-- Header -->
-    <header class="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-3">
+<div class="max-w-lg mx-auto min-h-screen bg-charcoal-900 border-x border-charcoal-800/50 flex flex-col relative shadow-[0_0_50px_rgba(15,13,11,0.5)]">
+
+    <div class="absolute inset-0 bg-deco-pattern opacity-10 pointer-events-none"></div>
+    <div class="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-charcoal-800 to-transparent opacity-30 pointer-events-none"></div>
+
+    {# ── Sticky header with blur ── #}
+    <header class="sticky top-0 z-40 bg-charcoal-900/80 backdrop-blur-md border-b border-charcoal-800/60 px-5 py-4
+                   flex items-center justify-between shadow-dark">
+        <div class="flex items-center gap-4">
             {% if restaurant.logo_url %}
-            <img src="{{ restaurant.logo_url }}" alt="{{ restaurant.name }}" class="w-8 h-8 rounded-full object-cover">
+            <img src="{{ restaurant.logo_url }}" alt="{{ restaurant.name }}"
+                 class="w-10 h-10 rounded-none object-cover border border-amber-900/50 shadow-sm p-0.5 bg-charcoal-800">
+            {% else %}
+            <div class="w-10 h-10 rounded-none bg-charcoal-800 border border-amber-800/50
+                        flex items-center justify-center text-amber-500 font-display italic text-xl shadow-sm">
+                {{ restaurant.name[0]|upper }}
+            </div>
             {% endif %}
-            <h1 class="text-lg font-semibold">{{ restaurant.name }}</h1>
+            <div>
+                <h1 class="text-lg font-display tracking-wide text-cream-50 leading-tight">{{ restaurant.name }}</h1>
+                <p class="text-[10px] uppercase tracking-widest text-amber-600/80 font-bold mt-0.5">Digital Menu</p>
+            </div>
         </div>
-        <span class="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">
-            Table {{ table.table_number }}
-        </span>
+
+        {# Table badge #}
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 bg-charcoal-800/80 border border-amber-900/40 text-cream-100
+                         text-[10px] uppercase tracking-wider font-semibold px-3 py-1.5 rounded-none shadow-inner-glow">
+                <span class="text-amber-500 text-xs mt-[-1px]">✧</span> Table {{ table.table_number }}
+            </span>
+        </div>
     </header>
 
-    <!-- Page content -->
-    <main class="pb-24">
+    {# ── Page content ── #}
+    <main class="flex-1 pb-32 relative">
         {% block customer_content %}{% endblock %}
     </main>
 
-    <!-- Bottom bar -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-100 px-4 py-3 flex items-center justify-between">
-        {% block bottom_bar %}{% endblock %}
+    {# ── Bottom navigation bar ── #}
+    <nav class="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-50 pointer-events-none">
+        {# Extended gradient for smooth mask #}
+        <div class="h-16 bg-gradient-to-t from-charcoal-900 to-transparent opacity-90 w-full"></div>
+        {# Frosted glass bar #}
+        <div class="bg-charcoal-900/95 backdrop-blur-xl border-t border-charcoal-800/80 shadow-[0_-10px_40px_rgba(15,13,11,0.9)] pointer-events-auto">
+            <div class="px-5 py-4">
+                <div class="flex items-center justify-between">
+                    {% block bottom_bar %}{% endblock %}
+                </div>
+            </div>
+            {# Safe area spacer for iOS #}
+            <div class="h-safe-bottom bg-charcoal-900" style="height: env(safe-area-inset-bottom, 0)"></div>
+        </div>
     </nav>
 </div>
 {% endblock %}

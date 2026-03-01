@@ -1,125 +1,291 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
+<!doctype html>
+<html lang="en">
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>{% block title %}Dashboard{% endblock %} — Tablii</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Noto+Sans+Arabic:wght@300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+    <link
+      rel="manifest"
+      href="{{ url_for('static', filename='manifest.json') }}"
+    />
+    <meta name="theme-color" content="#0f0d0b" />
+
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .sidebar-link { @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-colors text-sm font-medium; }
-        .sidebar-link.active { @apply bg-white/20 text-white; }
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 0;
+        color: #a69e95;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        border-left: 2px solid transparent;
+      }
+      .sidebar-link:hover {
+        background: rgba(255, 255, 255, 0.03);
+        color: #f5f0eb;
+      }
+      .sidebar-link.active {
+        background: rgba(196, 149, 106, 0.1); /* amber-500/10 */
+        color: #c4956a; /* amber-500 */
+        border-left: 2px solid #c4956a;
+      }
+      .sidebar-link.active:hover {
+        background: rgba(196, 149, 106, 0.15);
+      }
+
+      /* Ensure form fields inside white cards always show dark text */
+      .bg-white input:not([type="checkbox"]):not([type="radio"]),
+      .bg-white textarea,
+      .bg-white select {
+        color: #111827;
+        background-color: #ffffff;
+      }
+      .bg-white input::placeholder,
+      .bg-white textarea::placeholder {
+        color: #9ca3af;
+      }
+
+      /* Arabic text support */
+      body { font-family: 'DM Sans', 'Noto Sans Arabic', sans-serif; }
+
+      /* Ensure all text inside white bg cards/tables is dark and readable */
+      .bg-white { color: #1f2937; }
+      .bg-white th { color: #6b7280; }
+      .bg-white td { color: #374151; }
+      .bg-white .font-medium { color: #111827; }
+      .bg-white .font-mono { color: #111827; }
     </style>
-</head>
-<body class="bg-gray-50 min-h-screen">
+  </head>
+  <body
+    class="bg-charcoal-900 text-cream-50 min-h-screen relative font-body selection:bg-amber-500/30 selection:text-amber-100"
+  >
+    <!-- Background Texture -->
+    <div
+      class="fixed inset-0 pointer-events-none z-[-1] opacity-50 mix-blend-overlay bg-grain"
+    ></div>
 
-<!-- Mobile overlay -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-20 hidden lg:hidden" onclick="toggleSidebar()"></div>
+    <!-- Mobile overlay -->
+    <div
+      id="sidebar-overlay"
+      class="fixed inset-0 bg-charcoal-950/80 backdrop-blur-sm z-30 hidden lg:hidden"
+      onclick="toggleSidebar()"
+    ></div>
 
-<!-- Sidebar -->
-<aside id="sidebar" class="fixed top-0 left-0 h-screen w-64 bg-gray-900 text-white flex flex-col z-30 transform -translate-x-full lg:translate-x-0 transition-transform duration-200">
-    <!-- Logo -->
-    <div class="px-6 py-5 border-b border-white/10">
-        <div class="flex items-center gap-3">
-            {% if g.restaurant and g.restaurant.logo_url %}
-            <img src="{{ g.restaurant.logo_url }}" class="w-8 h-8 rounded-full object-cover">
-            {% else %}
-            <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-sm font-bold">T</div>
-            {% endif %}
-            <div>
-                <p class="font-semibold text-sm">{{ g.restaurant.name if g.restaurant else 'Tablii' }}</p>
-                <p class="text-xs text-gray-400">Dashboard</p>
-            </div>
+    <!-- Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed top-0 left-0 h-screen w-64 flex flex-col z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out border-r border-charcoal-800/60 bg-charcoal-900/95 backdrop-blur-xl"
+    >
+      <!-- Decorative -->
+      <div
+        class="absolute inset-0 bg-deco-pattern opacity-[0.03] pointer-events-none"
+      ></div>
+
+      <!-- Logo / Brand -->
+      <div class="px-6 py-8 border-b border-charcoal-800/60 relative z-10">
+        <div class="flex items-center gap-4">
+          {% if g.restaurant and g.restaurant.logo_url %}
+          <img
+            src="{{ g.restaurant.logo_url }}"
+            alt="{{ g.restaurant.name }}"
+            class="w-12 h-12 object-cover shadow-dark border border-amber-900/50 p-0.5 bg-charcoal-800"
+          />
+          {% else %}
+          <div
+            class="w-12 h-12 flex items-center justify-center text-xl font-display italic text-amber-500 shadow-dark border border-amber-900/50 bg-charcoal-800"
+          >
+            T
+          </div>
+          {% endif %}
+          <div class="min-w-0">
+            <p
+              class="font-display italic tracking-wide text-lg text-cream-50 truncate"
+            >
+              {{ g.restaurant.name if g.restaurant else 'Tablii' }}
+            </p>
+            <p
+              class="text-[9px] uppercase tracking-widest text-amber-600/80 font-bold"
+            >
+              Management HQ
+            </p>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- Nav -->
-    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <a href="{{ url_for('dashboard.overview') }}"
-           class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.overview' }}">
-            📊 <span>Overview</span>
+      <!-- Nav -->
+      <nav
+        class="flex-1 py-6 flex flex-col gap-1 overflow-y-auto relative z-10 scrollbar-hide"
+      >
+        <a
+          href="{{ url_for('dashboard.overview') }}"
+          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.overview' }}"
+        >
+          <span class="text-lg opacity-70">📊</span> <span>Overview</span>
         </a>
-        <a href="{{ url_for('dashboard.categories') }}"
-           class="sidebar-link {{ 'active' if 'menu' in (request.endpoint or '') }}">
-            🍽️ <span>Menu</span>
+        <a
+          href="{{ url_for('dashboard.categories') }}"
+          class="sidebar-link {{ 'active' if 'menu' in (request.endpoint or '') }}"
+        >
+          <span class="text-lg opacity-70">🍽️</span> <span>Menu</span>
         </a>
-        <a href="{{ url_for('dashboard.tables') }}"
-           class="sidebar-link {{ 'active' if 'table' in (request.endpoint or '') }}">
-            🪑 <span>Tables</span>
+        <a
+          href="{{ url_for('dashboard.tables') }}"
+          class="sidebar-link {{ 'active' if 'table' in (request.endpoint or '') }}"
+        >
+          <span class="text-lg opacity-70">🪑</span> <span>Tables</span>
         </a>
-        <a href="{{ url_for('dashboard.staff') }}"
-           class="sidebar-link {{ 'active' if 'staff' in (request.endpoint or '') }}">
-            👥 <span>Staff</span>
+        <a
+          href="{{ url_for('dashboard.staff') }}"
+          class="sidebar-link {{ 'active' if 'staff' in (request.endpoint or '') }}"
+        >
+          <span class="text-lg opacity-70">👥</span> <span>Staff</span>
         </a>
-        <a href="{{ url_for('dashboard.order_history') }}"
-           class="sidebar-link {{ 'active' if 'order' in (request.endpoint or '') }}">
-            📋 <span>Orders</span>
+        <a
+          href="{{ url_for('dashboard.order_history') }}"
+          class="sidebar-link {{ 'active' if 'order' in (request.endpoint or '') }}"
+        >
+          <span class="text-lg opacity-70">📋</span> <span>Orders</span>
         </a>
-        <a href="{{ url_for('dashboard.analytics') }}"
-           class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.analytics' }}">
-            📈 <span>Analytics</span>
+        <a
+          href="{{ url_for('dashboard.analytics') }}"
+          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.analytics' }}"
+        >
+          <span class="text-lg opacity-70">📈</span> <span>Analytics</span>
         </a>
-        <a href="{{ url_for('dashboard.settings') }}"
-           class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.settings' }}">
-            ⚙️ <span>Settings</span>
+        <a
+          href="{{ url_for('dashboard.settings') }}"
+          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.settings' }}"
+        >
+          <span class="text-lg opacity-70">⚙️</span> <span>Settings</span>
         </a>
-    </nav>
+      </nav>
 
-    <!-- Logout -->
-    <div class="px-3 py-4 border-t border-white/10">
-        <a href="{{ url_for('auth.logout') }}" class="sidebar-link text-red-400 hover:text-red-300 hover:bg-red-500/10">
-            🚪 <span>Logout</span>
+      <!-- Logout -->
+      <div class="p-6 border-t border-charcoal-800/60 relative z-10">
+        <a
+          href="{{ url_for('auth.logout') }}"
+          class="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-ruby-400 hover:text-ruby-300 transition-colors"
+        >
+          <span class="text-lg">🚪</span> <span>Sign Out</span>
         </a>
-    </div>
-</aside>
+      </div>
+    </aside>
 
-<!-- Main content -->
-<div class="lg:ml-64 min-h-screen flex flex-col">
-    <!-- Top bar -->
-    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+    <!-- Main content -->
+    <div class="lg:ml-64 min-h-screen flex flex-col relative z-0">
+      <!-- Top bar -->
+      <header
+        class="bg-charcoal-900/90 backdrop-blur-md border-b border-charcoal-800/60 px-8 py-4 flex items-center justify-between sticky top-0 z-20 shadow-dark"
+      >
         <!-- Hamburger -->
-        <button onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
+        <button
+          onclick="toggleSidebar()"
+          class="lg:hidden p-2 -ml-2 text-amber-500 hover:bg-charcoal-800 transition-colors"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
         </button>
-        <h1 class="text-lg font-semibold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h1>
-        <div class="text-sm text-gray-500">{{ current_user.email if current_user.email is defined else current_user.username }}</div>
-    </header>
+        <h1 class="text-2xl font-display italic tracking-wide text-cream-50">
+          {% block page_title %}Dashboard{% endblock %}
+        </h1>
+        <div class="flex items-center gap-3">
+          <div class="text-right hidden sm:block">
+            <p class="text-xs font-semibold text-cream-100 tracking-wide">
+              {{ current_user.email if current_user.email is defined else
+              current_user.username }}
+            </p>
+            <p class="text-[9px] uppercase tracking-widest text-amber-500/80">
+              Administrator
+            </p>
+          </div>
+          <div
+            class="w-10 h-10 border border-charcoal-700 bg-charcoal-800 flex items-center justify-center text-cream-100 text-sm font-display italic shadow-dark"
+          >
+            {{ (current_user.email or current_user.username)[0]|upper }}
+          </div>
+        </div>
+      </header>
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=True) %}
-    {% if messages %}
-    <div class="px-6 pt-4 space-y-2">
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=True) %} {% if
+      messages %}
+      <div class="px-8 pt-6 space-y-3">
         {% for category, message in messages %}
-        <div class="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium
-            {{ 'bg-green-50 text-green-700 border border-green-200' if category == 'success'
-            else 'bg-red-50 text-red-700 border border-red-200' if category == 'error'
-            else 'bg-blue-50 text-blue-700 border border-blue-200' }}">
-            <span>{{ message }}</span>
+        <div
+          class="flex items-center gap-3 px-5 py-4 text-sm font-medium border-l-2 bg-charcoal-800/50 backdrop-blur-sm
+            {{ 'border-emerald-500 text-emerald-100' if category == 'success'
+            else 'border-ruby-500 text-ruby-100' if category == 'error'
+            else 'border-sapphire-500 text-sapphire-100' }}"
+        >
+          <span class="font-light tracking-wide">{{ message }}</span>
+          <button
+            onclick="this.parentElement.remove()"
+            class="ml-auto opacity-60 hover:opacity-100 transition-opacity p-1"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
         </div>
         {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
+      </div>
+      {% endif %} {% endwith %}
 
-    <!-- Page content -->
-    <main class="flex-1 p-6">
+      <!-- Page content -->
+      <main class="flex-1 p-8 pb-20">
         {% block dashboard_content %}{% endblock %}
-    </main>
-</div>
+      </main>
+    </div>
 
-<script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    sidebar.classList.toggle('-translate-x-full');
-    overlay.classList.toggle('hidden');
-}
-</script>
-{% block scripts %}{% endblock %}
-</body>
+    <script>
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebar-overlay");
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      }
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
 </html>

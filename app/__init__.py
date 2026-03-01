@@ -45,7 +45,7 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    socketio.init_app(app, cors_allowed_origins="*")
+    socketio.init_app(app, cors_allowed_origins="*", async_mode='threading')
     csrf.init_app(app)
 
     # Register WebSocket event handlers
@@ -76,5 +76,12 @@ def create_app(config_name=None):
     # Register blueprints
     from app.routes import register_blueprints
     register_blueprints(app)
+
+    # Root redirect → login
+    from flask import redirect, url_for
+
+    @app.route('/')
+    def index():
+        return redirect(url_for('auth.login'))
 
     return app

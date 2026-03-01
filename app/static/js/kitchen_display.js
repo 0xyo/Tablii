@@ -4,6 +4,21 @@
 
 const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
 
+function parseServerDate(value) {
+    if (!value) return new Date();
+    const normalized = String(value).replace(' ', 'T').trim();
+    if (/[zZ]$|[+\-]\d{2}:\d{2}$/.test(normalized)) {
+        return new Date(normalized);
+    }
+    return new Date(`${normalized}Z`);
+}
+
+function formatOrderNumber(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '#----';
+    return raw.startsWith('#') ? raw : `#${raw}`;
+}
+
 // ---------------------------------------------------------------------------
 // Timers
 // ---------------------------------------------------------------------------
@@ -15,8 +30,9 @@ const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
  */
 function startTimer(el) {
     function update() {
-        const start = new Date(el.dataset.start);
-        const totalSecs = Math.floor((Date.now() - start) / 1000);
+        const start = parseServerDate(el.dataset.start);
+        if (Number.isNaN(start.getTime())) return;
+        const totalSecs = Math.max(0, Math.floor((Date.now() - start.getTime()) / 1000));
         const mins = Math.floor(totalSecs / 60);
         const secs = totalSecs % 60;
         el.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
@@ -31,7 +47,8 @@ function startTimer(el) {
         }
     }
     update();
-    setInterval(update, 1000);
+    if (el._timerInterval) clearInterval(el._timerInterval);
+    el._timerInterval = setInterval(update, 1000);
 }
 
 // ---------------------------------------------------------------------------
@@ -154,7 +171,7 @@ function addToKitchenBoard(data) {
 
     card.innerHTML = `
         <div class="flex items-center justify-between mb-3">
-            <span class="text-2xl font-black text-white">#${data.order_number}</span>
+            <span class="text-2xl font-black text-white">${formatOrderNumber(data.order_number)}</span>
             <span class="text-indigo-400 font-bold text-lg">${data.table_id ? 'T' + data.table_id : '—'}</span>
         </div>
         <ul class="space-y-1 mb-4">${itemsHtml}</ul>

@@ -16,6 +16,7 @@ class Category(db.Model):
     name_fr = db.Column(db.String(100), nullable=False)
     name_en = db.Column(db.String(100), nullable=True)
     icon = db.Column(db.String(10), nullable=True)
+    icon_url = db.Column(db.String(300), nullable=True)
     sort_order = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     available_from = db.Column(db.Time, nullable=True)

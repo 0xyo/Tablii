@@ -1,115 +1,140 @@
 {% extends "base.html" %}
 
-{% block title %}Login — Tablii{% endblock %}
+{% block title %}Sign In — Tablii{% endblock %}
+
+{% block head %}
+<style>
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-12px); }
+  }
+  .floating { animation: float 4s ease-in-out infinite; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.5s ease both; }
+  .fade-up-2 { animation: fadeUp 0.5s 0.1s ease both; }
+  .fade-up-3 { animation: fadeUp 0.5s 0.2s ease both; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center px-4 py-12">
-  <div class="card w-full max-w-md">
-    <!-- Logo / Title -->
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-orange-500">🍽️ Tablii</h1>
-      <p class="text-gray-500 mt-1">Sign in to your account</p>
+<div class="min-h-screen flex">
+  {# ── Left panel — branding ── #}
+  <div class="hidden lg:flex lg:w-1/2 bg-charcoal-900 border-r border-charcoal-800/60
+              flex-col items-center justify-center p-12 relative overflow-hidden">
+    {# Decorative luxury elements #}
+    <div class="absolute inset-0 bg-deco-pattern opacity-10"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="relative z-10 text-center max-w-md">
+      <div class="floating text-6xl mb-10 select-none text-amber-500" style="filter: drop-shadow(0 0 20px rgba(196,149,106,0.3))">✧</div>
+      <h1 class="text-5xl font-display text-cream-50 mb-6 tracking-wide italic">Tablii</h1>
+      <p class="text-charcoal-300 text-lg leading-relaxed font-light">
+        The refined digital management platform for exceptional culinary experiences.
+      </p>
+      <div class="mt-16 grid grid-cols-3 gap-6 text-center">
+        {% for icon, label in [('✧', 'Orders'), ('✧', 'Staff'), ('✧', 'Insights')] %}
+        <div class="border border-charcoal-700/50 bg-charcoal-800/30 backdrop-blur rounded-none p-5 shadow-dark hover:border-amber-900/50 transition-colors">
+          <div class="text-amber-500 mb-3 text-sm">{{ icon }}</div>
+          <div class="text-cream-100 text-xs font-semibold tracking-widest uppercase">{{ label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {# ── Right panel — form ── #}
+  <div class="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-charcoal-900 relative">
+    
+    <div class="absolute inset-0 bg-grain mix-blend-overlay opacity-50 pointer-events-none"></div>
+
+    {# Mobile logo #}
+    <div class="lg:hidden text-center mb-10 fade-up relative z-10">
+      <span class="text-4xl text-amber-500">✧</span>
+      <h1 class="text-3xl font-display italic text-cream-50 mt-4 tracking-wider">Tablii</h1>
     </div>
 
-    <!-- Tab Buttons -->
-    <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
-      <button
-        id="tab-owner"
-        onclick="switchTab('owner')"
-        class="tab-btn flex-1 py-2 text-sm font-medium rounded-md transition-colors"
-      >
-        Owner
-      </button>
-      <button
-        id="tab-staff"
-        onclick="switchTab('staff')"
-        class="tab-btn flex-1 py-2 text-sm font-medium rounded-md transition-colors"
-      >
-        Staff
-      </button>
+    <div class="w-full max-w-md relative z-10">
+      <div class="fade-up mb-12 text-center">
+        <h2 class="text-3xl font-display text-cream-50 mb-3">Welcome Back</h2>
+        <p class="text-charcoal-400 text-sm tracking-wide">Sign in to your sophisticated workspace</p>
+      </div>
+
+      {# ── Role tabs ── #}
+      <div class="fade-up-2 flex mb-10 border-b border-charcoal-700/60 pb-px">
+        <button id="tab-owner" onclick="switchTab('owner')"
+          class="tab-btn flex-1 py-3 text-xs font-semibold uppercase tracking-widest transition-all duration-300 mb-[-1px]">
+          Management
+        </button>
+        <button id="tab-staff" onclick="switchTab('staff')"
+          class="tab-btn flex-1 py-3 text-xs font-semibold uppercase tracking-widest transition-all duration-300 mb-[-1px]">
+          Floor Staff
+        </button>
+      </div>
+
+      {# ── Owner form ── #}
+      <form id="form-owner" method="POST" action="{{ url_for('auth.login_post') }}"
+            class="space-y-6 fade-up-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="login_type" value="owner" />
+
+        <div>
+          <label for="owner-email" class="block text-xs font-semibold uppercase tracking-widest text-charcoal-300 mb-2">Email address</label>
+          <input id="owner-email" name="email" type="email" required
+            class="input-field" placeholder="you@restaurant.com" />
+        </div>
+
+        <div>
+          <label for="owner-password" class="block text-xs font-semibold uppercase tracking-widest text-charcoal-300 mb-2">Password</label>
+          <input id="owner-password" name="password" type="password" required
+            class="input-field" placeholder="••••••••" />
+        </div>
+
+        <button type="submit" class="btn-primary w-full mt-4">
+          Access Dashboard
+        </button>
+      </form>
+
+      {# ── Staff form ── #}
+      <form id="form-staff" method="POST" action="{{ url_for('auth.login_post') }}"
+            class="space-y-6 fade-up-3 hidden">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="login_type" value="staff" />
+
+        <div>
+          <label for="staff-slug" class="block text-xs font-semibold uppercase tracking-widest text-charcoal-300 mb-2">Restaurant ID</label>
+          <input id="staff-slug" name="restaurant_slug" type="text" required
+            class="input-field font-mono" placeholder="my-restaurant-ab12" />
+        </div>
+
+        <div>
+          <label for="staff-username" class="block text-xs font-semibold uppercase tracking-widest text-charcoal-300 mb-2">Username</label>
+          <input id="staff-username" name="username" type="text" required
+            class="input-field" placeholder="cashier1" />
+        </div>
+
+        <div>
+          <label for="staff-password" class="block text-xs font-semibold uppercase tracking-widest text-charcoal-300 mb-2">Password</label>
+          <input id="staff-password" name="password" type="password" required
+            class="input-field" placeholder="••••••••" />
+        </div>
+
+        <button type="submit" class="btn-primary w-full mt-4">
+          Begin Shift
+        </button>
+      </form>
+
+      <div class="mt-12 text-center border-t border-charcoal-800/80 pt-8 fade-up-3" style="animation-delay: 0.3s;">
+        <p class="text-sm text-charcoal-400">
+          New to Tablii?
+          <a href="{{ url_for('auth.register') }}" class="text-amber-500 hover:text-amber-400 font-semibold ml-1 transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-px after:bg-amber-500/30 hover:after:bg-amber-400 after:transition-colors pb-0.5">
+            Establish your presence
+          </a>
+        </p>
+      </div>
     </div>
-
-    <!-- Owner Login Form -->
-    <form id="form-owner" method="POST" action="{{ url_for('auth.login_post') }}" class="space-y-4">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <input type="hidden" name="login_type" value="owner" />
-
-      <div>
-        <label for="owner-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input
-          id="owner-email"
-          name="email"
-          type="email"
-          required
-          class="input-field"
-          placeholder="you@example.com"
-        />
-      </div>
-
-      <div>
-        <label for="owner-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-        <input
-          id="owner-password"
-          name="password"
-          type="password"
-          required
-          class="input-field"
-          placeholder="••••••••"
-        />
-      </div>
-
-      <button type="submit" class="btn-primary w-full">Sign In</button>
-    </form>
-
-    <!-- Staff Login Form -->
-    <form id="form-staff" method="POST" action="{{ url_for('auth.login_post') }}" class="space-y-4 hidden">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <input type="hidden" name="login_type" value="staff" />
-
-      <div>
-        <label for="staff-slug" class="block text-sm font-medium text-gray-700 mb-1">Restaurant ID</label>
-        <input
-          id="staff-slug"
-          name="restaurant_slug"
-          type="text"
-          required
-          class="input-field"
-          placeholder="my-restaurant-ab12"
-        />
-      </div>
-
-      <div>
-        <label for="staff-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-        <input
-          id="staff-username"
-          name="username"
-          type="text"
-          required
-          class="input-field"
-          placeholder="cashier1"
-        />
-      </div>
-
-      <div>
-        <label for="staff-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-        <input
-          id="staff-password"
-          name="password"
-          type="password"
-          required
-          class="input-field"
-          placeholder="••••••••"
-        />
-      </div>
-
-      <button type="submit" class="btn-primary w-full">Sign In</button>
-    </form>
-
-    <!-- Register link -->
-    <p class="text-center text-sm text-gray-500 mt-6">
-      Don't have an account?
-      <a href="{{ url_for('auth.register') }}" class="text-orange-500 hover:text-orange-600 font-medium">Register here</a>
-    </p>
   </div>
 </div>
 {% endblock %}
@@ -117,29 +142,27 @@
 {% block scripts %}
 <script>
   function switchTab(type) {
-    const ownerForm = document.getElementById("form-owner");
-    const staffForm = document.getElementById("form-staff");
-    const tabOwner = document.getElementById("tab-owner");
-    const tabStaff = document.getElementById("tab-staff");
-
-    if (type === "owner") {
-      ownerForm.classList.remove("hidden");
-      staffForm.classList.add("hidden");
-      tabOwner.classList.add("bg-white", "shadow-sm", "text-orange-600");
-      tabOwner.classList.remove("text-gray-500");
-      tabStaff.classList.remove("bg-white", "shadow-sm", "text-orange-600");
-      tabStaff.classList.add("text-gray-500");
+    const isOwner = type === 'owner';
+    const formOwner = document.getElementById('form-owner');
+    const formStaff = document.getElementById('form-staff');
+    
+    // Add subtle animation when switching
+    if(isOwner) {
+      formOwner.classList.remove('hidden');
+      formStaff.classList.add('hidden');
     } else {
-      staffForm.classList.remove("hidden");
-      ownerForm.classList.add("hidden");
-      tabStaff.classList.add("bg-white", "shadow-sm", "text-orange-600");
-      tabStaff.classList.remove("text-gray-500");
-      tabOwner.classList.remove("bg-white", "shadow-sm", "text-orange-600");
-      tabOwner.classList.add("text-gray-500");
+      formStaff.classList.remove('hidden');
+      formOwner.classList.add('hidden');
     }
-  }
 
-  // Initialize tab from query param or default
-  switchTab("{{ login_type }}");
+    const active   = 'text-amber-400 border-b-2 border-amber-500 bg-charcoal-800/20';
+    const inactive = 'text-charcoal-500 hover:text-cream-100 hover:bg-charcoal-800/10 border-b-2 border-transparent';
+    const tabOwner = document.getElementById('tab-owner');
+    const tabStaff = document.getElementById('tab-staff');
+
+    tabOwner.className = 'tab-btn flex-1 py-3 text-xs font-semibold uppercase tracking-widest transition-all duration-300 mb-[-1px] ' + (isOwner ? active : inactive);
+    tabStaff.className = 'tab-btn flex-1 py-3 text-xs font-semibold uppercase tracking-widest transition-all duration-300 mb-[-1px] ' + (!isOwner ? active : inactive);
+  }
+  switchTab("{{ login_type or 'owner' }}");
 </script>
 {% endblock %}

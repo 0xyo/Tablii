@@ -5,66 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>Kitchen Display — {{ restaurant.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background: #111827; color: #f9fafb; }
         .kitchen-card { transition: box-shadow .2s, opacity .3s, transform .3s; }
         .kitchen-card.removing { opacity: 0; transform: scale(.95); }
-        .timer-normal { color: #6b7280; }
-        .timer-warn   { color: #f59e0b; }
-        .timer-urgent { color: #ef4444; animation: pulse 1s infinite; }
+        .timer-normal { color: #8C8273; } /* charcoal-400 */
+        .timer-warn   { color: #F59E0B; } /* amber-500 */
+        .timer-urgent { color: #E11D48; animation: pulse 1s infinite; } /* ruby-600 */
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-charcoal-950 font-body text-cream-50 selection:bg-amber-500/30 selection:text-amber-100 overflow-hidden">
+    
+    <!-- Global Background Texture -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-overlay bg-grain"></div>
+
     <!-- Top bar -->
-    <header class="bg-gray-900 border-b border-gray-700 h-14 flex items-center px-8 gap-6">
-        <h1 class="text-xl font-bold text-orange-400">🍳 Kitchen Display</h1>
-        <span class="text-gray-400 text-sm">{{ restaurant.name }}</span>
-        <span class="ml-auto text-gray-400 text-sm" id="clock"></span>
+    <header class="bg-charcoal-900/90 backdrop-blur-md border-b border-charcoal-800/60 h-16 flex items-center px-8 justify-between shadow-sm relative z-10">
+        <div class="flex items-center gap-4">
+            <h1 class="font-display italic text-2xl tracking-wide text-amber-500">Service Line</h1>
+            <span class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold border-l border-charcoal-700 pl-4">{{ restaurant.name }}</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="inline-flex items-center gap-2 bg-charcoal-800 border border-emerald-900/30 text-emerald-400 text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 shadow-inner-glow">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Sync Active
+            </span>
+            <span class="font-mono text-xl tracking-widest text-cream-100 italic" id="clock"></span>
+        </div>
     </header>
 
     <!-- Two-column board -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-[calc(100vh-3.5rem)] overflow-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 h-[calc(100vh-4rem)] overflow-auto relative z-10">
 
         <!-- Column: Accepted (to start cooking) -->
-        <div class="flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-black text-indigo-400 uppercase tracking-widest">Queue</h2>
-                <span id="count-accepted" class="bg-indigo-900 text-indigo-300 text-sm font-bold px-3 py-1 rounded-full">
+        <div class="flex flex-col gap-5">
+            <div class="flex items-center justify-between border-b border-charcoal-700/60 pb-3">
+                <h2 class="font-display italic text-amber-600/80 text-xl tracking-wide">Incoming Orders</h2>
+                <span id="count-accepted" class="bg-charcoal-800 border border-charcoal-700/60 text-amber-500 font-mono text-xs w-7 h-7 flex items-center justify-center shadow-inner-glow">
                     {{ accepted|length }}
                 </span>
             </div>
-            <div id="col-accepted" class="flex flex-col gap-4">
+            <div id="col-accepted" class="flex flex-col gap-4 pr-2">
                 {% for order in accepted %}
-                <div class="kitchen-card bg-gray-800 rounded-2xl p-5 border border-gray-700 shadow-lg"
+                <div class="kitchen-card bg-charcoal-800/60 backdrop-blur-sm border-l-2 border-y border-r border-y-charcoal-700/40 border-r-charcoal-700/40 border-l-sapphire-500 p-6 flex flex-col gap-4 shadow-dark hover:bg-charcoal-800 transition-colors"
                      id="kcard-{{ order.id }}"
                      data-order-id="{{ order.id }}"
                      data-created="{{ order.created_at.isoformat() }}">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-2xl font-black text-white">#{{ order.order_number }}</span>
-                        <span class="text-indigo-400 font-bold text-lg">
-                            {% if order.table_id %}T{{ order.table_id }}{% else %}—{% endif %}
+                    <div class="flex items-center justify-between pb-3 border-b border-charcoal-700/40">
+                        <div>
+                            <span class="font-mono text-sm font-semibold text-sapphire-400">#{{ order.order_number.lstrip('#') }}</span>
+                            <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">Pending</div>
+                        </div>
+                        <span class="border border-charcoal-600 bg-charcoal-900/50 text-xs uppercase tracking-widest font-bold px-3 py-1.5 text-cream-100">
+                            {% if order.table_id %}T-{{ order.table_id }}{% else %}—{% endif %}
                         </span>
                     </div>
-                    <ul class="space-y-1 mb-4">
+                    
+                    <ul class="space-y-3 py-2">
                         {% for oi in order.items %}
-                        <li class="text-lg font-semibold text-gray-100">
-                            {{ oi.quantity }}× {{ oi.menu_item.name_fr if oi.menu_item else '?' }}
-                            {% if oi.notes %}<span class="text-yellow-400 text-sm ml-1">({{ oi.notes }})</span>{% endif %}
+                        <li class="flex items-baseline gap-3">
+                            <span class="font-mono text-xl font-bold text-sapphire-400">{{ oi.quantity }}<span class="text-charcoal-500 text-xs ml-0.5">x</span></span>
+                            <div class="flex-1">
+                                <span class="text-lg font-medium text-cream-50 leading-tight">{{ oi.menu_item.name_fr if oi.menu_item else '?' }}</span>
+                                {% if oi.notes %}<p class="text-[11px] text-amber-500/80 italic mt-1 bg-amber-900/10 px-2 py-0.5 border-l border-amber-500/30">Note: {{ oi.notes }}</p>{% endif %}
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
+                    
                     {% if order.special_notes %}
-                    <div class="text-yellow-400 text-sm mb-3">📝 {{ order.special_notes }}</div>
+                    <div class="bg-ruby-900/10 border border-ruby-900/30 p-3 mt-1">
+                        <span class="text-ruby-400 text-[10px] uppercase tracking-widest font-bold block mb-1">Kitchen Alert</span>
+                        <p class="text-xs text-ruby-200 indent-2 leading-relaxed">{{ order.special_notes }}</p>
+                    </div>
                     {% endif %}
-                    <div class="flex items-center justify-between">
-                        <span class="kitchen-timer text-sm font-mono timer-normal"
+                    
+                    <div class="flex items-end justify-between mt-auto pt-4 border-t border-charcoal-700/40">
+                        <span class="kitchen-timer font-mono text-sm tracking-widest timer-normal"
                               data-start="{{ order.created_at.isoformat() }}">…</span>
                         <button onclick="markAsPreparing({{ order.id }})"
-                                class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors">
-                            Start Cooking →
+                                class="text-[10px] font-bold uppercase tracking-widest bg-sapphire-600 text-cream-50 hover:bg-sapphire-500 py-3 px-6 transition-colors border border-sapphire-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                            Begin Prep →
                         </button>
                     </div>
                 </div>
@@ -73,39 +101,48 @@
         </div>
 
         <!-- Column: Preparing -->
-        <div class="flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-black text-yellow-400 uppercase tracking-widest">Cooking</h2>
-                <span id="count-preparing" class="bg-yellow-900 text-yellow-300 text-sm font-bold px-3 py-1 rounded-full">
+        <div class="flex flex-col gap-5">
+            <div class="flex items-center justify-between border-b border-charcoal-700/60 pb-3">
+                <h2 class="font-display italic text-amber-500 text-xl tracking-wide">In Preparation</h2>
+                <span id="count-preparing" class="bg-charcoal-800 border border-charcoal-700/60 text-amber-500 font-mono text-xs w-7 h-7 flex items-center justify-center shadow-inner-glow">
                     {{ preparing|length }}
                 </span>
             </div>
-            <div id="col-preparing" class="flex flex-col gap-4">
+            <div id="col-preparing" class="flex flex-col gap-4 pl-2">
                 {% for order in preparing %}
-                <div class="kitchen-card bg-gray-800 rounded-2xl p-5 border border-yellow-800 shadow-lg"
+                <div class="kitchen-card bg-charcoal-800/60 backdrop-blur-sm border-l-2 border-y border-r border-y-charcoal-700/40 border-r-charcoal-700/40 border-l-amber-500 p-6 flex flex-col gap-4 shadow-dark hover:bg-charcoal-800 transition-colors"
                      id="kcard-{{ order.id }}"
                      data-order-id="{{ order.id }}"
                      data-created="{{ (order.preparing_at or order.created_at).isoformat() }}">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-2xl font-black text-white">#{{ order.order_number }}</span>
-                        <span class="text-yellow-400 font-bold text-lg">
-                            {% if order.table_id %}T{{ order.table_id }}{% else %}—{% endif %}
+                    <div class="flex items-center justify-between pb-3 border-b border-charcoal-700/40">
+                        <div>
+                            <span class="font-mono text-sm font-semibold text-amber-500">#{{ order.order_number.lstrip('#') }}</span>
+                            <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">Cooking</div>
+                        </div>
+                        <span class="border border-charcoal-600 bg-charcoal-900/50 text-xs uppercase tracking-widest font-bold px-3 py-1.5 text-cream-100 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            {% if order.table_id %}T-{{ order.table_id }}{% else %}—{% endif %}
                         </span>
                     </div>
-                    <ul class="space-y-1 mb-4">
+                    
+                    <ul class="space-y-3 py-2">
                         {% for oi in order.items %}
-                        <li class="text-lg font-semibold text-gray-100">
-                            {{ oi.quantity }}× {{ oi.menu_item.name_fr if oi.menu_item else '?' }}
-                            {% if oi.notes %}<span class="text-yellow-400 text-sm ml-1">({{ oi.notes }})</span>{% endif %}
+                        <li class="flex items-baseline gap-3">
+                            <span class="font-mono text-xl font-bold text-amber-500">{{ oi.quantity }}<span class="text-charcoal-500 text-xs ml-0.5">x</span></span>
+                            <div class="flex-1">
+                                <span class="text-lg font-medium text-cream-50 leading-tight">{{ oi.menu_item.name_fr if oi.menu_item else '?' }}</span>
+                                {% if oi.notes %}<p class="text-[11px] text-amber-500/80 italic mt-1 bg-amber-900/10 px-2 py-0.5 border-l border-amber-500/30">Note: {{ oi.notes }}</p>{% endif %}
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
-                    <div class="flex items-center justify-between">
-                        <span class="kitchen-timer text-sm font-mono timer-normal"
+                    
+                    <div class="flex items-end justify-between mt-auto pt-4 border-t border-charcoal-700/40">
+                        <span class="kitchen-timer font-mono text-sm tracking-widest timer-normal"
                               data-start="{{ (order.preparing_at or order.created_at).isoformat() }}">…</span>
                         <button onclick="markAsReady({{ order.id }})"
-                                class="bg-green-600 hover:bg-green-500 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors">
-                            ✓ Ready
+                                class="text-[10px] font-bold uppercase tracking-widest bg-amber-500 text-charcoal-900 hover:bg-amber-400 py-3 px-6 transition-colors border border-amber-400 shadow-gold flex items-center gap-2">
+                            ✓ Ready to Serve
                         </button>
                     </div>
                 </div>
@@ -114,11 +151,11 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/kitchen_display.js') }}"></script>
-
     <!-- WebSocket -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/kitchen_display.js') }}"></script>
 
     <script>
         // Start all timers on load
@@ -133,7 +170,7 @@
         setInterval(updateClock, 1000);
 
         // Connect to kitchen SocketIO room
-        connectAsKitchen({{ restaurant.id }});
+        connectAsKitchen("{{ restaurant.id }}");
 
         // Real-time: new order accepted → card appears in queue
         onEvent('kitchen_new_order', function (data) {

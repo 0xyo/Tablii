@@ -6,12 +6,20 @@ from datetime import datetime, timezone
 from app import db
 from app.models.menu import CustomOption, MenuItem
 from app.models.order import Order, OrderItem
+from app.models.table import TableSession
 from app.utils.helpers import generate_order_number
 
 logger = logging.getLogger(__name__)
 
 
-def create_order(session_id, items, payment_method, special_notes, restaurant):
+def create_order(
+    session_id,
+    items,
+    payment_method,
+    special_notes,
+    restaurant,
+    table_id=None,
+):
     """Create an order with validated items and server-side price calculation.
 
     Args:
@@ -20,6 +28,7 @@ def create_order(session_id, items, payment_method, special_notes, restaurant):
         payment_method: Payment method string (e.g. 'cash', 'online').
         special_notes: Optional order-level notes.
         restaurant: Restaurant model instance.
+        table_id: Optional table ID override.
 
     Returns:
         Order object on success.
@@ -86,9 +95,20 @@ def create_order(session_id, items, payment_method, special_notes, restaurant):
         status = 'accepted'
         accepted_at = now
 
+    resolved_table_id = table_id
+    if resolved_table_id is None and session_id:
+        table_session = TableSession.query.filter_by(
+            id=session_id,
+            restaurant_id=restaurant.id,
+            is_active=True,
+        ).first()
+        if table_session:
+            resolved_table_id = table_session.table_id
+
     order = Order(
         session_id=session_id,
         restaurant_id=restaurant.id,
+        table_id=resolved_table_id,
         order_number=generate_order_number(),
         status=status,
         payment_method=payment_method,

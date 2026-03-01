@@ -3,83 +3,109 @@
 {% block page_title %}Overview{% endblock %}
 
 {% block dashboard_content %}
-<!-- Stat cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex items-center gap-4">
-        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl">📋</div>
-        <div>
-            <p class="text-sm text-gray-500">Orders Today</p>
-            <p class="text-2xl font-bold text-gray-800">{{ orders_today }}</p>
+
+{# ── KPI Cards ───────────────────────────────────────────────────────── #}
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+
+    {# Orders Today #}
+    <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
+        <div class="flex justify-between items-start">
+            <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Orders Today</p>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">📋</div>
         </div>
+        <p class="text-4xl font-display text-cream-50 mt-4">{{ orders_today }}</p>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex items-center gap-4">
-        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl">💰</div>
-        <div>
-            <p class="text-sm text-gray-500">Revenue Today</p>
-            <p class="text-2xl font-bold text-gray-800">{{ '%.3f'|format(revenue_today) }} {{ restaurant.currency }}</p>
+
+    {# Revenue #}
+    <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-amber-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="flex justify-between items-start relative z-10">
+            <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Revenue Today</p>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">💰</div>
         </div>
+        <p class="text-3xl font-display text-amber-400 mt-4 relative z-10">
+            {{ '%.3f'|format(revenue_today) }}
+            <span class="text-xs font-sans font-medium text-amber-600/70 uppercase tracking-wide ml-1">{{ restaurant.currency }}</span>
+        </p>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex items-center gap-4">
-        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-2xl">🪑</div>
-        <div>
-            <p class="text-sm text-gray-500">Tables Occupied</p>
-            <p class="text-2xl font-bold text-gray-800">{{ tables_occupied }}</p>
+
+    {# Tables #}
+    <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
+        <div class="flex justify-between items-start">
+            <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Active Tables</p>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">🪑</div>
         </div>
+        <p class="text-4xl font-display text-cream-50 mt-4">{{ tables_occupied }}</p>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 flex items-center gap-4">
-        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-2xl">👥</div>
-        <div>
-            <p class="text-sm text-gray-500">Active Staff</p>
-            <p class="text-2xl font-bold text-gray-800">{{ active_staff }}</p>
+
+    {# Staff #}
+    <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
+        <div class="flex justify-between items-start">
+            <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Staff on Duty</p>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">👥</div>
         </div>
+        <p class="text-4xl font-display text-cream-50 mt-4">{{ active_staff }}</p>
     </div>
 </div>
 
-<!-- Recent Orders -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-100">
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 class="font-semibold text-gray-800">Recent Orders</h2>
-        <a href="{{ url_for('dashboard.order_history') }}" class="text-sm text-orange-500 hover:text-orange-600">View all →</a>
+{# ── Recent Orders ───────────────────────────────────────────────────── #}
+<div class="card !p-0 border-amber-900/20 overflow-hidden shadow-dark">
+    <div class="px-8 py-5 border-b border-charcoal-700/60 flex items-center justify-between bg-charcoal-800/20">
+        <div>
+            <h2 class="font-display italic text-2xl tracking-wide text-cream-50">Recent Orders</h2>
+            <p class="text-[10px] text-amber-600/80 uppercase font-bold tracking-widest mt-1">Today's Orders</p>
+        </div>
+        <a href="{{ url_for('dashboard.order_history') }}"
+           class="text-xs font-semibold uppercase tracking-widest text-amber-500 hover:text-amber-400 
+                  border border-amber-500/30 hover:bg-amber-500/10 px-4 py-2 transition-all group">
+            <span class="group-hover:-translate-x-1 inline-block transition-transform">View All</span> →
+        </a>
     </div>
+
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
-                <tr>
-                    <th class="px-6 py-3 text-left">Order #</th>
-                    <th class="px-6 py-3 text-left">Table</th>
-                    <th class="px-6 py-3 text-left">Items</th>
-                    <th class="px-6 py-3 text-left">Total</th>
-                    <th class="px-6 py-3 text-left">Status</th>
-                    <th class="px-6 py-3 text-left">Time</th>
+        <table class="w-full text-left text-sm font-light">
+            <thead>
+                <tr class="bg-charcoal-900/50 text-charcoal-300 uppercase text-[10px] font-bold tracking-widest border-b border-charcoal-700/80">
+                    <th class="px-8 py-4 font-semibold">Order #</th>
+                    <th class="px-6 py-4 font-semibold">Table</th>
+                    <th class="px-6 py-4 font-semibold">Items</th>
+                    <th class="px-6 py-4 font-semibold">Total</th>
+                    <th class="px-6 py-4 font-semibold">Status</th>
+                    <th class="px-8 py-4 font-semibold text-right">Time</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-50">
+            <tbody class="divide-y divide-charcoal-700/40 bg-charcoal-800/10">
                 {% for order in recent_orders %}
-                {% set status_colors = {
-                    'new': 'bg-blue-100 text-blue-700',
-                    'accepted': 'bg-indigo-100 text-indigo-700',
-                    'preparing': 'bg-yellow-100 text-yellow-700',
-                    'ready': 'bg-green-100 text-green-700',
-                    'served': 'bg-gray-100 text-gray-600',
-                    'completed': 'bg-gray-100 text-gray-500',
-                } %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-3 font-mono font-medium">{{ order.order_number }}</td>
-                    <td class="px-6 py-3">
-                        {% if order.table_id %}Table {{ order.table_id }}{% else %}—{% endif %}
-                    </td>
-                    <td class="px-6 py-3">{{ order.items.count() }}</td>
-                    <td class="px-6 py-3 font-medium">{{ '%.3f'|format(order.total_amount) }} {{ restaurant.currency }}</td>
-                    <td class="px-6 py-3">
-                        <span class="px-2 py-1 text-xs font-medium rounded-full {{ status_colors.get(order.status, 'bg-gray-100 text-gray-600') }}">
-                            {{ order.status|title }}
+                <tr class="hover:bg-charcoal-700/30 transition-colors group cursor-default">
+                    <td class="px-8 py-4">
+                        <span class="font-mono text-xs font-semibold text-amber-500/80">
+                            #{{ order.order_number.lstrip('#') }}
                         </span>
                     </td>
-                    <td class="px-6 py-3 text-gray-500">{{ order.created_at.strftime('%H:%M') }}</td>
+                    <td class="px-6 py-4 text-cream-100">
+                        {% if order.table_id %}
+                        <span class="flex items-center gap-1.5"><span class="text-amber-600/50 text-[10px]">T-</span>{{ order.table_id }}</span>
+                        {% else %}<span class="text-charcoal-500">—</span>{% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-charcoal-300 text-xs">{{ order.items.count() }} item(s)</td>
+                    <td class="px-6 py-4 font-semibold text-cream-50">
+                        {{ '%.3f'|format(order.total_amount) }}
+                        <span class="text-[10px] font-medium text-charcoal-500 uppercase tracking-widest ml-1">{{ restaurant.currency }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="badge-{{ order.status }}">{{ order.status|title }}</span>
+                    </td>
+                    <td class="px-8 py-4 text-charcoal-400 text-xs tabular-nums tracking-wide text-right">
+                        {{ order.created_at.strftime('%H:%M') }}
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-400">No orders yet today.</td>
+                    <td colspan="6" class="px-8 py-16 text-center bg-charcoal-800/20">
+                        <div class="w-16 h-16 rounded-full border border-charcoal-700 flex items-center justify-center text-2xl mx-auto mb-4 text-charcoal-500">📋</div>
+                        <p class="text-charcoal-300 font-display italic text-lg tracking-wide">No orders yet.</p>
+                        <p class="text-charcoal-500 text-xs mt-2 font-light uppercase tracking-widest">Today's orders will appear here</p>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

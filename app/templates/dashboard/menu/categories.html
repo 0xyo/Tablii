@@ -27,11 +27,19 @@
                     {% for cat in categories %}
                     <tr data-id="{{ cat.id }}">
                         <td class="px-6 py-3">
-                            <div class="font-medium">{{ cat.name_fr }}</div>
-                            {% if cat.name_ar %}<div class="text-xs text-gray-400">{{ cat.name_ar }}</div>{% endif %}
+                            <div class="font-medium text-gray-800">{{ cat.name_fr }}</div>
+                            {% if cat.name_ar %}<div class="text-xs text-gray-400" style="font-family: 'Noto Sans Arabic', sans-serif;">{{ cat.name_ar }}</div>{% endif %}
                         </td>
-                        <td class="px-6 py-3 text-xl">{{ cat.icon or '—' }}</td>
-                        <td class="px-6 py-3">{{ cat.item_count }}</td>
+                        <td class="px-6 py-3">
+                            {% if cat.icon_url %}
+                                <img src="{{ cat.icon_url }}" alt="icon" class="w-8 h-8 object-cover rounded">
+                            {% elif cat.icon %}
+                                <span class="text-xl">{{ cat.icon }}</span>
+                            {% else %}
+                                <span class="text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 text-gray-600">{{ cat.item_count }}</td>
                         <td class="px-6 py-3">
                             <span class="px-2 py-1 text-xs rounded-full {{ 'bg-green-100 text-green-700' if cat.is_active else 'bg-gray-100 text-gray-500' }}">
                                 {{ 'Active' if cat.is_active else 'Inactive' }}
@@ -44,7 +52,7 @@
                                     data-name-fr="{{ cat.name_fr|e }}"
                                     data-name-ar="{{ (cat.name_ar or '')|e }}"
                                     data-name-en="{{ (cat.name_en or '')|e }}"
-                                    data-icon="{{ (cat.icon or '')|e }}"
+                                    data-icon-url="{{ (cat.icon_url or '')|e }}"
                                     data-is-active="{{ '1' if cat.is_active else '0' }}"
                                     data-ramadan-type="{{ (cat.ramadan_type or '')|e }}"
                                     class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
@@ -63,30 +71,44 @@
     </div>
 
     <!-- Add Category form -->
-    <div class="xl:w-72">
+    <div class="xl:w-80">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 class="font-semibold text-gray-800 mb-4">Add Category</h3>
-            <form method="POST" action="{{ url_for('dashboard.category_add') }}" class="space-y-3">
+            <form method="POST" action="{{ url_for('dashboard.category_add') }}" enctype="multipart/form-data" class="space-y-3">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Name (FR) *</label>
-                    <input type="text" name="name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <input type="text" name="name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Name (AR)</label>
-                    <input type="text" name="name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <input type="text" name="name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300" style="font-family: 'Noto Sans Arabic', sans-serif;">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Name (EN)</label>
-                    <input type="text" name="name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <input type="text" name="name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
                 </div>
+
+                <!-- Icon Upload -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Icon (emoji)</label>
-                    <input type="text" name="icon" maxlength="10" placeholder="🍕" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Category Icon</label>
+                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-orange-300 transition-colors cursor-pointer" onclick="document.getElementById('add-icon-file').click()">
+                        <input type="file" name="icon_image" id="add-icon-file" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                               class="hidden" onchange="previewUpload('add', this)">
+                        <div id="add-upload-preview" class="hidden mb-2">
+                            <img id="add-upload-img" class="w-14 h-14 object-cover rounded-lg mx-auto border border-gray-200" src="" alt="preview">
+                        </div>
+                        <div id="add-upload-placeholder">
+                            <div class="text-2xl mb-1 opacity-50">🖼️</div>
+                            <div class="text-xs text-gray-500 font-medium">Click to upload icon</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WebP, SVG</div>
+                        </div>
+                    </div>
                 </div>
+
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Ramadan Type</label>
-                    <select name="ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <select name="ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
                         <option value="">None</option>
                         <option value="iftar">Iftar</option>
                         <option value="suhoor">Suhoor</option>
@@ -100,29 +122,51 @@
 
 <!-- Edit Modal -->
 <div id="edit-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 items-center justify-center">
-    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
         <h3 class="font-semibold text-gray-800 mb-4">Edit Category</h3>
-        <form id="edit-form" method="POST" class="space-y-3">
+        <form id="edit-form" method="POST" enctype="multipart/form-data" class="space-y-3">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Name (FR) *</label>
-                <input type="text" name="name_fr" id="edit_name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                <input type="text" name="name_fr" id="edit_name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Name (AR)</label>
-                <input type="text" name="name_ar" id="edit_name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                <input type="text" name="name_ar" id="edit_name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300" style="font-family: 'Noto Sans Arabic', sans-serif;">
             </div>
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Name (EN)</label>
-                <input type="text" name="name_en" id="edit_name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                <input type="text" name="name_en" id="edit_name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
             </div>
+
+            <!-- Icon Upload (Edit) -->
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Icon</label>
-                <input type="text" name="icon" id="edit_icon" maxlength="10" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Category Icon</label>
+                <!-- Current icon preview -->
+                <div id="edit-current-icon" class="hidden mb-2 items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                    <img id="edit-current-icon-img" class="w-10 h-10 object-cover rounded" src="" alt="current icon">
+                    <span class="text-xs text-gray-500 flex-1">Current icon</span>
+                    <button type="button" onclick="removeCurrentIcon()" class="text-xs text-red-400 hover:text-red-600">Remove</button>
+                </div>
+                <input type="hidden" name="remove_icon" id="edit-remove-icon" value="">
+
+                <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-orange-300 transition-colors cursor-pointer" onclick="document.getElementById('edit-icon-file').click()">
+                    <input type="file" name="icon_image" id="edit-icon-file" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                           class="hidden" onchange="previewUpload('edit', this)">
+                    <div id="edit-upload-preview" class="hidden mb-2">
+                        <img id="edit-upload-img" class="w-14 h-14 object-cover rounded-lg mx-auto border border-gray-200" src="" alt="preview">
+                    </div>
+                    <div id="edit-upload-placeholder">
+                        <div class="text-2xl mb-1 opacity-50">🖼️</div>
+                        <div class="text-xs text-gray-500 font-medium">Click to upload new icon</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WebP, SVG</div>
+                    </div>
+                </div>
             </div>
+
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Ramadan Type</label>
-                <select name="ramadan_type" id="edit_ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                <select name="ramadan_type" id="edit_ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
                     <option value="">None</option>
                     <option value="iftar">Iftar</option>
                     <option value="suhoor">Suhoor</option>
@@ -130,11 +174,11 @@
             </div>
             <label class="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="is_active" id="edit_is_active" class="accent-orange-500">
-                <span>Active</span>
+                <span class="text-gray-700">Active</span>
             </label>
             <div class="flex gap-2 pt-2">
                 <button type="submit" class="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Save</button>
-                <button type="button" onclick="closeEditModal()" class="flex-1 border border-gray-200 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+                <button type="button" onclick="closeEditModal()" class="flex-1 border border-gray-200 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-600">Cancel</button>
             </div>
         </form>
     </div>
@@ -143,28 +187,64 @@
 
 {% block scripts %}
 <script>
+/* ── Image Upload Preview ── */
+function previewUpload(prefix, input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById(prefix + '-upload-img').src = e.target.result;
+            document.getElementById(prefix + '-upload-preview').classList.remove('hidden');
+            document.getElementById(prefix + '-upload-placeholder').classList.add('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeCurrentIcon() {
+    document.getElementById('edit-current-icon').style.display = 'none';
+    document.getElementById('edit-remove-icon').value = '1';
+}
+
+/* ── Edit Modal ── */
 function openEditModalFromButton(btn) {
     openEditModal(
         parseInt(btn.dataset.id, 10),
         btn.dataset.nameFr || '',
         btn.dataset.nameAr || '',
         btn.dataset.nameEn || '',
-        btn.dataset.icon || '',
+        btn.dataset.iconUrl || '',
         btn.dataset.isActive === '1',
         btn.dataset.ramadanType || ''
     );
 }
-function openEditModal(id, nameFr, nameAr, nameEn, icon, isActive, ramadanType) {
+
+function openEditModal(id, nameFr, nameAr, nameEn, iconUrl, isActive, ramadanType) {
     document.getElementById('edit_name_fr').value = nameFr;
     document.getElementById('edit_name_ar').value = nameAr;
     document.getElementById('edit_name_en').value = nameEn;
-    document.getElementById('edit_icon').value = icon;
     document.getElementById('edit_ramadan_type').value = ramadanType || '';
     document.getElementById('edit_is_active').checked = isActive;
-    document.getElementById('edit-form').action = `/dashboard/menu/categories/${id}/update`;
+    document.getElementById('edit-form').action = '/dashboard/menu/categories/' + id + '/update';
+    document.getElementById('edit-remove-icon').value = '';
+
+    // Show current icon if exists
+    const currentIconDiv = document.getElementById('edit-current-icon');
+    if (iconUrl) {
+        document.getElementById('edit-current-icon-img').src = iconUrl;
+        currentIconDiv.style.display = 'flex';
+    } else {
+        currentIconDiv.style.display = 'none';
+    }
+
+    // Reset upload preview
+    document.getElementById('edit-upload-preview').classList.add('hidden');
+    document.getElementById('edit-upload-placeholder').classList.remove('hidden');
+    document.getElementById('edit-icon-file').value = '';
+
     document.getElementById('edit-modal').classList.remove('hidden');
     document.getElementById('edit-modal').classList.add('flex');
 }
+
 function closeEditModal() {
     document.getElementById('edit-modal').classList.add('hidden');
     document.getElementById('edit-modal').classList.remove('flex');

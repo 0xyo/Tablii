@@ -1,71 +1,83 @@
 {% extends 'cashier/base_cashier.html' %}
 {% block title %}Orders{% endblock %}
-{% block page_title %}Live Orders{% endblock %}
+{% block page_title %}Service Queue{% endblock %}
 
 {% block cashier_content %}
 {% set columns = [
-    ('new',      'New',       'accepted',  'Accept',  'bg-blue-50 border-blue-200'),
-    ('accepted', 'Accepted',  'preparing', 'Prepare', 'bg-indigo-50 border-indigo-200'),
-    ('preparing','Preparing', 'ready',     'Ready',   'bg-yellow-50 border-yellow-200'),
-    ('ready',    'Ready',     'served',    'Served',  'bg-green-50 border-green-200'),
+    ('new',      'New',       'accepted',  'Accept',  'bg-charcoal-800/30 border-ruby-900/30 text-ruby-400 group-hover:border-ruby-500/50'),
+    ('accepted', 'Accepted',  'preparing', 'Prepare', 'bg-charcoal-800/30 border-blue-900/30 text-blue-400 group-hover:border-blue-500/50'),
+    ('preparing','Preparing', 'ready',     'Ready',   'bg-charcoal-800/30 border-amber-900/40 text-amber-500 group-hover:border-amber-500/50'),
+    ('ready',    'Ready',     'served',    'Served',  'bg-charcoal-800/30 border-emerald-900/30 text-emerald-400 group-hover:border-emerald-500/50'),
 ] %}
 
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 h-full" id="kanban-board">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-full" id="kanban-board">
     {% for status, label, next_status, next_label, color in columns %}
-    <div class="flex flex-col gap-3" id="col-{{ status }}">
+    <div class="flex flex-col gap-4 group" id="col-{{ status }}">
         <!-- Column header -->
-        <div class="flex items-center justify-between px-1">
-            <h2 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">{{ label }}</h2>
-            <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full col-count"
+        <div class="flex items-center justify-between px-2 pb-2 border-b border-charcoal-700/60">
+            <h2 class="font-display italic text-lg tracking-wide text-cream-50">{{ label }}</h2>
+            <span class="bg-charcoal-800 border border-charcoal-700/60 text-amber-500 font-mono text-[10px] w-6 h-6 flex items-center justify-center col-count"
                   id="count-{{ status }}">{{ grouped[status]|length }}</span>
         </div>
 
-        <!-- Cards -->
-        <div class="flex flex-col gap-3 min-h-24 border-2 border-dashed {{ color }} rounded-xl p-2"
+        <!-- Cards Container -->
+        <div class="flex flex-col gap-4 min-h-[300px] border border-dashed {{ color }} p-3 transition-colors duration-300"
              id="cards-{{ status }}">
             {% for order in grouped[status] %}
-            <div class="order-card bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2"
+            <div class="order-card bg-charcoal-800/60 backdrop-blur-sm border-l-2 border-y border-r border-y-charcoal-700/40 border-r-charcoal-700/40 border-l-amber-500 p-5 flex flex-col gap-4 shadow-dark hover:bg-charcoal-800 transition-colors group/card"
                  id="order-card-{{ order.id }}"
                  data-order-id="{{ order.id }}"
                  data-status="{{ order.status }}"
                  data-created="{{ order.created_at.isoformat() }}">
 
-                <div class="flex items-center justify-between">
-                    <span class="font-bold text-gray-800 font-mono text-sm">#{{ order.order_number }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
-                        {% if order.table_id %}T{{ order.table_id }}{% else %}—{% endif %}
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="font-mono text-xs font-semibold text-amber-500/80">#{{ order.order_number.lstrip('#') }}</span>
+                        <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">Transaction</div>
+                    </div>
+                    <span class="border border-charcoal-600 bg-charcoal-900/50 text-[10px] uppercase tracking-widest font-bold px-2 py-1 text-cream-100">
+                        {% if order.table_id %}T-{{ order.table_id }}{% else %}—{% endif %}
                     </span>
                 </div>
 
-                <div class="text-xs text-gray-600 space-y-0.5">
+                <div class="text-sm font-light text-cream-50 space-y-1.5 py-2 border-y border-charcoal-700/40">
                     {% for oi in order.items %}
-                    <div class="flex gap-1">
-                        <span class="font-medium">{{ oi.quantity }}×</span>
-                        <span>{{ oi.menu_item.name_fr if oi.menu_item else '?' }}</span>
-                        {% if oi.notes %}<span class="text-gray-400 italic">({{ oi.notes }})</span>{% endif %}
+                    <div class="flex gap-2 items-start leading-tight">
+                        <span class="font-mono font-medium text-amber-500">{{ oi.quantity }}<span class="text-charcoal-500 text-[10px]">x</span></span>
+                        <div class="flex-1">
+                            <span class="text-cream-100">{{ oi.menu_item.name_fr if oi.menu_item else '?' }}</span>
+                            {% if oi.notes %}<p class="text-[11px] text-charcoal-400 italic mt-0.5">Note: {{ oi.notes }}</p>{% endif %}
+                        </div>
                     </div>
                     {% endfor %}
                     {% if order.special_notes %}
-                    <div class="text-orange-500 text-xs mt-1">📝 {{ order.special_notes }}</div>
+                    <div class="bg-ruby-900/10 border border-ruby-900/30 p-2 mt-2">
+                        <span class="text-ruby-400 text-[10px] uppercase tracking-widest font-bold block mb-0.5">Urgent Note</span>
+                        <p class="text-[11px] text-ruby-200 indent-2">{{ order.special_notes }}</p>
+                    </div>
                     {% endif %}
                 </div>
 
-                <div class="flex items-center justify-between pt-1 border-t border-gray-50">
-                    <span class="text-sm font-semibold">{{ '%.3f'|format(order.total_amount) }} {{ restaurant.currency }}</span>
-                    <span class="order-timer text-xs text-gray-400"
-                          data-start="{{ order.created_at.isoformat() }}">…</span>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold tracking-wide text-cream-50">
+                        {{ '%.3f'|format(order.total_amount) }} <span class="text-[9px] uppercase tracking-widest text-charcoal-400 font-normal ml-0.5">{{ restaurant.currency }}</span>
+                    </span>
+                    <span class="order-timer text-xs font-mono text-amber-500/80 tracking-widest"
+                          data-start="{{ order.created_at.isoformat() }}">00:00</span>
                 </div>
 
-                <button onclick="changeOrderStatus({{ order.id }}, '{{ next_status }}')"
-                        class="w-full text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white py-1.5 rounded-lg transition-colors">
-                    → {{ next_label }}
-                </button>
-                {% if status in ['new', 'accepted'] %}
-                <button onclick="changeOrderStatus({{ order.id }}, 'cancelled')"
-                        class="w-full text-xs border border-red-200 text-red-400 hover:bg-red-50 py-1 rounded-lg transition-colors">
-                    Cancel
-                </button>
-                {% endif %}
+                <div class="flex gap-2 mt-2">
+                    <button onclick="changeOrderStatus({{ order.id }}, '{{ next_status }}')"
+                            class="flex-1 text-[10px] font-bold uppercase tracking-widest bg-amber-500 text-charcoal-900 hover:bg-amber-400 py-2 transition-colors border border-amber-400 flex items-center justify-center gap-1.5 shadow-gold">
+                        {{ next_label }} →
+                    </button>
+                    {% if status in ['new', 'accepted'] %}
+                    <button onclick="changeOrderStatus({{ order.id }}, 'cancelled')"
+                            class="w-10 text-[10px] font-bold uppercase py-2 bg-charcoal-800 text-ruby-400 hover:text-ruby-300 hover:bg-charcoal-700 transition-colors border border-ruby-900/50 flex items-center justify-center" title="Cancel Order">
+                        ✕
+                    </button>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
         </div>

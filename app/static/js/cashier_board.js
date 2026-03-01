@@ -5,6 +5,21 @@
 const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
 let _newOrderSoundPlayed = false; // only play audio on WS events, not page load
 
+function parseServerDate(value) {
+    if (!value) return new Date();
+    const normalized = String(value).replace(' ', 'T').trim();
+    if (/[zZ]$|[+\-]\d{2}:\d{2}$/.test(normalized)) {
+        return new Date(normalized);
+    }
+    return new Date(`${normalized}Z`);
+}
+
+function formatOrderNumber(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '#----';
+    return raw.startsWith('#') ? raw : `#${raw}`;
+}
+
 // ---------------------------------------------------------------------------
 // Timer helpers
 // ---------------------------------------------------------------------------
@@ -15,8 +30,9 @@ let _newOrderSoundPlayed = false; // only play audio on WS events, not page load
  */
 function startCardTimer(el) {
     function update() {
-        const start = new Date(el.dataset.start);
-        const mins = Math.floor((Date.now() - start) / 60000);
+        const start = parseServerDate(el.dataset.start);
+        if (Number.isNaN(start.getTime())) return;
+        const mins = Math.max(0, Math.floor((Date.now() - start.getTime()) / 60000));
         el.textContent = `${mins}m`;
         if (mins >= 20) {
             el.className = 'order-timer text-xs text-red-500 font-semibold';
@@ -27,7 +43,8 @@ function startCardTimer(el) {
         }
     }
     update();
-    setInterval(update, 10000);
+    if (el._timerInterval) clearInterval(el._timerInterval);
+    el._timerInterval = setInterval(update, 10000);
 }
 
 // ---------------------------------------------------------------------------
@@ -92,6 +109,7 @@ const NEXT_LABEL = {
 function moveOrderCard(id, newStatus) {
     const card = document.getElementById(`order-card-${id}`);
     if (!card) return;
+    const oldStatus = card.dataset.status;
 
     // Fade out
     card.classList.add('moving');
@@ -101,6 +119,7 @@ function moveOrderCard(id, newStatus) {
         if (!targetCol) {
             // Status not shown (e.g. 'served') — just remove
             card.remove();
+            updateColumnCount(oldStatus);
         } else {
             card.classList.remove('moving');
             card.dataset.status = newStatus;
@@ -124,9 +143,9 @@ function moveOrderCard(id, newStatus) {
             }
 
             targetCol.appendChild(card);
+            updateColumnCount(oldStatus);
+            updateColumnCount(newStatus);
         }
-
-        updateColumnCount(newStatus);
     }, 280);
 }
 
@@ -190,7 +209,7 @@ function addOrderToBoard(data) {
 
     card.innerHTML = `
         <div class="flex items-center justify-between">
-            <span class="font-bold text-gray-800 font-mono text-sm">#${data.order_number}</span>
+            <span class="font-bold text-gray-800 font-mono text-sm">${formatOrderNumber(data.order_number)}</span>
             <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
                 ${data.table_id ? 'T' + data.table_id : '—'}
             </span>
@@ -222,7 +241,7 @@ function addOrderToBoard(data) {
  */
 function playNewOrderSound() {
     if (_newOrderSoundPlayed) return; // guard for page load
-    const audio = new Audio('/static/audio/new_order.mp3');
+    const audio = new Audio('/static/sounds/new_order.mp3');
     audio.volume = 0.6;
     audio.play().catch(() => {}); // ignore autoplay block
 }

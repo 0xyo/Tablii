@@ -70,9 +70,9 @@ function onEvent(event, handler) {
 // ---------------------------------------------------------------------------
 
 const sounds = {
-    new_order:   new Audio('/static/audio/new_order.mp3'),
-    order_ready: new Audio('/static/audio/order_ready.mp3'),
-    call_waiter: new Audio('/static/audio/call_waiter.mp3'),
+    new_order:   new Audio('/static/sounds/new_order.mp3'),
+    order_ready: new Audio('/static/sounds/order_ready.mp3'),
+    call_waiter: new Audio('/static/sounds/call_waiter.mp3'),
 };
 
 /**

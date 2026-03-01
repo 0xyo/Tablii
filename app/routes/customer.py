@@ -167,6 +167,7 @@ def place_order(slug, table_id):
             payment_method=payment_method,
             special_notes=special_notes,
             restaurant=restaurant,
+            table_id=table.id,
         )
         return jsonify(
             success=True,
@@ -186,7 +187,7 @@ def place_order(slug, table_id):
 # ──────────────────────────────────────────────
 
 @customer_bp.route('/r/<slug>/table/<int:table_id>/track/<int:order_id>')
-def track_order(slug, table_id):
+def track_order(slug, table_id, order_id):
     """Display order tracking page."""
     restaurant, table = _get_restaurant_and_table(slug, table_id)
     order = Order.query.filter_by(
@@ -224,11 +225,13 @@ def call_waiter(slug, table_id):
 
     data = request.get_json(silent=True) or {}
     call_type = data.get('call_type', '')
-    message = data.get('message', '')
+    message = data.get('message', '').strip()
 
     valid_types = {'water', 'bill', 'help', 'custom'}
     if call_type not in valid_types:
         return jsonify(success=False, error='Invalid call type.'), 400
+    if call_type == 'custom' and not message:
+        return jsonify(success=False, error='Message is required for custom calls.'), 400
 
     try:
         waiter_call = WaiterCall(

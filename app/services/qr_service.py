@@ -25,7 +25,7 @@ def generate_qr_code(data: str, filename: str) -> str | None:
         img = qr.make_image(fill_color='black', back_color='white')
 
         output_dir = os.path.join(
-            current_app.config['UPLOAD_FOLDER'], 'qrcodes'
+            current_app.root_path, 'static', 'images', 'uploads', 'qrcodes'
         )
         os.makedirs(output_dir, exist_ok=True)
 

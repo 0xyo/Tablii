@@ -6,7 +6,7 @@
 <div class="flex items-center justify-between mb-4">
     <!-- Category filter -->
     <form method="GET" class="flex items-center gap-2">
-        <select name="category_id" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <select name="category_id" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
             <option value="">All Categories</option>
             {% for cat in categories %}
             <option value="{{ cat.id }}" {{ 'selected' if selected_category == cat.id }}>{{ cat.name_fr }}</option>
@@ -33,7 +33,7 @@
             <tr>
                 <td class="px-6 py-3 flex items-center gap-3">
                     {% if item.image_url %}
-                    <img src="{{ item.image_url }}" class="w-10 h-10 rounded-lg object-cover">
+                    <img src="{{ item.image_url }}" alt="{{ item.name_fr }}" class="w-10 h-10 rounded-lg object-cover">
                     {% else %}
                     <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-lg">🍽️</div>
                     {% endif %}

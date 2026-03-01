@@ -4,192 +4,273 @@
 
 {% block customer_content %}
 <!-- Search bar -->
-<section class="px-4 pt-4">
-    <div class="relative">
-        <input id="menu-search" type="text" placeholder="Search menu..." class="input-field pl-10">
-        <svg class="absolute left-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+<section class="px-5 pt-6 pb-2 relative z-10">
+    <div class="relative group">
+        <input id="menu-search" type="text" placeholder="Search our offerings..." 
+               class="w-full pl-12 pr-4 py-3.5 bg-charcoal-800/60 border border-charcoal-700/80 rounded-none text-cream-50 font-light text-sm focus:outline-none focus:border-amber-500 focus:bg-charcoal-800 transition-all placeholder:text-charcoal-400 shadow-inner">
+        <svg class="absolute left-4 top-3.5 w-5 h-5 text-amber-600/60 group-focus-within:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
     </div>
 </section>
 
 <!-- Category tabs -->
-<section class="px-4 pt-4">
-    <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" id="category-tabs">
-        <button onclick="filterCategory('all')" class="category-tab active shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-orange-500 text-white transition-colors">
-            All
+<section class="px-5 pt-3 pb-2 sticky top-[73px] z-30 bg-charcoal-900/95 backdrop-blur-xl border-b border-charcoal-800/50 shadow-sm -mx-5">
+    <div class="flex gap-3 overflow-x-auto pb-3 pt-1 scrollbar-hide" id="category-tabs">
+        <button onclick="filterCategory('all')" class="category-tab active shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-amber-600/10 text-amber-500 border-amber-500/50 shadow-inner-glow">
+            All Collections
         </button>
         {% for category in categories %}
-        <button onclick="filterCategory('cat-{{ category.id }}')" class="category-tab shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-600 hover:bg-orange-100 transition-colors">
-            {{ category.icon or '🍽️' }} {{ category.name_fr }}
+        <button onclick="filterCategory('cat-{{ category.id }}')" class="category-tab shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-charcoal-800/30 text-charcoal-400 border-charcoal-700/50 hover:bg-charcoal-800 hover:text-cream-100">
+            {{ category.name_fr }}
         </button>
         {% endfor %}
     </div>
 </section>
 
-<!-- Menu items grid -->
-{% for category in categories %}
-{% if category.active_items %}
-<section class="px-4 pt-6 menu-category" data-category="cat-{{ category.id }}">
-    <h2 class="text-lg font-semibold mb-3">{{ category.icon or '🍽️' }} {{ category.name_fr }}</h2>
-    <div class="grid grid-cols-2 gap-3">
-        {% for item in category.active_items %}
-        <article class="menu-item-card card p-0 overflow-hidden cursor-pointer" data-name="{{ item.name_fr|lower }}" onclick="openItemModal({{ item.id }})">
-            {% if item.image_url %}
-            <img src="{{ item.image_url }}" alt="{{ item.name_fr }}" class="w-full h-28 object-cover">
-            {% else %}
-            <div class="w-full h-28 bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-3xl">🍽️</div>
-            {% endif %}
-            <div class="p-3">
-                <h3 class="font-medium text-sm leading-tight">{{ item.name_fr }}</h3>
-                {% if item.is_popular %}
-                <span class="text-xs text-orange-500 font-medium">⭐ Popular</span>
-                {% endif %}
-                <div class="flex items-center justify-between mt-2">
-                    <span class="text-orange-600 font-semibold text-sm">{{ '%.3f'|format(item.price) }} {{ restaurant.currency }}</span>
-                    <button onclick="event.stopPropagation(); quickAdd({{ item.id }}, '{{ item.name_fr|e }}', {{ item.price }}, '{{ item.image_url or '' }}')" class="w-7 h-7 bg-orange-500 text-white rounded-full flex items-center justify-center text-lg hover:bg-orange-600 transition-colors">+</button>
+<!-- Menu items flex/grid -->
+<div class="px-5 pb-6">
+    {% for category in categories %}
+    {% if category.active_items %}
+    <section class="pt-10 menu-category" data-category="cat-{{ category.id }}">
+        <div class="flex items-center gap-4 mb-6">
+            <h2 class="text-2xl font-display text-cream-50 tracking-wide italic">{{ category.name_fr }}</h2>
+            <div class="flex-1 h-px bg-gradient-to-r from-amber-900/40 to-transparent"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 gap-6">
+            {% for item in category.active_items %}
+            <article class="menu-item-card group flex gap-4 bg-charcoal-800/20 hover:bg-charcoal-800/40 border border-transparent hover:border-charcoal-700/50 transition-all p-3 -mx-3 cursor-pointer" 
+                     data-name="{{ item.name_fr|lower }}" onclick="openItemModal({{ item.id }})">
+                
+                <div class="w-28 h-28 flex-shrink-0 relative overflow-hidden bg-charcoal-800 border border-charcoal-700/50 p-0.5">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.name_fr }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
+                    {% else %}
+                    <div class="w-full h-full bg-gradient-to-br from-charcoal-800 to-charcoal-900 flex items-center justify-center">
+                        <span class="text-amber-900/30 text-3xl font-display italic">T</span>
+                    </div>
+                    {% endif %}
+                    {% if item.is_popular %}
+                    <div class="absolute top-0 right-0 bg-amber-500 text-charcoal-900 text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 shadow-sm">Pop</div>
+                    {% endif %}
                 </div>
-            </div>
-        </article>
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
-{% endfor %}
+
+                <div class="flex flex-col flex-1 py-1">
+                    <div class="flex justify-between items-start gap-2">
+                        <h3 class="font-display text-lg text-cream-50 leading-tight group-hover:text-amber-400 transition-colors">{{ item.name_fr }}</h3>
+                        <span class="text-amber-500 font-medium text-sm whitespace-nowrap pt-1 flex-shrink-0">{{ '%.3f'|format(item.price) }} <span class="text-[10px] uppercase text-amber-600/70">{{ restaurant.currency }}</span></span>
+                    </div>
+                    
+                    {% if item.description_fr %}
+                    <p class="text-charcoal-400 text-xs mt-2 line-clamp-2 leading-relaxed font-light">{{ item.description_fr }}</p>
+                    {% endif %}
+
+                    <div class="mt-auto pt-4 flex items-center justify-end">
+                        <button onclick='event.stopPropagation(); quickAdd({{ item.id }}, {{ item.name_fr | tojson }}, {{ item.price }}, {{ item.image_url | default("") | tojson }})' 
+                                class="w-8 h-8 rounded-none border border-amber-600/30 text-amber-500 hover:bg-amber-500 hover:text-charcoal-900 hover:shadow-[0_0_15px_rgba(196,149,106,0.3)] transition-all flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% endfor %}
+</div>
 
 <!-- Item Detail Modal -->
-<div id="item-modal" class="fixed inset-0 z-50 bg-black/50 hidden items-end justify-center" onclick="closeItemModal(event)">
-    <div class="bg-white w-full max-w-lg rounded-t-2xl max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div id="modal-content"></div>
+<div id="item-modal" class="fixed inset-0 z-[100] bg-charcoal-950/80 backdrop-blur-sm hidden items-end justify-center transition-opacity opacity-0" onclick="closeItemModal(event)">
+    <div class="bg-charcoal-900 w-full max-w-lg max-h-[90vh] overflow-y-auto border-t border-charcoal-700/50 shadow-[0_-20px_60px_rgba(0,0,0,0.5)] transition-transform translate-y-full transform-gpu duration-300 ease-out" 
+         id="modal-panel" onclick="event.stopPropagation()">
+        <div id="modal-content" class="pb-safe"></div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block bottom_bar %}
-<a href="{{ url_for('customer.call_waiter_page', slug=restaurant.slug, table_id=table.id) }}" class="flex items-center gap-2 text-gray-500 hover:text-orange-500 transition-colors">
-    <span class="text-xl">🔔</span>
-    <span class="text-sm font-medium">Call Waiter</span>
+<a href="{{ url_for('customer.call_waiter_page', slug=restaurant.slug, table_id=table.id) }}" 
+   class="flex items-center gap-2.5 text-charcoal-300 hover:text-amber-400 transition-colors group px-2 py-1">
+    <div class="w-8 h-8 border border-charcoal-700 rounded-none flex items-center justify-center group-hover:border-amber-500/50 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+    </div>
+    <span class="text-[10px] uppercase tracking-widest font-semibold hidden sm:inline-block">Service</span>
 </a>
-<a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" class="flex items-center gap-2 bg-orange-500 text-white px-5 py-2.5 rounded-full hover:bg-orange-600 transition-colors">
-    <span>🛒</span>
-    <span id="cart-count" class="text-sm font-semibold">0</span>
-    <span class="text-sm">•</span>
-    <span id="cart-total" class="text-sm font-semibold">0.000 {{ restaurant.currency }}</span>
+
+<a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" 
+   class="flex items-center gap-3 bg-gradient-to-r from-amber-600 to-amber-500 text-charcoal-900 px-6 py-3 shadow-dark hover:shadow-gold hover:-translate-y-px transition-all border border-amber-400/50">
+    <div class="relative flex items-center justify-center">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+        <span id="cart-count" class="absolute -top-2 -right-2 bg-charcoal-900 text-cream-50 text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full outline outline-2 outline-amber-500">0</span>
+    </div>
+    <div class="h-4 w-px bg-charcoal-900/20 mx-1"></div>
+    <div class="flex flex-col items-start -space-y-0.5">
+        <span class="text-[9px] uppercase tracking-widest font-black opacity-80">Order Total</span>
+        <span id="cart-total" class="text-xs font-bold font-mono">0.000 {{ restaurant.currency }}</span>
+    </div>
 </a>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
 <script>
-    // Initialize cart
     const cart = new Cart("{{ restaurant.slug }}", {{ table.id }});
+    const currency = "{{ restaurant.currency }}";
     updateCartBadge();
 
-    // Store menu items data for modal
-    const menuItems = {
+        const menuItems = {
         {% for category in categories %}
-        {% for item in category.active_items %}
-        {{ item.id }}: {
-            id: {{ item.id }},
-            name: "{{ item.name_fr|e }}",
-            description: "{{ (item.description_fr or '')|e }}",
-            price: {{ item.price }},
-            image_url: "{{ item.image_url or '' }}",
-            calories: {{ item.calories or 'null' }},
-            prep_time: {{ item.prep_time or 'null' }},
-            allergens: "{{ (item.allergens or '')|e }}",
-            customizations: [
-                {% for cust in item.active_customizations %}
-                {
-                    id: {{ cust.id }},
-                    name: "{{ cust.group_name_fr|e }}",
-                    type: "{{ cust.selection_type }}",
-                    required: {{ 'true' if cust.is_required else 'false' }},
-                    options: [
-                        {% for opt in cust.active_options %}
-                        { id: {{ opt.id }}, name: "{{ opt.name_fr|e }}", extra_price: {{ opt.extra_price }} },
-                        {% endfor %}
-                    ]
-                },
-                {% endfor %}
-            ]
-        },
+            {% for item in category.active_items %}
+            {{ item.id }}: {
+                id: {{ item.id }},
+                name: {{ item.name_fr | tojson }},
+                description: {{ (item.description_fr or '') | tojson }},
+                price: {{ item.price }},
+                image_url: {{ (item.image_url or '') | tojson }},
+                calories: {{ item.calories if item.calories is not none else 'null' }},
+                prep_time: {{ item.prep_time if item.prep_time is not none else 'null' }},
+                allergens: {{ (item.allergens or '') | tojson }},
+                customizations: [
+                    {% for cust in item.active_customizations %}
+                    {
+                        id: {{ cust.id }},
+                        name: {{ cust.group_name_fr | tojson }},
+                        type: {{ cust.selection_type | tojson }},
+                        required: {{ 'true' if cust.is_required else 'false' }},
+                        options: [
+                            {% for opt in cust.active_options %}
+                            { id: {{ opt.id }}, name: {{ opt.name_fr | tojson }}, extra_price: {{ opt.extra_price }} },
+                            {% endfor %}
+                        ]
+                    },
+                    {% endfor %}
+                ]
+            },
+            {% endfor %}
         {% endfor %}
-        {% endfor %}
-    };
+        };
 
-    const currency = "{{ restaurant.currency }}";
-
-    // Quick add (no customizations)
     function quickAdd(id, name, price, imageUrl) {
         cart.addItem({ id, name, price, quantity: 1, options: [], image_url: imageUrl });
         updateCartBadge();
-        showToast("Added to cart!", "success");
+        showToast("Added to order", "success");
     }
 
-    // Update floating cart badge
     function updateCartBadge() {
         document.getElementById("cart-count").textContent = cart.getItemCount();
         document.getElementById("cart-total").textContent = cart.getSubtotal().toFixed(3) + " " + currency;
     }
 
-    // Item modal
     function openItemModal(itemId) {
         const item = menuItems[itemId];
         if (!item) return;
 
         let html = `
-            ${item.image_url ? `<img src="${item.image_url}" class="w-full h-48 object-cover" alt="${item.name}">` : `<div class="w-full h-48 bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center text-5xl">🍽️</div>`}
-            <div class="p-5">
-                <h2 class="text-xl font-bold">${item.name}</h2>
-                ${item.description ? `<p class="text-gray-500 text-sm mt-1">${item.description}</p>` : ''}
-                <div class="flex gap-3 mt-2 text-xs text-gray-400">
-                    ${item.prep_time ? `<span>⏱️ ${item.prep_time} min</span>` : ''}
-                    ${item.calories ? `<span>🔥 ${item.calories} cal</span>` : ''}
-                    ${item.allergens ? `<span>⚠️ ${item.allergens}</span>` : ''}
+            <div class="relative w-full h-64 bg-charcoal-800 border-b border-charcoal-700/50">
+                ${item.image_url ? 
+                    `<img src="${item.image_url}" class="w-full h-full object-cover opacity-90" alt="${item.name}">` : 
+                    `<div class="w-full h-full bg-gradient-to-br from-charcoal-800 to-charcoal-900 flex items-center justify-center"><span class="text-amber-900/40 text-7xl font-display italic tracking-widest">Tablii</span></div>`
+                }
+                <div class="absolute inset-0 bg-gradient-to-t from-charcoal-900 via-transparent to-transparent"></div>
+                
+                <button onclick="closeItemModal()" class="absolute top-4 right-4 w-10 h-10 bg-charcoal-900/50 backdrop-blur-md rounded-none border border-charcoal-700/50 flex items-center justify-center text-cream-100 hover:text-amber-500 hover:bg-charcoal-800 transition-colors z-10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 md:p-8">
+                <div class="flex justify-between items-start gap-4 mb-3">
+                    <h2 class="text-3xl font-display italic tracking-wide text-cream-50 leading-tight">${item.name}</h2>
+                    <div class="text-amber-500 font-bold text-xl whitespace-nowrap pt-1">${item.price.toFixed(3)} <span class="text-xs uppercase opacity-70 font-normal">${currency}</span></div>
                 </div>
-                <div class="mt-3 text-orange-600 font-bold text-lg">${item.price.toFixed(3)} ${currency}</div>
+                
+                ${item.description ? `<p class="text-charcoal-400 text-sm leading-relaxed mb-6 font-light">${item.description}</p>` : ''}
+                
+                <div class="flex flex-wrap gap-4 pt-4 border-t border-charcoal-800/60 mb-8">
+                    ${item.prep_time ? `
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-amber-600/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.prep_time} min</span>
+                    </div>` : ''}
+                    
+                    ${item.calories ? `
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-amber-600/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.calories} kcal</span>
+                    </div>` : ''}
+                    
+                    ${item.allergens ? `
+                    <div class="flex items-center gap-2 bg-ruby-900/20 border border-ruby-900/50 px-2 py-0.5 mt-[-2px]">
+                        <span class="text-[10px] uppercase tracking-widest text-ruby-400 font-bold">Contains: ${item.allergens}</span>
+                    </div>` : ''}
+                </div>
         `;
 
-        // Customizations
         item.customizations.forEach(cust => {
-            html += `<div class="mt-4"><h3 class="font-medium text-sm text-gray-700 mb-2">${cust.name} ${cust.required ? '<span class="text-red-500">*</span>' : ''}</h3>`;
+            html += `<div class="mb-8"><div class="flex items-baseline gap-3 mb-4"><h3 class="font-display text-lg text-cream-100">${cust.name}</h3> ${cust.required ? '<span class="text-[10px] uppercase tracking-widest font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 border border-amber-500/20">Required</span>' : ''}</div><div class="space-y-2">`;
             cust.options.forEach(opt => {
                 const inputType = cust.type === 'single' ? 'radio' : 'checkbox';
                 html += `
-                    <label class="flex items-center gap-3 py-2 border-b border-gray-50">
-                        <input type="${inputType}" name="cust_${cust.id}" value="${opt.id}" data-extra="${opt.extra_price}" class="modal-option accent-orange-500">
-                        <span class="flex-1 text-sm">${opt.name}</span>
-                        ${opt.extra_price > 0 ? `<span class="text-xs text-gray-400">+${opt.extra_price.toFixed(3)} ${currency}</span>` : ''}
+                    <label class="flex items-center gap-4 py-3 px-4 border border-charcoal-700/40 bg-charcoal-800/20 hover:bg-charcoal-800 hover:border-charcoal-600/60 transition-colors cursor-pointer group">
+                        <div class="relative flex items-center justify-center">
+                            <input type="${inputType}" name="cust_${cust.id}" value="${opt.id}" data-extra="${opt.extra_price}" class="modal-option peer sr-only">
+                            <div class="w-5 h-5 border border-charcoal-500 peer-checked:bg-amber-500 peer-checked:border-amber-500 ${inputType === 'radio' ? 'rounded-full' : 'rounded-none'} transition-all flex items-center justify-center mt-[1px]">
+                                <svg class="w-3 h-3 text-charcoal-900 opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                        </div>
+                        <span class="flex-1 text-sm text-charcoal-200 group-hover:text-cream-50 transition-colors">${opt.name}</span>
+                        ${opt.extra_price > 0 ? `<span class="text-xs text-amber-500/80 font-mono tracking-wide">+${opt.extra_price.toFixed(3)}</span>` : ''}
                     </label>
                 `;
             });
-            html += `</div>`;
+            html += `</div></div>`;
         });
 
-        // Quantity + Add to cart
         html += `
-                <div class="flex items-center gap-4 mt-5">
-                    <div class="flex items-center border border-gray-200 rounded-lg">
-                        <button onclick="changeQty(-1)" class="px-3 py-2 text-lg text-gray-500 hover:text-orange-500">−</button>
-                        <span id="modal-qty" class="px-3 text-lg font-semibold">1</span>
-                        <button onclick="changeQty(1)" class="px-3 py-2 text-lg text-gray-500 hover:text-orange-500">+</button>
+                <div class="flex items-stretch gap-4 mt-10 mb-2">
+                    <div class="flex items-center border border-charcoal-600 bg-charcoal-800/50">
+                        <button onclick="changeQty(-1)" class="w-12 h-12 flex items-center justify-center text-charcoal-400 hover:text-amber-500 hover:bg-charcoal-700 transition-colors text-xl font-light">−</button>
+                        <span id="modal-qty" class="w-10 text-center text-base font-bold text-cream-50">1</span>
+                        <button onclick="changeQty(1)" class="w-12 h-12 flex items-center justify-center text-charcoal-400 hover:text-amber-500 hover:bg-charcoal-700 transition-colors text-xl font-light">+</button>
                     </div>
-                    <button onclick="addFromModal(${item.id})" class="btn-primary flex-1">Add to Cart</button>
+                    <button onclick="addFromModal(${item.id})" class="btn-primary flex-1 !p-0 flex items-center justify-center">
+                        <span class="tracking-wider uppercase text-sm">Add to Order</span>
+                    </button>
                 </div>
             </div>
         `;
 
         document.getElementById("modal-content").innerHTML = html;
         const modal = document.getElementById("item-modal");
+        const panel = document.getElementById("modal-panel");
+        
         modal.classList.remove("hidden");
         modal.classList.add("flex");
+        
+        // Trigger reflow for transition
+        void modal.offsetWidth;
+        
+        modal.classList.remove("opacity-0");
+        panel.classList.remove("translate-y-full");
     }
 
     function closeItemModal(e) {
+        if(e && e.target !== document.getElementById('item-modal')) return;
+        
         const modal = document.getElementById("item-modal");
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
+        const panel = document.getElementById("modal-panel");
+        
+        modal.classList.add("opacity-0");
+        panel.classList.add("translate-y-full");
+        
+        setTimeout(() => {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            document.getElementById("modal-content").innerHTML = "";
+        }, 300);
     }
 
     let modalQty = 1;
@@ -217,20 +298,31 @@
         modalQty = 1;
         closeItemModal();
         updateCartBadge();
-        showToast("Added to cart!", "success");
+        showToast("Order selection appended", "success");
     }
 
-    // Category filter
+    // Category filter luxury style
     function filterCategory(catId) {
+        const activeClasses = ['bg-amber-600/10', 'text-amber-500', 'border-amber-500/50', 'shadow-inner-glow'];
+        const inactiveClasses = ['bg-charcoal-800/30', 'text-charcoal-400', 'border-charcoal-700/50'];
+
         document.querySelectorAll(".category-tab").forEach(t => {
-            t.classList.remove("bg-orange-500", "text-white", "active");
-            t.classList.add("bg-gray-100", "text-gray-600");
+            t.classList.remove(...activeClasses, 'active');
+            t.classList.add(...inactiveClasses);
         });
-        event.target.classList.add("bg-orange-500", "text-white", "active");
-        event.target.classList.remove("bg-gray-100", "text-gray-600");
+        
+        const btn = event.currentTarget;
+        btn.classList.add(...activeClasses, 'active');
+        btn.classList.remove(...inactiveClasses);
 
         document.querySelectorAll(".menu-category").forEach(sec => {
-            sec.style.display = (catId === "all" || sec.dataset.category === catId) ? "" : "none";
+            const match = catId === "all" || sec.dataset.category === catId;
+            sec.style.display = match ? "block" : "none";
+            if (match) {
+                sec.classList.add('animate-fade-up');
+                // Remove class after animation to allow triggering again if needed
+                setTimeout(() => sec.classList.remove('animate-fade-up'), 600);
+            }
         });
     }
 
@@ -238,7 +330,17 @@
     document.getElementById("menu-search").addEventListener("input", function() {
         const q = this.value.toLowerCase();
         document.querySelectorAll(".menu-item-card").forEach(card => {
-            card.style.display = card.dataset.name.includes(q) ? "" : "none";
+            if (card.dataset.name.includes(q)) {
+                card.parentElement.style.display = "";
+            } else {
+                card.parentElement.style.display = "none";
+            }
+        });
+        
+        // Hide empty categories during search
+        document.querySelectorAll(".menu-category").forEach(sec => {
+            const hasVisibleItems = Array.from(sec.querySelectorAll(".menu-item-card")).some(card => card.parentElement.style.display !== "none");
+            sec.style.display = hasVisibleItems ? "block" : "none";
         });
     });
 </script>

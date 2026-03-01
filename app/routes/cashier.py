@@ -141,10 +141,14 @@ def manual_order():
             session_id = active_session.id
 
     try:
-        order = create_order(session_id, items, payment_method, special_notes, restaurant)
-        if table_id:
-            order.table_id = table_id
-            db.session.commit()
+        order = create_order(
+            session_id,
+            items,
+            payment_method,
+            special_notes,
+            restaurant,
+            table_id=table_id,
+        )
         flash(f'Order #{order.order_number} created.', 'success')
         return redirect(url_for('cashier.orders'))
     except ValueError as exc:

@@ -104,12 +104,19 @@ def category_add():
         restaurant_id=restaurant.id
     ).scalar() or 0
 
+    icon_url = None
+    if 'icon_image' in request.files:
+        f = request.files['icon_image']
+        if f and f.filename:
+            icon_url = save_uploaded_file(f, 'category_icons')
+
     cat = Category(
         restaurant_id=restaurant.id,
         name_fr=name_fr,
         name_ar=request.form.get('name_ar', '').strip() or None,
         name_en=request.form.get('name_en', '').strip() or None,
         icon=request.form.get('icon', '').strip() or None,
+        icon_url=icon_url,
         ramadan_type=request.form.get('ramadan_type') or None,
         sort_order=max_order + 1,
     )
@@ -130,9 +137,20 @@ def category_update(id):
     cat.name_fr = request.form.get('name_fr', '').strip() or cat.name_fr
     cat.name_ar = request.form.get('name_ar', '').strip() or None
     cat.name_en = request.form.get('name_en', '').strip() or None
-    cat.icon = request.form.get('icon', '').strip() or None
     cat.ramadan_type = request.form.get('ramadan_type') or None
     cat.is_active = 'is_active' in request.form
+
+    # Handle icon removal
+    if request.form.get('remove_icon') == '1':
+        cat.icon = None
+        cat.icon_url = None
+
+    # Handle icon image upload
+    if 'icon_image' in request.files:
+        f = request.files['icon_image']
+        if f and f.filename:
+            cat.icon_url = save_uploaded_file(f, 'category_icons')
+            cat.icon = None  # clear emoji when custom image is uploaded
 
     db.session.commit()
     flash('Category updated.', 'success')
@@ -608,20 +626,27 @@ def table_qr(id):
         id=id, restaurant_id=restaurant.id
     ).first_or_404()
 
-    if not table.qr_code_url:
-        qr_url = _generate_table_qr(restaurant.slug, table.id, table.table_number)
-        table.qr_code_url = qr_url
-        db.session.commit()
+    # Build expected file path
+    filename = f'table_{restaurant.slug}_{table.table_number}.png'
+    qr_dir = os.path.join(current_app.root_path, 'static', 'images', 'uploads', 'qrcodes')
+    qr_path = os.path.join(qr_dir, filename)
 
-    # Derive absolute filesystem path from the relative URL stored
-    # e.g. "/static/images/uploads/qrcodes/table_slug_1.png"
-    relative = (table.qr_code_url or '').lstrip('/')
-    qr_path = os.path.join(current_app.root_path, relative.replace('static/', 'static/', 1))
+    # Regenerate if file doesn't exist on disk
+    if not os.path.exists(qr_path):
+        qr_url = _generate_table_qr(restaurant.slug, table.id, table.table_number)
+        if qr_url:
+            table.qr_code_url = qr_url
+            db.session.commit()
+        else:
+            flash('Failed to generate QR code. Please try again.', 'error')
+            return redirect(url_for('dashboard.tables'))
 
     if os.path.exists(qr_path):
         return send_file(qr_path, as_attachment=True,
                          download_name=f'table_{table.table_number}_qr.png')
-    abort(404)
+
+    flash('QR code file not found. Please try again.', 'error')
+    return redirect(url_for('dashboard.tables'))
 
 
 @dashboard_bp.route('/tables/<int:id>/assign-waiter', methods=['POST'])

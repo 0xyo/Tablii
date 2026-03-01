@@ -38,9 +38,9 @@
                 <summary class="cursor-pointer text-orange-500 font-medium hover:text-orange-600">+ Add Option</summary>
                 <form method="POST" action="{{ url_for('dashboard.custom_option_add', id=cust.id) }}" class="mt-3 grid grid-cols-2 gap-2">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="text" name="name_fr" placeholder="Name (FR) *" required class="col-span-2 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                    <input type="text" name="name_ar" placeholder="Name (AR)" dir="rtl" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                    <input type="number" name="extra_price" placeholder="Extra price" value="0" step="0.001" min="0" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                    <input type="text" name="name_fr" placeholder="Name (FR) *" required class="col-span-2 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
+                    <input type="text" name="name_ar" placeholder="Name (AR)" dir="rtl" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
+                    <input type="number" name="extra_price" placeholder="Extra price" value="0" step="0.001" min="0" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
                     <label class="flex items-center gap-2 col-span-2">
                         <input type="checkbox" name="is_default"> <span>Default option</span>
                     </label>
@@ -61,10 +61,10 @@
         <form method="POST" action="{{ url_for('dashboard.customization_add', item_id=item.id) }}" class="space-y-3">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="group_name_fr" placeholder="Group Name (FR) *" required
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
             <input type="text" name="group_name_ar" placeholder="Group Name (AR)" dir="rtl"
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
-            <select name="selection_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
+            <select name="selection_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
                 <option value="single">Single choice</option>
                 <option value="multiple">Multiple choice</option>
             </select>

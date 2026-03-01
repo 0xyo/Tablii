@@ -45,6 +45,7 @@ class Order(db.Model):
 
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy='dynamic')
+    table = db.relationship('Table', backref='orders')
     payment = db.relationship(
         'PaymentTransaction', backref='order', uselist=False
     )
@@ -69,6 +70,7 @@ class OrderItem(db.Model):
     total_price = db.Column(db.Float, nullable=False)
     selected_options = db.Column(db.Text, nullable=True)
     notes = db.Column(db.String(300), nullable=True)
+    menu_item = db.relationship('MenuItem')
 
 
 class PaymentTransaction(db.Model):

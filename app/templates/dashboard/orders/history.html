@@ -7,7 +7,7 @@
 <form method="GET" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-end">
     <div>
         <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-        <select name="status" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <select name="status" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
             <option value="" {{ 'selected' if not status }}>All Statuses</option>
             {% for s in ['new', 'accepted', 'preparing', 'ready', 'served', 'completed', 'cancelled'] %}
             <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s|title }}</option>
@@ -16,11 +16,11 @@
     </div>
     <div>
         <label class="block text-xs font-medium text-gray-600 mb-1">From</label>
-        <input type="date" name="date_from" value="{{ date_from }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <input type="date" name="date_from" value="{{ date_from }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
     </div>
     <div>
         <label class="block text-xs font-medium text-gray-600 mb-1">To</label>
-        <input type="date" name="date_to" value="{{ date_to }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <input type="date" name="date_to" value="{{ date_to }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
     </div>
     <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Filter</button>
     <a href="{{ url_for('dashboard.order_history') }}" class="border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-600">Clear</a>

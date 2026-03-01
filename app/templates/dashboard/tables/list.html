@@ -28,14 +28,12 @@
                     {% if table.assigned_waiter %}
                     <div>Waiter: {{ table.assigned_waiter.name }}</div>
                     {% endif %}
-                    {% if table.qr_code_url %}
                     <a href="{{ url_for('dashboard.table_qr', id=table.id) }}" class="text-orange-500 hover:text-orange-600">📥 Download QR</a>
-                    {% endif %}
                 </div>
                 <!-- Assign waiter -->
                 <form method="POST" action="{{ url_for('dashboard.table_assign_waiter', id=table.id) }}" class="flex gap-1">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <select name="waiter_id" class="flex-1 border border-gray-200 rounded text-xs px-1 py-1">
+                    <select name="waiter_id" class="flex-1 border border-gray-200 rounded text-xs px-1 py-1 text-gray-900">
                         <option value="">No waiter</option>
                         {% for w in waiters %}
                         <option value="{{ w.id }}" {{ 'selected' if table.assigned_waiter_id == w.id }}>{{ w.name }}</option>
@@ -66,12 +64,12 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Table Number *</label>
                     <input type="number" name="table_number" min="1" required
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Capacity</label>
                     <input type="number" name="capacity" min="1" value="4"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
                 </div>
                 <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">Add Table</button>
             </form>

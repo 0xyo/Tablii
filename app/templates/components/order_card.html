@@ -7,7 +7,7 @@
 
     <!-- Header -->
     <div class="flex items-center justify-between">
-        <span class="font-bold text-gray-800 font-mono">#{{ order.order_number }}</span>
+        <span class="font-bold text-gray-800 font-mono">#{{ order.order_number.lstrip('#') }}</span>
         <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
             T{{ order.table_id or '—' }}
         </span>

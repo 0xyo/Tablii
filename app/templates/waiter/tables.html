@@ -4,87 +4,120 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Waiter — {{ restaurant.name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { font-family: 'Inter', sans-serif; background: #f8fafc; }</style>
+    <title>Service Floor — {{ restaurant.name }}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-charcoal-950 font-body text-cream-50 selection:bg-amber-500/30 selection:text-amber-100">
+
+    <!-- Global Background Texture -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-overlay bg-grain"></div>
+
     <!-- Top bar -->
-    <header class="bg-white border-b border-gray-100 h-14 flex items-center px-6 gap-4 shadow-sm">
-        <h1 class="font-bold text-gray-800 text-lg">🖐 Waiter View</h1>
-        <span class="text-gray-400 text-sm">{{ restaurant.name }}</span>
-        <span class="ml-auto font-medium text-sm text-gray-600">{{ current_user.name }}</span>
-        <a href="{{ url_for('auth.logout') }}" class="text-xs text-red-400 hover:text-red-600">Log out</a>
+    <header class="bg-charcoal-900/90 backdrop-blur-md border-b border-charcoal-800/60 h-16 flex items-center justify-between px-8 shadow-sm relative z-10">
+        <div class="flex items-center gap-4">
+            <h1 class="font-display italic text-amber-500 text-xl tracking-wide">Service Floor</h1>
+            <span class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold border-l border-charcoal-700 pl-4">{{ restaurant.name }}</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 border border-amber-900/50 bg-charcoal-800 flex items-center justify-center text-amber-500 font-display italic text-xs shadow-inner-glow">
+                    {{ current_user.name[0]|upper }}
+                </div>
+                <span class="font-medium text-xs text-cream-100 tracking-wide">{{ current_user.name }}</span>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="text-[10px] uppercase tracking-widest font-bold text-ruby-400 hover:text-ruby-300 transition-colors">Sign Out →</a>
+        </div>
     </header>
 
-    <main class="p-6 max-w-5xl mx-auto">
+    <main class="p-8 max-w-7xl mx-auto relative z-10">
         <!-- Call alert banner -->
-        <div id="call-banner" class="hidden mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-            <span class="text-2xl">🔔</span>
-            <div>
-                <p class="font-semibold text-red-700" id="call-text">Waiter call</p>
-                <p class="text-xs text-red-500" id="call-sub"></p>
+        <div id="call-banner" class="hidden mb-8 bg-ruby-900/20 border border-ruby-500/30 p-5 flex items-center gap-4 shadow-[0_0_20px_rgba(225,29,72,0.15)] backdrop-blur-sm">
+            <div class="w-10 h-10 border border-ruby-500/50 bg-ruby-900/40 flex items-center justify-center text-ruby-400 animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <p class="font-display italic text-lg text-ruby-300 tracking-wide" id="call-text">Service Request</p>
+                <p class="text-xs text-ruby-400/80 mt-1 uppercase tracking-widest font-bold" id="call-sub"></p>
             </div>
             <button onclick="resolveCall(currentCallId)"
-                    class="ml-auto bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium">
-                Resolve
+                    class="bg-ruby-900/80 hover:bg-ruby-800 text-cream-50 px-6 py-2 border border-ruby-500/50 text-xs font-bold uppercase tracking-widest transition-colors shadow-inner-glow">
+                Acknowledge
             </button>
         </div>
 
         <!-- Table grid -->
-        <h2 class="font-semibold text-gray-700 mb-3">My Tables</h2>
+        <div class="flex items-center justify-between mb-6 border-b border-charcoal-700/60 pb-3">
+            <h2 class="font-display italic text-xl text-cream-50 tracking-wide">Assigned Stations</h2>
+            <div class="flex gap-4 text-[10px] uppercase font-bold tracking-widest text-charcoal-400">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-charcoal-700 block"></span> Free</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-amber-500/50 block border border-amber-500"></span> Occupied</span>
+            </div>
+        </div>
+
         {% if tables %}
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {% for table in tables %}
             {% set calls = call_counts.get(table.id, 0) %}
-            <div class="bg-white rounded-xl border-2
-                        {{ 'border-green-300' if table.status == 'free'
-                           else 'border-orange-300' if table.status == 'occupied'
-                           else 'border-blue-300' }}
-                        p-4 flex flex-col gap-3 shadow-sm relative">
+            <div class="bg-charcoal-800/40 backdrop-blur-sm p-6 flex flex-col gap-4 shadow-dark relative transition-all duration-300 hover:bg-charcoal-800 border-t-2
+                        {{ 'border-t-charcoal-600 border-x border-b border-x-charcoal-700/50 border-b-charcoal-700/50' if table.status == 'free'
+                           else 'border-t-amber-500 border-x border-b border-x-amber-500/30 border-b-amber-500/30 bg-amber-900/5' if table.status == 'occupied'
+                           else 'border-t-sapphire-500 border-x border-b border-x-sapphire-500/30 border-b-sapphire-500/30' }}">
+                
                 {% if calls > 0 %}
-                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                <span class="absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10">
                     {{ calls }}
                 </span>
                 {% endif %}
 
                 <div class="flex items-center justify-between">
-                    <span class="text-2xl font-black text-gray-800">T{{ table.table_number }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full font-medium
-                                 {{ 'bg-green-100 text-green-700' if table.status == 'free'
-                                    else 'bg-orange-100 text-orange-700' if table.status == 'occupied'
-                                    else 'bg-blue-100 text-blue-700' }}">
+                    <span class="font-display italic text-2xl text-cream-50">T-{{ table.table_number }}</span>
+                    <span class="text-[9px] px-2 py-1 uppercase tracking-widest font-bold border
+                                 {{ 'bg-charcoal-700/50 text-charcoal-300 border-charcoal-600' if table.status == 'free'
+                                    else 'bg-amber-900/30 text-amber-500 border-amber-500/30' if table.status == 'occupied'
+                                    else 'bg-sapphire-900/30 text-sapphire-400 border-sapphire-500/30' }}">
                         {{ table.status|title }}
                     </span>
                 </div>
 
-                <div class="text-xs text-gray-500">Cap: {{ table.capacity }}</div>
+                <div class="text-[10px] uppercase font-bold tracking-widest text-charcoal-400 pt-3 border-t border-charcoal-700/40">Capacity: {{ table.capacity }} pax</div>
 
                 {% if table.status == 'occupied' %}
                 <!-- Active orders -->
                 {% set active_orders = table.sessions.filter_by(is_active=True).first() %}
                 {% if active_orders %}
+                    <div class="mt-2 space-y-3">
                     {% for order in active_orders.orders.filter(
                         active_orders.orders.property.mapper.class_.status == 'ready'
                     ) %}
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-2 text-xs">
-                        <span class="font-medium text-green-800">#{{ order.order_number }}</span>
-                        <span class="text-green-600 ml-1">Ready to serve!</span>
-                        <button onclick="serveOrder({{ order.id }}, this)"
-                                class="block w-full mt-1 text-center bg-green-500 hover:bg-green-600 text-white py-1 rounded font-medium">
-                            Mark Served
-                        </button>
-                    </div>
+                        <div class="bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2">
+                            <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
+                                <span class="font-mono text-xs font-bold text-emerald-400">#{{ order.order_number.lstrip('#') }}</span>
+                                <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
+                            </div>
+                            <button onclick="serveOrder('{{ order.id }}', this)"
+                                    class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
+                                Serve Order →
+                            </button>
+                        </div>
                     {% endfor %}
+                    </div>
                 {% endif %}
                 {% endif %}
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
-            No tables assigned to you yet.
+        <div class="bg-charcoal-800/40 border border-charcoal-700/60 p-12 text-center text-charcoal-400 flex flex-col items-center justify-center">
+            <span class="font-display italic text-2xl mb-2 text-cream-100">No Assignments</span>
+            <p class="text-xs uppercase tracking-widest">You have no tables assigned to your station.</p>
         </div>
         {% endif %}
     </main>
@@ -104,7 +137,7 @@
             });
             const data = await res.json();
             if (data.success) {
-                btn.closest('.bg-green-50')?.remove();
+                btn.closest('.bg-emerald-900\\/20')?.remove();
             } else {
                 alert(data.error);
             }
@@ -125,14 +158,14 @@
         function showCallBanner(call) {
             currentCallId = call.call_id || call.id;
             document.getElementById('call-text').textContent =
-                `Table ${call.table_number || call.table_id}: ${(call.call_type || '').replace('_', ' ')}`;
+                `Station T-${call.table_number || call.table_id}: ${(call.call_type || '').replace('_', ' ')}`;
             document.getElementById('call-sub').textContent = call.message || '';
             document.getElementById('call-banner').classList.remove('hidden');
             playSound('call_waiter');
         }
 
         // Connect via WebSocket (instant calls, no polling)
-        connectAsWaiter({{ restaurant.id }}, {{ current_user.id }});
+        connectAsWaiter("{{ restaurant.id }}", "{{ current_user.id }}");
 
         onEvent('waiter_call', function (data) {
             showCallBanner(data);
@@ -142,6 +175,9 @@
             // Optionally update table card badge
             console.log('Order ready:', data.order_number, 'Table', data.table_number);
             playSound('order_ready');
+            
+            // Note: in a fully reactive app we'd inject the 'ready' order block into the table card right here.
+            // For now, playing the sound prompts the waiter to glance or refresh.
         });
     </script>
 </body>
