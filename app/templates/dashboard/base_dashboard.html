@@ -23,6 +23,9 @@
       href="{{ url_for('static', filename='manifest.json') }}"
     />
     <meta name="theme-color" content="#0f0d0b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
 
     <style>
       .sidebar-link {
@@ -284,6 +287,18 @@
         const overlay = document.getElementById("sidebar-overlay");
         sidebar.classList.toggle("-translate-x-full");
         overlay.classList.toggle("hidden");
+      }
+    </script>
+
+    <!-- Notifications & PWA -->
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script>
+      // Request notification permission for staff
+      requestNotificationPermission();
+
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js').catch(() => {});
       }
     </script>
     {% block scripts %}{% endblock %}

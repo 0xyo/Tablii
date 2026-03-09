@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: tablii
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      npm install
+      npm run build:css
+      flask db upgrade
+    startCommand: gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tablii-db
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: FLOUCI_APP_TOKEN
+        sync: false
+      - key: FLOUCI_APP_SECRET
+        sync: false
+
+databases:
+  - name: tablii-db
+    plan: free
+    databaseName: tablii
+    user: tablii_user

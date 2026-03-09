@@ -20,3 +20,13 @@ def register_blueprints(app):
 
     from app.routes.waiter import waiter_bp
     app.register_blueprint(waiter_bp)
+
+    # JSON API — CSRF exempt (token-based consumers)
+    from app.routes.api import api_bp
+    from app import csrf
+    csrf.exempt(api_bp)
+    app.register_blueprint(api_bp)
+
+    # Super admin panel
+    from app.routes.admin import admin_bp
+    app.register_blueprint(admin_bp)

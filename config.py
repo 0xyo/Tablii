@@ -34,12 +34,28 @@ class ProductionConfig(Config):
 
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    # Fix Render's postgres:// scheme — SQLAlchemy 2.x requires postgresql://
+    if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace(
+            'postgres://', 'postgresql://', 1
+        )
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+    PREFERRED_URL_SCHEME = 'https'
+
+
+class TestingConfig(Config):
+    """Testing configuration — uses in-memory SQLite, disables CSRF."""
+
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    WTF_CSRF_ENABLED = False
+    SECRET_KEY = 'test-secret-key'
 
 
 config_by_name = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'testing': TestingConfig,
 }

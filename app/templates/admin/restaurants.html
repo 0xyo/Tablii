@@ -1,0 +1,131 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Restaurants — Admin{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+  <div>
+    <h1 style="font-size:1.6rem; font-weight:700; color:#f5c56a; margin:0 0 4px;">Restaurants</h1>
+    <p style="color:#8a7f70; font-size:0.9rem; margin:0;">All registered restaurants on the platform.</p>
+  </div>
+  <span style="background:#1e1c1a; color:#c9b99a; padding:6px 14px; border-radius:20px; font-size:0.85rem;">
+    {{ pagination.total }} total
+  </span>
+</div>
+
+<div style="background:#1a1814; border:1px solid #2a2826; border-radius:10px; overflow:hidden;">
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+    <thead>
+      <tr style="background:#0F0D0B; border-bottom:1px solid #2a2826;">
+        <th style="padding:12px 16px; text-align:left; color:#8a7f70; font-weight:600;">Name</th>
+        <th style="padding:12px 16px; text-align:left; color:#8a7f70; font-weight:600;">Owner</th>
+        <th style="padding:12px 16px; text-align:left; color:#8a7f70; font-weight:600;">Slug</th>
+        <th style="padding:12px 16px; text-align:left; color:#8a7f70; font-weight:600;">Plan</th>
+        <th style="padding:12px 16px; text-align:center; color:#8a7f70; font-weight:600;">Orders</th>
+        <th style="padding:12px 16px; text-align:center; color:#8a7f70; font-weight:600;">Active</th>
+        <th style="padding:12px 16px; text-align:left; color:#8a7f70; font-weight:600;">Created</th>
+        <th style="padding:12px 16px; text-align:center; color:#8a7f70; font-weight:600;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in restaurants_data %}
+      <tr style="border-bottom:1px solid #2a2826;" class="restaurant-row">
+        <td style="padding:12px 16px; font-weight:600; color:#f5e6c8;">
+          {{ row.restaurant.name }}
+        </td>
+        <td style="padding:12px 16px; color:#c9b99a;">
+          <div>{{ row.owner_name }}</div>
+          <div style="font-size:0.8rem; color:#6b6057;">{{ row.owner_email }}</div>
+        </td>
+        <td style="padding:12px 16px;">
+          <code style="background:#0F0D0B; color:#c9b99a; padding:2px 8px; border-radius:4px; font-size:0.8rem;">
+            {{ row.restaurant.slug }}
+          </code>
+        </td>
+        <td style="padding:12px 16px;">
+          <span style="padding:3px 10px; border-radius:12px; font-size:0.8rem; font-weight:600;
+            background:{% if row.plan == 'pro' %}#1a2e1a{% elif row.plan == 'starter' %}#1a1e2e{% else %}#1e1c1a{% endif %};
+            color:{% if row.plan == 'pro' %}#66bb6a{% elif row.plan == 'starter' %}#64b5f6{% else %}#8a7f70{% endif %};">
+            {{ row.plan|capitalize }}
+          </span>
+        </td>
+        <td style="padding:12px 16px; text-align:center; color:#c9b99a;">{{ row.order_count }}</td>
+        <td style="padding:12px 16px; text-align:center;">
+          <button
+            id="toggle-btn-{{ row.restaurant.id }}"
+            onclick="toggleRestaurant({{ row.restaurant.id }})"
+            style="padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:600; border:none; cursor:pointer;
+              background:{% if row.restaurant.is_active %}#0f2e1a{% else %}#3b1515{% endif %};
+              color:{% if row.restaurant.is_active %}#66bb6a{% else %}#e57373{% endif %};">
+            {{ '● Active' if row.restaurant.is_active else '○ Inactive' }}
+          </button>
+        </td>
+        <td style="padding:12px 16px; color:#6b6057; font-size:0.85rem;">
+          {{ row.restaurant.created_at.strftime('%d %b %Y') if row.restaurant.created_at else '—' }}
+        </td>
+        <td style="padding:12px 16px; text-align:center;">
+          <a href="/api/restaurant/{{ row.restaurant.slug }}/menu" target="_blank"
+             style="color:#64b5f6; font-size:0.8rem; text-decoration:none;">API ↗</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="padding:32px; text-align:center; color:#6b6057;">No restaurants found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div style="display:flex; justify-content:center; gap:8px; margin-top:24px; flex-wrap:wrap;">
+  {% if pagination.has_prev %}
+    <a href="{{ url_for('admin.restaurants', page=pagination.prev_num) }}"
+       style="padding:6px 14px; background:#1a1814; border:1px solid #2a2826; color:#c9b99a; border-radius:6px; text-decoration:none; font-size:0.85rem;">← Prev</a>
+  {% endif %}
+  {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+      <a href="{{ url_for('admin.restaurants', page=p) }}"
+         style="padding:6px 14px; border:1px solid {% if p == pagination.page %}#f5c56a{% else %}#2a2826{% endif %};
+                background:{% if p == pagination.page %}#2a2008{% else %}#1a1814{% endif %};
+                color:{% if p == pagination.page %}#f5c56a{% else %}#c9b99a{% endif %};
+                border-radius:6px; text-decoration:none; font-size:0.85rem;">{{ p }}</a>
+    {% else %}
+      <span style="padding:6px 4px; color:#6b6057;">…</span>
+    {% endif %}
+  {% endfor %}
+  {% if pagination.has_next %}
+    <a href="{{ url_for('admin.restaurants', page=pagination.next_num) }}"
+       style="padding:6px 14px; background:#1a1814; border:1px solid #2a2826; color:#c9b99a; border-radius:6px; text-decoration:none; font-size:0.85rem;">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleRestaurant(id) {
+  fetch(`/admin/restaurants/${id}/toggle`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const btn = document.getElementById(`toggle-btn-${id}`);
+      if (data.is_active) {
+        btn.textContent = '● Active';
+        btn.style.background = '#0f2e1a';
+        btn.style.color = '#66bb6a';
+      } else {
+        btn.textContent = '○ Inactive';
+        btn.style.background = '#3b1515';
+        btn.style.color = '#e57373';
+      }
+    }
+  })
+  .catch(() => alert('Toggle failed. Please retry.'));
+}
+</script>
+{% endblock %}
