@@ -129,11 +129,28 @@
                         </div>
                     {% endfor %}
 
-                    {# Served orders #}
+                    {# Served orders — show payment status + collect button #}
                     {% for order in active_session.orders.filter_by(status='served') %}
-                        <div class="bg-charcoal-700/20 border border-charcoal-600/30 p-2.5 flex items-center justify-between opacity-60">
-                            <span class="font-mono text-xs font-bold text-charcoal-400">#{{ order.order_number.lstrip('#') }}</span>
-                            <span class="text-[9px] uppercase tracking-widest font-bold text-cream-300/60">Served</span>
+                        <div class="border p-3 flex flex-col gap-2
+                            {{ 'bg-emerald-900/10 border-emerald-500/20' if order.payment_status == 'paid' else 'bg-ruby-900/10 border-ruby-500/20' }}"
+                             data-order-id="{{ order.id }}">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border
+                                        {{ 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30' if order.payment_status == 'paid'
+                                           else 'bg-ruby-900/30 text-ruby-400 border-ruby-500/30' }}">
+                                        {{ '💵 Paid' if order.payment_status == 'paid' else '⚠ Unpaid' }}
+                                    </span>
+                                    <span class="text-[9px] uppercase tracking-widest font-bold text-cream-300/60">Served</span>
+                                </div>
+                            </div>
+                            {% if order.payment_status != 'paid' %}
+                            <button onclick="collectPayment({{ order.id }}, this)"
+                                    class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
+                                💵 Collect Payment
+                            </button>
+                            {% endif %}
                         </div>
                     {% endfor %}
 
@@ -175,6 +192,28 @@
                 btn.closest('[data-order-id]')?.remove();
             } else {
                 alert(data.error);
+            }
+        }
+
+        async function collectPayment(orderId, btn) {
+            const res = await fetch(`/waiter/orders/${orderId}/confirm-payment`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.success) {
+                const card = btn.closest('[data-order-id]');
+                if (card) {
+                    card.className = card.className.replace('bg-ruby-900/10 border-ruby-500/20', 'bg-emerald-900/10 border-emerald-500/20');
+                    btn.remove();
+                    const badgeEl = card.querySelector('[class*="bg-ruby-900/30"]');
+                    if (badgeEl) {
+                        badgeEl.className = badgeEl.className.replace('bg-ruby-900/30 text-ruby-400 border-ruby-500/30', 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30');
+                        badgeEl.textContent = '💵 Paid';
+                    }
+                }
+            } else {
+                alert(data.error || 'Failed to confirm payment');
             }
         }
 
