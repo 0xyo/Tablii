@@ -26,12 +26,11 @@
 
 ## 📸 Screenshots
 
-> Add screenshots here after deploying:
->
-> - `docs/screenshots/customer-menu.png` — Customer-facing menu page
-> - `docs/screenshots/cashier-orders.png` — Cashier order management
-> - `docs/screenshots/kitchen-display.png` — Kitchen display system
-> - `docs/screenshots/dashboard.png` — Owner analytics dashboard
+<p align="center">
+  <img src="docs/screenshots/customer-menu.png" width="48%" alt="Customer Menu">
+  <img src="docs/screenshots/dashboard.png" width="48%" alt="Owner Dashboard">
+</p>
+
 
 ---
 
