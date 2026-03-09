@@ -5,7 +5,7 @@ from flask import Blueprint, g, jsonify, render_template
 from flask_login import current_user, login_required
 
 from app import db
-from app.models.order import WaiterCall
+from app.models.order import Order, WaiterCall
 from app.models.table import Table
 from app.services.order_service import close_table_session, update_order_status
 from app.utils.decorators import restaurant_required, role_required
@@ -115,3 +115,18 @@ def close_table(table_id):
     if not ok:
         return jsonify(success=False, error=msg), 400
     return jsonify(success=True, table_id=table_id, new_status='free')
+
+
+@waiter_bp.route('/orders/<int:id>/confirm-payment', methods=['POST'])
+@login_required
+@restaurant_required
+@role_required('waiter', 'owner')
+def confirm_payment(id):
+    """Mark a cash/card order as paid (waiter collected money at table)."""
+    restaurant = g.restaurant
+    order = Order.query.filter_by(id=id, restaurant_id=restaurant.id).first_or_404()
+    if order.payment_status == 'paid':
+        return jsonify(success=True, message='Already paid.')
+    order.payment_status = 'paid'
+    db.session.commit()
+    return jsonify(success=True, order_id=id)
