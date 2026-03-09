@@ -24,13 +24,22 @@
 
 ---
 
-## 📸 Screenshots
+## 📸 Platform Previews
 
-<p align="center">
-  <img src="docs/screenshots/customer-menu.png" width="48%" alt="Customer Menu">
-  <img src="docs/screenshots/dashboard.png" width="48%" alt="Owner Dashboard">
-</p>
-
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <b>Customer Interface</b><br><br>
+        <img src="docs/screenshots/customer-menu.png" alt="Customer Menu Interface" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      </td>
+      <td align="center" width="50%">
+        <b>Owner Analytics Dashboard</b><br><br>
+        <img src="docs/screenshots/dashboard.png" alt="Owner Dashboard Interface" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
