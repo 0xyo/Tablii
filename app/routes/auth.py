@@ -62,11 +62,11 @@ def login_post():
     if current_user.is_authenticated:
         return redirect('/dashboard')
 
-    if _is_rate_limited():
-        flash('Too many login attempts. Please wait.', 'error')
-        return redirect(url_for('auth.login'))
-
     login_type = request.form.get('login_type', 'owner')
+
+    if _is_rate_limited():
+        flash('Too many login attempts. Please wait 15 minutes.', 'error')
+        return redirect(url_for('auth.login', login_type=login_type))
 
     if login_type == 'owner':
         return _handle_owner_login()
