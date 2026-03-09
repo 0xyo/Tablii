@@ -33,6 +33,29 @@ class Restaurant(db.Model):
         db.DateTime, default=lambda: datetime.now(timezone.utc)
     )
 
+    def is_currently_open(self):
+        """Check if restaurant is open right now (manual override + schedule)."""
+        if not self.is_open:
+            return False
+        from datetime import datetime, time as _time
+        now = datetime.now()
+        day = now.weekday()  # 0=Monday
+        hours = OperatingHours.query.filter_by(
+            restaurant_id=self.id, day_of_week=day
+        ).first()
+        if not hours:
+            return True  # no schedule set = assume open
+        if hours.is_closed:
+            return False
+        if hours.open_time and hours.close_time:
+            current_time = now.time()
+            if hours.open_time <= hours.close_time:
+                return hours.open_time <= current_time <= hours.close_time
+            else:
+                # overnight (e.g. 20:00 - 02:00)
+                return current_time >= hours.open_time or current_time <= hours.close_time
+        return True
+
     # Relationships
     categories = db.relationship('Category', backref='restaurant', lazy='dynamic')
     tables = db.relationship('Table', backref='restaurant', lazy='dynamic')

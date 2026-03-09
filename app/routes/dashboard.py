@@ -13,6 +13,7 @@ from app import db
 from app.models.menu import Category, CustomOption, Customization, MenuItem
 from app.models.order import Order
 from app.models.restaurant import OperatingHours, Restaurant
+from app.models.review import Review
 from app.models.table import Table, TableSession
 from app.models.user import StaffUser
 from app.services.qr_service import generate_table_qr as _generate_table_qr
@@ -890,6 +891,7 @@ def settings():
     if valid_svc:
         restaurant.service_charge = float(svc_str)
 
+    restaurant.is_open = 'is_open' in request.form
     restaurant.auto_accept = 'auto_accept' in request.form
     restaurant.online_payment = 'online_payment' in request.form
     restaurant.ramadan_mode = 'ramadan_mode' in request.form
@@ -971,4 +973,47 @@ def analytics():
         popular_items=popular_items,
         peak_hours=peak_hours,
         service_time=service_time,
+    )
+
+
+# ──────────────────────────────────────────────
+# 10. Reviews
+# ──────────────────────────────────────────────
+
+@dashboard_bp.route('/reviews')
+@login_required
+@restaurant_required
+def reviews():
+    """Customer reviews overview."""
+    restaurant = g.restaurant
+    page = request.args.get('page', 1, type=int)
+
+    query = Review.query.filter_by(restaurant_id=restaurant.id)
+    total_reviews = query.count()
+
+    avg_rating = db.session.query(func.avg(Review.rating)).filter(
+        Review.restaurant_id == restaurant.id
+    ).scalar() or 0
+    avg_food = db.session.query(func.avg(Review.food_rating)).filter(
+        Review.restaurant_id == restaurant.id,
+        Review.food_rating.isnot(None),
+    ).scalar() or 0
+    avg_service = db.session.query(func.avg(Review.service_rating)).filter(
+        Review.restaurant_id == restaurant.id,
+        Review.service_rating.isnot(None),
+    ).scalar() or 0
+
+    pagination = query.order_by(Review.created_at.desc()).paginate(
+        page=page, per_page=20, error_out=False
+    )
+
+    return render_template(
+        'dashboard/reviews.html',
+        restaurant=restaurant,
+        reviews=pagination.items,
+        pagination=pagination,
+        total_reviews=total_reviews,
+        avg_rating=round(avg_rating, 1),
+        avg_food=round(avg_food, 1),
+        avg_service=round(avg_service, 1),
     )

@@ -4,6 +4,18 @@
 
 {% block dashboard_content %}
 
+{# ── Restaurant Status Banner ────────────────────────────────────────── #}
+{% set currently_open = restaurant.is_currently_open() %}
+<div class="mb-6 p-4 flex items-center justify-between border {{ 'bg-emerald-900/10 border-emerald-500/30' if currently_open else 'bg-ruby-900/10 border-ruby-500/30' }}">
+    <div class="flex items-center gap-3">
+        <span class="w-3 h-3 rounded-full {{ 'bg-emerald-500 animate-pulse' if currently_open else 'bg-ruby-500' }}"></span>
+        <span class="font-display italic text-lg text-cream-50">{{ 'Restaurant is Open' if currently_open else 'Restaurant is Closed' }}</span>
+    </div>
+    <a href="{{ url_for('dashboard.settings') }}" class="text-[10px] font-bold uppercase tracking-widest text-amber-500 hover:text-amber-400 border border-amber-500/30 px-4 py-2 hover:bg-amber-500/10 transition-all">
+        {{ 'Close Now →' if currently_open else 'Open Now →' }}
+    </a>
+</div>
+
 {# ── KPI Cards ───────────────────────────────────────────────────────── #}
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
 

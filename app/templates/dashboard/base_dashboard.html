@@ -176,6 +176,12 @@
           <span class="text-lg opacity-70">📈</span> <span>Analytics</span>
         </a>
         <a
+          href="{{ url_for('dashboard.reviews') }}"
+          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.reviews' }}"
+        >
+          <span class="text-lg opacity-70">⭐</span> <span>Reviews</span>
+        </a>
+        <a
           href="{{ url_for('dashboard.settings') }}"
           class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.settings' }}"
         >
@@ -277,6 +283,12 @@
 
       <!-- Page content -->
       <main class="flex-1 p-8 pb-20">
+        {% if g.get('subscription_expired') %}
+        <div class="mb-6 p-4 flex items-center gap-3 border bg-ruby-900/10 border-ruby-500/30">
+            <span class="text-ruby-400 text-lg">⚠️</span>
+            <span class="font-display italic text-lg text-ruby-300">Subscription expired — new orders are blocked.</span>
+        </div>
+        {% endif %}
         {% block dashboard_content %}{% endblock %}
       </main>
     </div>

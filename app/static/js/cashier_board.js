@@ -92,6 +92,7 @@ const NEXT_STATUS = {
     accepted: 'preparing',
     preparing: 'ready',
     ready: 'served',
+    served: 'completed',
 };
 
 const NEXT_LABEL = {
@@ -99,6 +100,7 @@ const NEXT_LABEL = {
     preparing: 'Prepare',
     ready: 'Ready',
     served: 'Served',
+    completed: 'Complete',
 };
 
 /**
@@ -248,3 +250,27 @@ function playNewOrderSound() {
 
 // Mark that subsequent calls will play sound
 window.addEventListener('load', () => { _newOrderSoundPlayed = true; });
+
+// ---------------------------------------------------------------------------
+// Confirm cash payment
+// ---------------------------------------------------------------------------
+
+async function confirmPayment(id) {
+    try {
+        const res = await fetch(`/cashier/orders/${id}/confirm-payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF,
+            },
+        });
+        const data = await res.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to confirm payment.');
+        }
+    } catch (err) {
+        console.error('confirmPayment error:', err);
+    }
+}

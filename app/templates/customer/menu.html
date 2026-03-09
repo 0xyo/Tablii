@@ -3,6 +3,21 @@
 {% block title %}{{ restaurant.name }} — Menu{% endblock %}
 
 {% block customer_content %}
+
+{% if not restaurant.is_currently_open() %}
+<div class="mx-5 mt-6 p-5 bg-ruby-900/20 border border-ruby-500/30 flex items-center gap-4">
+    <div class="w-10 h-10 border border-ruby-500/50 bg-ruby-900/40 flex items-center justify-center text-ruby-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    </div>
+    <div>
+        <p class="font-display italic text-lg text-ruby-300">We're Currently Closed</p>
+        <p class="text-xs text-ruby-400/80 mt-1">You can browse the menu, but ordering is not available right now.</p>
+    </div>
+</div>
+{% endif %}
+
 <!-- Search bar -->
 <section class="px-5 pt-6 pb-2 relative z-10">
     <div class="relative group">

@@ -144,6 +144,9 @@ def place_order(slug, table_id):
     """Create a new order from cart data."""
     restaurant, table = _get_restaurant_and_table(slug, table_id)
 
+    if not restaurant.is_currently_open():
+        return jsonify(success=False, error='Restaurant is currently closed. Please come back during opening hours.'), 403
+
     # Validate session
     stored_token = session.get('session_token')
     if not stored_token:

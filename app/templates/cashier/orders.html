@@ -41,6 +41,17 @@
                     </span>
                 </div>
 
+                <div class="flex items-center gap-2">
+                    <span class="text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border
+                        {{ 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30' if order.payment_status == 'paid'
+                           else 'bg-ruby-900/30 text-ruby-400 border-ruby-500/30' }}">
+                        {{ '💵 Paid' if order.payment_status == 'paid' else '⚠ Unpaid' }}
+                    </span>
+                    <span class="text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border border-charcoal-600 text-charcoal-400">
+                        {{ order.payment_method or 'cash' }}
+                    </span>
+                </div>
+
                 <div class="text-sm font-light text-cream-50 space-y-1.5 py-2 border-y border-charcoal-700/40">
                     {% for oi in order.items %}
                     <div class="flex gap-2 items-start leading-tight">
@@ -68,6 +79,12 @@
                 </div>
 
                 <div class="flex gap-2 mt-2">
+                    {% if order.payment_status != 'paid' %}
+                    <button onclick="confirmPayment({{ order.id }})"
+                            class="flex-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 text-cream-50 hover:bg-emerald-500 py-2 transition-colors border border-emerald-500 flex items-center justify-center gap-1.5">
+                        💵 Collect Payment
+                    </button>
+                    {% endif %}
                     <button onclick="changeOrderStatus({{ order.id }}, '{{ next_status }}')"
                             class="flex-1 text-[10px] font-bold uppercase tracking-widest bg-amber-500 text-charcoal-900 hover:bg-amber-400 py-2 transition-colors border border-amber-400 flex items-center justify-center gap-1.5 shadow-gold">
                         {{ next_label }} →

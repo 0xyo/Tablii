@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timezone
 
 from app import db
-from app.models.menu import CustomOption, MenuItem
+from app.models.menu import Customization, CustomOption, MenuItem
 from app.models.order import Order, OrderItem
 from app.models.table import TableSession
 from app.utils.helpers import generate_order_number
@@ -39,6 +39,13 @@ def create_order(
     if not items:
         raise ValueError('Order must contain at least one item.')
 
+    # Block orders if subscription has expired
+    sub = restaurant.subscription
+    if sub and sub.expires_at:
+        from datetime import timezone as _tz
+        if sub.expires_at < datetime.now(_tz.utc):
+            raise ValueError('Restaurant subscription has expired.')
+
     order_items = []
     subtotal = 0.0
 
@@ -66,10 +73,22 @@ def create_order(
         unit_price = menu_item.price
 
         if selected_options:
+            # Validate max_selections per customization group
+            group_counts = {}
             for opt_id in selected_options:
                 option = CustomOption.query.get(opt_id)
                 if option:
                     unit_price += option.extra_price
+                    gid = option.customization_id
+                    group_counts[gid] = group_counts.get(gid, 0) + 1
+
+            for gid, count in group_counts.items():
+                cust = Customization.query.get(gid)
+                if cust and cust.max_selections and count > cust.max_selections:
+                    raise ValueError(
+                        f'Too many selections for "{cust.group_name_fr}" '
+                        f'(max {cust.max_selections}).'
+                    )
 
         total_price = unit_price * quantity
         subtotal += total_price
@@ -83,9 +102,10 @@ def create_order(
             notes=notes or None,
         ))
 
-    # Calculate tax and total
+    # Calculate tax, service charge, and total
     tax_amount = subtotal * (restaurant.tax_rate / 100)
-    total_amount = subtotal + tax_amount
+    service_charge_amount = subtotal * ((restaurant.service_charge or 0) / 100)
+    total_amount = subtotal + tax_amount + service_charge_amount
 
     # Determine initial status
     now = datetime.now(timezone.utc)
@@ -133,6 +153,19 @@ def create_order(
         notify_new_order(order)
     except Exception:
         logger.exception('notify_new_order failed silently')
+
+    # In-app notification
+    try:
+        from app.services.notification_service import create_notification
+        create_notification(
+            restaurant_id=restaurant.id,
+            type='new_order',
+            title=f'New order #{order.order_number}',
+            body=f'{order.items.count()} item(s) — {order.total_amount:.3f} {restaurant.currency}',
+            target_role='kitchen',
+        )
+    except Exception:
+        logger.exception('create_notification failed silently')
 
     return order
 
@@ -187,6 +220,9 @@ def update_order_status(
             f'Cannot transition from \'{order.status}\' to \'{new_status}\'.',
         )
 
+    if new_status == 'completed' and order.payment_status != 'paid':
+        return (False, 'Payment not confirmed. Collect payment before completing.')
+
     now = datetime.now(timezone.utc)
     order.status = new_status
     ts_field = STATUS_TIMESTAMP.get(new_status)
@@ -240,6 +276,16 @@ def close_table_session(table_id: int, restaurant_id: int) -> tuple[bool, str]:
     active_session = TableSession.query.filter_by(
         table_id=table.id, is_active=True
     ).first()
+
+    if active_session:
+        from app.models.order import Order
+        unpaid = Order.query.filter(
+            Order.session_id == active_session.id,
+            Order.payment_status != 'paid',
+            Order.status != 'cancelled',
+        ).count()
+        if unpaid > 0:
+            return (False, f'{unpaid} order(s) still unpaid. Collect payment first.')
 
     now = datetime.now(timezone.utc)
     if active_session:
