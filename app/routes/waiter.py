@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 from app import db
 from app.models.order import WaiterCall
 from app.models.table import Table
-from app.services.order_service import update_order_status
+from app.services.order_service import close_table_session, update_order_status
 from app.utils.decorators import restaurant_required, role_required
 
 waiter_bp = Blueprint('waiter', __name__, url_prefix='/waiter')
@@ -90,7 +90,7 @@ def resolve_call(id):
     call.resolved_by = current_user.id
     db.session.commit()
 
-    return jsonify(success=True, call_id=id)
+    return jsonify(success=True, call_id=id, table_id=call.table_id)
 
 
 @waiter_bp.route('/orders/<int:id>/served', methods=['POST'])
@@ -103,3 +103,15 @@ def mark_served(id):
     if not ok:
         return jsonify(success=False, error=msg), 400
     return jsonify(success=True, order_id=id, new_status='served')
+
+
+@waiter_bp.route('/tables/<int:table_id>/close', methods=['POST'])
+@login_required
+@restaurant_required
+@role_required('waiter', 'owner')
+def close_table(table_id):
+    """Close the active session on a table and set it to free."""
+    ok, msg = close_table_session(table_id, g.restaurant.id)
+    if not ok:
+        return jsonify(success=False, error=msg), 400
+    return jsonify(success=True, table_id=table_id, new_status='free')

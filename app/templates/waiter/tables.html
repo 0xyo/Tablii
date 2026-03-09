@@ -66,13 +66,13 @@
         <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {% for table in tables %}
             {% set calls = call_counts.get(table.id, 0) %}
-            <div class="bg-charcoal-800/40 backdrop-blur-sm p-6 flex flex-col gap-4 shadow-dark relative transition-all duration-300 hover:bg-charcoal-800 border-t-2
+            <div data-table-id="{{ table.id }}" class="bg-charcoal-800/40 backdrop-blur-sm p-6 flex flex-col gap-4 shadow-dark relative transition-all duration-300 hover:bg-charcoal-800 border-t-2
                         {{ 'border-t-charcoal-600 border-x border-b border-x-charcoal-700/50 border-b-charcoal-700/50' if table.status == 'free'
                            else 'border-t-amber-500 border-x border-b border-x-amber-500/30 border-b-amber-500/30 bg-amber-900/5' if table.status == 'occupied'
                            else 'border-t-sapphire-500 border-x border-b border-x-sapphire-500/30 border-b-sapphire-500/30' }}">
                 
                 {% if calls > 0 %}
-                <span class="absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10">
+                <span class="absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10 call-badge">
                     {{ calls }}
                 </span>
                 {% endif %}
@@ -91,13 +91,33 @@
 
                 {% if table.status == 'occupied' %}
                 <!-- Active orders -->
-                {% set active_orders = table.sessions.filter_by(is_active=True).first() %}
-                {% if active_orders %}
-                    <div class="mt-2 space-y-3">
-                    {% for order in active_orders.orders.filter(
-                        active_orders.orders.property.mapper.class_.status == 'ready'
-                    ) %}
-                        <div class="bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2">
+                {% set active_session = table.sessions.filter_by(is_active=True).first() %}
+                {% if active_session %}
+                    <div class="mt-2 space-y-3" id="orders-table-{{ table.id }}">
+
+                    {# Orders in progress (new / accepted / preparing) #}
+                    {% for order in active_session.orders.filter_by(status='new') %}
+                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-amber-400 bg-amber-900/30 px-2 py-0.5 border border-amber-500/30">New</span>
+                        </div>
+                    {% endfor %}
+                    {% for order in active_session.orders.filter_by(status='accepted') %}
+                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-sapphire-400 bg-sapphire-900/30 px-2 py-0.5 border border-sapphire-500/30">Accepted</span>
+                        </div>
+                    {% endfor %}
+                    {% for order in active_session.orders.filter_by(status='preparing') %}
+                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-orange-400 bg-orange-900/30 px-2 py-0.5 border border-orange-500/30">Preparing</span>
+                        </div>
+                    {% endfor %}
+
+                    {# Ready orders — actionable #}
+                    {% for order in active_session.orders.filter_by(status='ready') %}
+                        <div class="bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2" data-order-id="{{ order.id }}">
                             <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
                                 <span class="font-mono text-xs font-bold text-emerald-400">#{{ order.order_number.lstrip('#') }}</span>
                                 <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
@@ -108,7 +128,22 @@
                             </button>
                         </div>
                     {% endfor %}
+
+                    {# Served orders #}
+                    {% for order in active_session.orders.filter_by(status='served') %}
+                        <div class="bg-charcoal-700/20 border border-charcoal-600/30 p-2.5 flex items-center justify-between opacity-60">
+                            <span class="font-mono text-xs font-bold text-charcoal-400">#{{ order.order_number.lstrip('#') }}</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-cream-300/60">Served</span>
+                        </div>
+                    {% endfor %}
+
                     </div>
+
+                    {# Close table button #}
+                    <button onclick="closeTable({{ table.id }}, this)"
+                            class="w-full mt-3 text-center bg-ruby-900/20 hover:bg-ruby-900/40 text-ruby-400 border border-ruby-500/30 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                        Close Table ✕
+                    </button>
                 {% endif %}
                 {% endif %}
             </div>
@@ -137,9 +172,23 @@
             });
             const data = await res.json();
             if (data.success) {
-                btn.closest('.bg-emerald-900\\/20')?.remove();
+                btn.closest('[data-order-id]')?.remove();
             } else {
                 alert(data.error);
+            }
+        }
+
+        async function closeTable(tableId, btn) {
+            if (!confirm('Close this table and mark it as free?')) return;
+            const res = await fetch(`/waiter/tables/${tableId}/close`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to close table');
             }
         }
 
@@ -149,9 +198,32 @@
                 method: 'POST',
                 headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
             });
-            if ((await res.json()).success) {
+            const data = await res.json();
+            if (data.success) {
                 document.getElementById('call-banner').classList.add('hidden');
                 currentCallId = null;
+                // Update the badge on the table card
+                updateCallBadge(data.table_id, -1);
+            }
+        }
+
+        function updateCallBadge(tableId, delta) {
+            const card = document.querySelector(`[data-table-id="${tableId}"]`);
+            if (!card) return;
+            let badge = card.querySelector('.call-badge');
+            if (badge && delta < 0) {
+                const current = parseInt(badge.textContent.trim()) || 0;
+                const next = current + delta;
+                if (next <= 0) {
+                    badge.remove();
+                } else {
+                    badge.textContent = next;
+                }
+            } else if (!badge && delta > 0) {
+                badge = document.createElement('span');
+                badge.className = 'absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10 call-badge';
+                badge.textContent = delta;
+                card.appendChild(badge);
             }
         }
 
@@ -169,15 +241,37 @@
 
         onEvent('waiter_call', function (data) {
             showCallBanner(data);
+            // Increment badge on the table card
+            updateCallBadge(data.table_id, 1);
         });
 
         onEvent('order_ready', function (data) {
-            // Optionally update table card badge
-            console.log('Order ready:', data.order_number, 'Table', data.table_number);
             playSound('order_ready');
-            
-            // Note: in a fully reactive app we'd inject the 'ready' order block into the table card right here.
-            // For now, playing the sound prompts the waiter to glance or refresh.
+            // Inject the ready order card into the correct table
+            const container = document.getElementById('orders-table-' + data.table_id);
+            if (container) {
+                const card = document.createElement('div');
+                card.className = 'bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2';
+                card.dataset.orderId = data.order_id;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
+                        <span class="font-mono text-xs font-bold text-emerald-400">#${(data.order_number || '').replace('#','')}</span>
+                        <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
+                    </div>
+                    <button onclick="serveOrder('${data.order_id}', this)"
+                            class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
+                        Serve Order →
+                    </button>`;
+                container.appendChild(card);
+            } else {
+                // Table not on screen — full reload to pick it up
+                location.reload();
+            }
+        });
+
+        onEvent('table_status_change', function (data) {
+            // Reload when a table status changes (e.g. freed)
+            location.reload();
         });
     </script>
 </body>

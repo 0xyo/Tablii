@@ -8,6 +8,7 @@ Strict rules:
 """
 import json
 import logging
+from datetime import datetime, timezone
 
 import requests
 from flask import current_app
@@ -150,7 +151,20 @@ def verify_flouci_payment(payment_id: str) -> bool:
             order = Order.query.get(txn.order_id)
             if order:
                 order.payment_status = 'paid'
+                # Auto-advance served orders to completed on payment
+                if order.status == 'served':
+                    order.status = 'completed'
+                    order.completed_at = datetime.now(timezone.utc)
             db.session.commit()
+
+            # Check if table can be released after payment completion
+            if order and order.status == 'completed' and order.session_id:
+                try:
+                    from app.services.order_service import _maybe_release_table
+                    _maybe_release_table(order.session_id)
+                except Exception:
+                    logger.exception('Auto-release after payment failed silently')
+
             return True
         else:
             txn.status = 'failed'

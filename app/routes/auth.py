@@ -16,31 +16,38 @@ auth_bp = Blueprint('auth', __name__)
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_SECONDS = 900  # 15 minutes
 
+# In-memory store keyed by IP — resets automatically on every server restart
+_failed_attempts: dict[str, dict] = {}
+
+
+def _get_client_ip() -> str:
+    return request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
+
 
 def _is_rate_limited() -> bool:
-    """Check if the current session has exceeded login attempt limits."""
-    attempts = session.get('login_attempts', 0)
-    last_attempt = session.get('last_failed_at')
-    if attempts >= MAX_FAILED_ATTEMPTS and last_attempt:
-        elapsed = (datetime.now(timezone.utc) - datetime.fromisoformat(last_attempt)).total_seconds()
+    ip = _get_client_ip()
+    record = _failed_attempts.get(ip)
+    if not record:
+        return False
+    if record['attempts'] >= MAX_FAILED_ATTEMPTS:
+        elapsed = (datetime.now(timezone.utc) - record['last_failed_at']).total_seconds()
         if elapsed < LOCKOUT_SECONDS:
             return True
-        # Reset after lockout period
-        session.pop('login_attempts', None)
-        session.pop('last_failed_at', None)
+        # Lockout period elapsed — clear it
+        _failed_attempts.pop(ip, None)
     return False
 
 
 def _record_failed_attempt():
-    """Increment failed login attempts in session."""
-    session['login_attempts'] = session.get('login_attempts', 0) + 1
-    session['last_failed_at'] = datetime.now(timezone.utc).isoformat()
+    ip = _get_client_ip()
+    record = _failed_attempts.setdefault(ip, {'attempts': 0, 'last_failed_at': None})
+    record['attempts'] += 1
+    record['last_failed_at'] = datetime.now(timezone.utc)
 
 
 def _clear_attempts():
-    """Clear failed login tracking on success."""
-    session.pop('login_attempts', None)
-    session.pop('last_failed_at', None)
+    ip = _get_client_ip()
+    _failed_attempts.pop(ip, None)
 
 
 # ──────────────────────────────────────────────

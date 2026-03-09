@@ -43,7 +43,12 @@ def notify_waiter_call(call):
 
 
 def notify_table_occupied(table):
-    """Broadcast a table status change to all restaurant staff.
+    """Broadcast a table occupied event to all restaurant staff."""
+    notify_table_status_change(table)
+
+
+def notify_table_status_change(table):
+    """Broadcast any table status change (occupied, free, etc.) to all staff.
 
     Args:
         table: Table model instance with updated status.
@@ -61,4 +66,4 @@ def notify_table_occupied(table):
             room=f'restaurant_{table.restaurant_id}',
         )
     except Exception:
-        logger.exception('notify_table_occupied failed for table %s', table.id)
+        logger.exception('notify_table_status_change failed for table %s', table.id)

@@ -200,6 +200,13 @@ def update_order_status(
         logger.exception('Failed to update order %s to %s', order_id, new_status)
         return (False, 'Database error.')
 
+    # Auto-release table when all session orders are completed
+    if new_status == 'completed' and order.session_id:
+        try:
+            _maybe_release_table(order.session_id)
+        except Exception:
+            logger.exception('Auto-release table check failed silently')
+
     # Real-time notifications
     try:
         from app.events.order_events import notify_order_status_change
@@ -215,6 +222,73 @@ def update_order_status(
         logger.exception('Status change notification failed silently')
 
     return (True, 'OK')
+
+
+def close_table_session(table_id: int, restaurant_id: int) -> tuple[bool, str]:
+    """Manually close the active session on a table and free it.
+
+    Returns:
+        ``(True, 'OK')`` on success or ``(False, error_message)`` on failure.
+    """
+    from app.models.order import WaiterCall
+    from app.models.table import Table, TableSession
+
+    table = Table.query.filter_by(id=table_id, restaurant_id=restaurant_id).first()
+    if not table:
+        return (False, 'Table not found.')
+
+    active_session = TableSession.query.filter_by(
+        table_id=table.id, is_active=True
+    ).first()
+
+    now = datetime.now(timezone.utc)
+    if active_session:
+        active_session.is_active = False
+        active_session.ended_at = now
+
+    # Resolve any pending waiter calls for this table
+    pending_calls = WaiterCall.query.filter_by(
+        table_id=table.id, status='pending'
+    ).all()
+    for call in pending_calls:
+        call.status = 'resolved'
+        call.resolved_at = now
+
+    table.status = 'free'
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        logger.exception('Failed to close table %s', table_id)
+        return (False, 'Database error.')
+
+    try:
+        from app.events.waiter_events import notify_table_status_change
+        notify_table_status_change(table)
+    except Exception:
+        logger.exception('Table status notification failed silently')
+
+    return (True, 'OK')
+
+
+def _maybe_release_table(session_id: int):
+    """If all orders in the session are terminal, close the session and free the table."""
+    from app.models.order import Order
+    from app.models.table import TableSession
+
+    table_session = TableSession.query.get(session_id)
+    if not table_session or not table_session.is_active:
+        return
+
+    terminal = ('completed', 'cancelled')
+    pending = Order.query.filter(
+        Order.session_id == session_id,
+        ~Order.status.in_(terminal),
+    ).count()
+
+    if pending == 0:
+        close_table_session(table_session.table_id, table_session.restaurant_id)
 
 
 def get_active_orders(restaurant_id: int) -> dict:
