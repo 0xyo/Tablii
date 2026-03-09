@@ -4,13 +4,14 @@
 
 {% block cashier_content %}
 {% set columns = [
-    ('new',      'New',       'accepted',  'Accept',  'bg-charcoal-800/30 border-ruby-900/30 text-ruby-400 group-hover:border-ruby-500/50'),
-    ('accepted', 'Accepted',  'preparing', 'Prepare', 'bg-charcoal-800/30 border-blue-900/30 text-blue-400 group-hover:border-blue-500/50'),
-    ('preparing','Preparing', 'ready',     'Ready',   'bg-charcoal-800/30 border-amber-900/40 text-amber-500 group-hover:border-amber-500/50'),
-    ('ready',    'Ready',     'served',    'Served',  'bg-charcoal-800/30 border-emerald-900/30 text-emerald-400 group-hover:border-emerald-500/50'),
+    ('new',      'New',       'accepted',  'Accept',    'bg-charcoal-800/30 border-ruby-900/30 text-ruby-400 group-hover:border-ruby-500/50'),
+    ('accepted', 'Accepted',  'preparing', 'Prepare',   'bg-charcoal-800/30 border-blue-900/30 text-blue-400 group-hover:border-blue-500/50'),
+    ('preparing','Preparing', 'ready',     'Ready',     'bg-charcoal-800/30 border-amber-900/40 text-amber-500 group-hover:border-amber-500/50'),
+    ('ready',    'Ready',     'served',    'Served',    'bg-charcoal-800/30 border-emerald-900/30 text-emerald-400 group-hover:border-emerald-500/50'),
+    ('served',   'Served',    'completed', 'Complete',  'bg-charcoal-800/30 border-cream-900/30 text-cream-400 group-hover:border-cream-500/50'),
 ] %}
 
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 h-full" id="kanban-board">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 h-full" id="kanban-board">
     {% for status, label, next_status, next_label, color in columns %}
     <div class="flex flex-col gap-4 group" id="col-{{ status }}">
         <!-- Column header -->
