@@ -154,3 +154,18 @@ def manual_order():
     except ValueError as exc:
         flash(str(exc), 'error')
         return redirect(url_for('cashier.manual_order'))
+
+
+@cashier_bp.route('/orders/<int:id>/confirm-payment', methods=['POST'])
+@login_required
+@restaurant_required
+@role_required('cashier', 'owner')
+def confirm_payment(id):
+    """Mark a cash/card order as paid."""
+    restaurant = g.restaurant
+    order = Order.query.filter_by(id=id, restaurant_id=restaurant.id).first_or_404()
+    if order.payment_status == 'paid':
+        return jsonify(success=True, message='Already paid.')
+    order.payment_status = 'paid'
+    db.session.commit()
+    return jsonify(success=True, order_id=id)
