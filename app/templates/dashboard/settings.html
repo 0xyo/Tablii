@@ -65,6 +65,26 @@
         </div>
     </div>
 
+    <!-- Restaurant Status -->
+    <div class="bg-white rounded-xl shadow-sm border p-6 {{ 'border-green-200 bg-green-50/30' if restaurant.is_open else 'border-red-200 bg-red-50/30' }}">
+        <h2 class="font-semibold text-gray-800 mb-4">Restaurant Status</h2>
+        <div class="flex items-center justify-between">
+            <div>
+                <label class="flex items-center gap-3 text-sm">
+                    <input type="checkbox" name="is_open" class="accent-orange-500 w-5 h-5" {{ 'checked' if restaurant.is_open }}
+                           onchange="this.closest('div.bg-white, div.border-green-200, div.border-red-200').className = this.checked ? 'bg-white rounded-xl shadow-sm border p-6 border-green-200 bg-green-50/30' : 'bg-white rounded-xl shadow-sm border p-6 border-red-200 bg-red-50/30'">
+                    <div>
+                        <span class="font-medium text-base">Accept Orders</span>
+                        <p class="text-xs text-gray-400">When off, customers see "Restaurant is closed" and can't place orders. Use this for emergencies or end of service.</p>
+                    </div>
+                </label>
+            </div>
+            <span class="text-xs font-bold uppercase tracking-widest px-3 py-1 border rounded-full {{ 'text-green-700 border-green-300 bg-green-100' if restaurant.is_open else 'text-red-700 border-red-300 bg-red-100' }}">
+                {{ 'Open' if restaurant.is_open else 'Closed' }}
+            </span>
+        </div>
+    </div>
+
     <!-- Features -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 class="font-semibold text-gray-800 mb-4">Features</h2>
