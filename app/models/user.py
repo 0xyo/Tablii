@@ -24,9 +24,7 @@ class User(db.Model, UserMixin):
     )
 
     # Relationships
-    restaurants = db.relationship(
-        'Restaurant', backref='owner', lazy='dynamic'
-    )
+    restaurants = db.relationship('Restaurant', back_populates='owner')
 
     def get_id(self):
         """Return prefixed ID to avoid conflicts with StaffUser."""

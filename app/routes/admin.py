@@ -3,11 +3,12 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import login_required
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from app import db
 from app.models.order import Order
 from app.models.restaurant import Restaurant, Subscription
-from app.models.user import User
 from app.utils.decorators import super_admin_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -27,15 +28,31 @@ def restaurants():
 
     pagination = (
         Restaurant.query
+        .options(
+            joinedload(Restaurant.owner),
+            joinedload(Restaurant.subscription),
+        )
         .order_by(Restaurant.created_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
     )
 
+    restaurant_ids = [r.id for r in pagination.items]
+    order_count_map = {
+        rid: cnt
+        for rid, cnt in db.session.query(
+            Order.restaurant_id,
+            func.count(Order.id),
+        )
+        .filter(Order.restaurant_id.in_(restaurant_ids))
+        .group_by(Order.restaurant_id)
+        .all()
+    } if restaurant_ids else {}
+
     # Augment each restaurant with order count and owner email
     restaurants_data = []
     for r in pagination.items:
-        owner = User.query.get(r.owner_id)
-        order_count = Order.query.filter_by(restaurant_id=r.id).count()
+        owner = r.owner
+        order_count = order_count_map.get(r.id, 0)
         restaurants_data.append({
             'restaurant': r,
             'owner_email': owner.email if owner else '—',
@@ -81,7 +98,7 @@ def subscriptions():
     """List all subscriptions with restaurant name and plan info."""
     subs = (
         Subscription.query
-        .join(Restaurant, Subscription.restaurant_id == Restaurant.id)
+        .options(joinedload(Subscription.restaurant))
         .order_by(Subscription.started_at.desc())
         .all()
     )
@@ -135,8 +152,6 @@ def update_subscription(sub_id):
 @super_admin_required
 def analytics():
     """Platform-wide stats: total restaurants, orders, revenue, plan distribution."""
-    from sqlalchemy import func
-
     now = datetime.now(timezone.utc)
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 

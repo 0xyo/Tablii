@@ -13,6 +13,7 @@ class Restaurant(db.Model):
     owner_id = db.Column(
         db.Integer, db.ForeignKey('users.id'), nullable=False
     )
+    owner = db.relationship('User', back_populates='restaurants')
     name = db.Column(db.String(150), nullable=False)
     slug = db.Column(db.String(100), unique=True, nullable=False, index=True)
     description = db.Column(db.Text, nullable=True)
@@ -66,7 +67,7 @@ class Restaurant(db.Model):
     staff_users = db.relationship('StaffUser', backref='restaurant', lazy='dynamic')
     orders = db.relationship('Order', backref='restaurant', lazy='dynamic')
     subscription = db.relationship(
-        'Subscription', backref='restaurant', uselist=False
+        'Subscription', back_populates='restaurant', uselist=False
     )
     operating_hours = db.relationship(
         'OperatingHours', backref='restaurant', lazy='dynamic'
@@ -91,6 +92,7 @@ class Subscription(db.Model):
     )
     expires_at = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    restaurant = db.relationship('Restaurant', back_populates='subscription')
 
 
 class OperatingHours(db.Model):

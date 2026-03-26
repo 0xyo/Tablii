@@ -52,7 +52,7 @@ def restaurant_required(f):
             abort(401)
 
         if isinstance(current_user, User):
-            restaurant = current_user.restaurants.first()
+            restaurant = current_user.restaurants[0] if current_user.restaurants else None
             if restaurant is None:
                 abort(404, description='No restaurant found')
         elif isinstance(current_user, StaffUser):
