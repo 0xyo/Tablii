@@ -117,3 +117,6 @@ class WaiterCall(db.Model):
     resolved_by = db.Column(
         db.Integer, db.ForeignKey('staff_users.id'), nullable=True
     )
+
+    # Relationships
+    table = db.relationship('Table', backref='waiter_calls')

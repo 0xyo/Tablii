@@ -45,7 +45,13 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    socketio.init_app(app, cors_allowed_origins="*", async_mode='threading')
+    # Flask 3.x compatibility: avoid Flask-SocketIO trying to assign ctx.session.
+    socketio.init_app(
+        app,
+        cors_allowed_origins="*",
+        async_mode='threading',
+        manage_session=False,
+    )
     csrf.init_app(app)
 
     # Register WebSocket event handlers
