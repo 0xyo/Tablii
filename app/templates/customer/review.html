@@ -1,18 +1,18 @@
 {% extends 'customer/base_customer.html' %}
 
-{% block title %}Review — {{ restaurant.name }}{% endblock %}
+{% block title %}{{ t('rate_experience', lang) }} — {{ restaurant.name }}{% endblock %}
 
 {% block customer_content %}
 <section class="px-4 pt-6">
-    <h2 class="text-xl font-bold mb-2 text-center">Rate Your Experience</h2>
-    <p class="text-gray-500 text-sm text-center mb-6">Order {{ order.order_number }}</p>
+    <h2 class="text-xl font-bold mb-2 text-center">{{ t('rate_experience', lang) }}</h2>
+    <p class="text-gray-500 text-sm text-center mb-6">{{ t('order_number', lang) }} {{ order.order_number }}</p>
 
     <form method="POST" enctype="multipart/form-data" class="space-y-6">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
         <!-- Overall rating -->
         <div class="text-center">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Overall Rating</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('overall_rating', lang) }}</label>
             <div id="stars-overall" class="flex justify-center gap-2">
                 {% for i in range(1, 6) %}
                 <button type="button" onclick="setRating('rating', {{ i }})" class="star text-3xl text-gray-300 hover:text-yellow-400 transition-colors" data-group="rating" data-value="{{ i }}">★</button>
@@ -23,7 +23,7 @@
 
         <!-- Food rating -->
         <div class="text-center">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Food Quality <span class="text-gray-400">(optional)</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('food_quality', lang) }} <span class="text-gray-400">(optional)</span></label>
             <div id="stars-food" class="flex justify-center gap-2">
                 {% for i in range(1, 6) %}
                 <button type="button" onclick="setRating('food_rating', {{ i }})" class="star text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-group="food_rating" data-value="{{ i }}">★</button>
@@ -34,7 +34,7 @@
 
         <!-- Service rating -->
         <div class="text-center">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Service <span class="text-gray-400">(optional)</span></label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('service_label', lang) }} <span class="text-gray-400">(optional)</span></label>
             <div id="stars-service" class="flex justify-center gap-2">
                 {% for i in range(1, 6) %}
                 <button type="button" onclick="setRating('service_rating', {{ i }})" class="star text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-group="service_rating" data-value="{{ i }}">★</button>
@@ -45,25 +45,25 @@
 
         <!-- Comment -->
         <div>
-            <label for="comment" class="block text-sm font-medium text-gray-700 mb-1">Comment <span class="text-gray-400">(optional)</span></label>
-            <textarea name="comment" id="comment" class="input-field" rows="3" placeholder="Tell us about your experience..."></textarea>
+            <label for="comment" class="block text-sm font-medium text-gray-700 mb-1">{{ t('comment', lang) }} <span class="text-gray-400">(optional)</span></label>
+            <textarea name="comment" id="comment" class="input-field" rows="3" placeholder="{{ t('comment_placeholder', lang) }}"></textarea>
         </div>
 
         <!-- Photo upload -->
         <div>
-            <label for="photo" class="block text-sm font-medium text-gray-700 mb-1">Photo <span class="text-gray-400">(optional)</span></label>
+            <label for="photo" class="block text-sm font-medium text-gray-700 mb-1">{{ t('photo', lang) }} <span class="text-gray-400">(optional)</span></label>
             <input type="file" name="photo" id="photo" accept="image/*" class="input-field py-2" onchange="previewPhoto(this)">
             <img id="photo-preview" src="" class="w-full h-40 object-cover rounded-lg mt-2 hidden" alt="Preview">
         </div>
 
-        <button type="submit" class="btn-primary w-full">Submit Review</button>
+        <button type="submit" class="btn-primary w-full">{{ t('submit_review', lang) }}</button>
     </form>
 </section>
 {% endblock %}
 
 {% block bottom_bar %}
 <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
-    ← Back to Menu
+    {{ t('back_to_menu', lang) }}
 </a>
 {% endblock %}
 

@@ -29,6 +29,7 @@ class Order(db.Model):
     payment_status = db.Column(db.String(20), default='pending')
     subtotal = db.Column(db.Float, default=0.0)
     tax_amount = db.Column(db.Float, default=0.0)
+    service_charge_amount = db.Column(db.Float, default=0.0)
     total_amount = db.Column(db.Float, default=0.0)
     special_notes = db.Column(db.Text, nullable=True)
     is_gift = db.Column(db.Boolean, default=False)

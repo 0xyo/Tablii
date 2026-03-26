@@ -80,12 +80,22 @@ class Cart {
     }
 
     /**
-     * Calculate total (subtotal + tax).
-     * @param {number} taxRate
+     * Calculate service charge amount.
+     * @param {number} serviceChargeRate - percentage (e.g. 5 for 5%)
      * @returns {number}
      */
-    getTotal(taxRate) {
-        return this.getSubtotal() + this.getTax(taxRate);
+    getServiceCharge(serviceChargeRate) {
+        return this.getSubtotal() * ((serviceChargeRate || 0) / 100);
+    }
+
+    /**
+     * Calculate total (subtotal + tax + service charge).
+     * @param {number} taxRate
+     * @param {number} serviceChargeRate
+     * @returns {number}
+     */
+    getTotal(taxRate, serviceChargeRate) {
+        return this.getSubtotal() + this.getTax(taxRate) + this.getServiceCharge(serviceChargeRate);
     }
 
     /**

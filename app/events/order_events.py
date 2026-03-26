@@ -100,8 +100,13 @@ def notify_new_order(order):
             'status': order.status,
             'created_at': order.created_at.isoformat(),
             'currency': order.restaurant.currency if hasattr(order, 'restaurant') and order.restaurant else '',
+            'is_gift': order.is_gift,
+            'gift_from_table': order.gift_from_table,
+            'gift_message': order.gift_message or '',
         }
         _socketio.emit('new_order', data, room=f'restaurant_{order.restaurant_id}')
+        # Also emit notification event for bell badge update
+        _socketio.emit('new_notification', {'type': 'new_order'}, room=f'restaurant_{order.restaurant_id}')
     except Exception:
         logger.exception('notify_new_order failed for order %s', order.id)
 

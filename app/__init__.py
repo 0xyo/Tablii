@@ -77,6 +77,13 @@ def create_app(config_name=None):
     from app.routes import register_blueprints
     register_blueprints(app)
 
+    # Register Jinja helpers
+    from app.utils.helpers import localized
+    from app.utils.translations import t as translate_fn
+    app.jinja_env.filters['localized'] = localized
+    app.jinja_env.globals['localized'] = localized
+    app.jinja_env.globals['t'] = translate_fn
+
     # Root redirect → login
     from flask import redirect, url_for
 

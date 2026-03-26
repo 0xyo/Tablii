@@ -1,5 +1,6 @@
 """Customer-facing blueprint — menu, cart, checkout, orders, reviews."""
 import json
+from datetime import datetime
 
 from flask import (
     Blueprint, abort, flash, jsonify, redirect, render_template, request,
@@ -10,11 +11,11 @@ from app import csrf, db
 from app.models.menu import Category, MenuItem
 from app.models.order import Order, WaiterCall
 from app.models.restaurant import Restaurant
-from app.models.review import Review
+from app.models.review import Customer, Review
 from app.models.table import Table, TableSession
 from app.services.order_service import create_order
 from app.services.upload_service import save_uploaded_file
-from app.utils.helpers import generate_random_token
+from app.utils.helpers import generate_random_token, resolve_language
 
 customer_bp = Blueprint('customer', __name__, url_prefix='')
 
@@ -28,6 +29,14 @@ def _get_restaurant_and_table(slug, table_id):
     restaurant = Restaurant.query.filter_by(slug=slug, is_active=True).first_or_404()
     table = Table.query.filter_by(id=table_id, restaurant_id=restaurant.id).first_or_404()
     return restaurant, table
+
+
+def _get_loyalty_points(table_session, restaurant):
+    """Return current loyalty points if loyalty is enabled and customer is linked."""
+    if not restaurant.loyalty_enabled or not table_session.customer_id:
+        return 0
+    from app.services.loyalty_service import get_balance
+    return get_balance(table_session.customer_id, restaurant.id)
 
 
 def _ensure_session(table, restaurant):
@@ -58,6 +67,54 @@ def _ensure_session(table, restaurant):
 
 
 # ──────────────────────────────────────────────
+# Route 0: Customer Identification (optional)
+# ──────────────────────────────────────────────
+
+@customer_bp.route('/r/<slug>/table/<int:table_id>/identify', methods=['POST'])
+@csrf.exempt
+def identify_customer(slug, table_id):
+    """Optionally link a customer profile to the current session."""
+    restaurant, table = _get_restaurant_and_table(slug, table_id)
+
+    stored_token = session.get('session_token')
+    if not stored_token:
+        return jsonify(success=False, error='No active session.'), 403
+
+    table_session = TableSession.query.filter_by(
+        session_token=stored_token, is_active=True
+    ).first()
+    if not table_session:
+        return jsonify(success=False, error='Session expired.'), 403
+
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()[:100]
+    phone = (data.get('phone') or '').strip()[:20]
+
+    if not name:
+        return jsonify(success=False, error='Name is required.'), 400
+
+    # Save guest name on the session
+    table_session.guest_name = name
+
+    # If phone provided, find or create a lightweight Customer record
+    if phone:
+        customer = Customer.query.filter_by(phone=phone).first()
+        if not customer:
+            customer = Customer(phone=phone, name=name)
+            db.session.add(customer)
+            db.session.flush()
+        elif not customer.name and name:
+            customer.name = name
+        table_session.customer_id = customer.id
+        session['customer_name'] = customer.name or name
+    else:
+        session['customer_name'] = name
+
+    db.session.commit()
+    return jsonify(success=True, name=name)
+
+
+# ──────────────────────────────────────────────
 # Route 1: Menu
 # ──────────────────────────────────────────────
 
@@ -79,6 +136,16 @@ def menu(slug, table_id):
 
     categories = categories_query.all()
 
+    # Filter categories by time-based availability
+    now_time = datetime.now().time()
+    for cat in categories:
+        cat.is_time_available = True
+        if cat.available_from and cat.available_until:
+            if cat.available_from <= cat.available_until:
+                cat.is_time_available = cat.available_from <= now_time <= cat.available_until
+            else:  # overnight range (e.g., 22:00 - 06:00)
+                cat.is_time_available = now_time >= cat.available_from or now_time <= cat.available_until
+
     # Eager-load available items per category
     for cat in categories:
         cat.active_items = MenuItem.query.filter_by(
@@ -99,6 +166,9 @@ def menu(slug, table_id):
         table=table,
         categories=categories,
         session_token=table_session.session_token,
+        guest_name=table_session.guest_name or session.get('customer_name', ''),
+        loyalty_points=_get_loyalty_points(table_session, restaurant),
+        lang=resolve_language(restaurant),
     )
 
 
@@ -115,6 +185,7 @@ def cart(slug, table_id):
         restaurant=restaurant,
         table=table,
         session_token=session.get('session_token'),
+        lang=resolve_language(restaurant),
     )
 
 
@@ -131,6 +202,7 @@ def checkout(slug, table_id):
         restaurant=restaurant,
         table=table,
         session_token=session.get('session_token'),
+        lang=resolve_language(restaurant),
     )
 
 
@@ -162,6 +234,23 @@ def place_order(slug, table_id):
     items = data.get('items', [])
     payment_method = data.get('payment_method', 'cash')
     special_notes = data.get('special_notes', '')
+    is_gift = bool(data.get('is_gift', False))
+    gift_message = data.get('gift_message', '') if is_gift else ''
+
+    # Validate gift target table
+    gift_from_table = None
+    if is_gift:
+        target_table_id = data.get('gift_to_table')
+        if not target_table_id:
+            return jsonify(success=False, error='Please select a table to send the gift to.'), 400
+        target_table = Table.query.filter_by(
+            id=target_table_id, restaurant_id=restaurant.id
+        ).first()
+        if not target_table or target_table.status != 'occupied':
+            return jsonify(success=False, error='Selected table is not occupied.'), 400
+        if target_table.id == table.id:
+            return jsonify(success=False, error='Cannot send a gift to your own table.'), 400
+        gift_from_table = table.table_number
 
     try:
         order = create_order(
@@ -170,7 +259,10 @@ def place_order(slug, table_id):
             payment_method=payment_method,
             special_notes=special_notes,
             restaurant=restaurant,
-            table_id=table.id,
+            table_id=target_table.id if is_gift else table.id,
+            is_gift=is_gift,
+            gift_from_table=gift_from_table,
+            gift_message=gift_message[:300] if gift_message else None,
         )
         return jsonify(
             success=True,
@@ -183,6 +275,24 @@ def place_order(slug, table_id):
     except Exception:
         db.session.rollback()
         return jsonify(success=False, error='An error occurred.'), 500
+
+
+# ──────────────────────────────────────────────
+# Route 4b: Occupied Tables (for gift ordering)
+# ──────────────────────────────────────────────
+
+@customer_bp.route('/r/<slug>/table/<int:table_id>/occupied-tables')
+def occupied_tables(slug, table_id):
+    """Return list of occupied tables (excluding current) for gift ordering."""
+    restaurant, table = _get_restaurant_and_table(slug, table_id)
+    tables = Table.query.filter(
+        Table.restaurant_id == restaurant.id,
+        Table.status == 'occupied',
+        Table.id != table.id,
+    ).order_by(Table.table_number).all()
+    return jsonify(tables=[
+        {'id': t.id, 'table_number': t.table_number} for t in tables
+    ])
 
 
 # ──────────────────────────────────────────────
@@ -202,6 +312,7 @@ def track_order(slug, table_id, order_id):
         restaurant=restaurant,
         table=table,
         order=order,
+        lang=resolve_language(restaurant),
     )
 
 
@@ -217,6 +328,7 @@ def call_waiter_page(slug, table_id):
         'customer/call_waiter.html',
         restaurant=restaurant,
         table=table,
+        lang=resolve_language(restaurant),
     )
 
 
@@ -285,6 +397,7 @@ def review_page(slug, table_id, order_id):
         restaurant=restaurant,
         table=table,
         order=order,
+        lang=resolve_language(restaurant),
     )
 
 
@@ -315,6 +428,7 @@ def review_submit(slug, table_id, order_id):
         return render_template(
             'customer/review.html',
             restaurant=restaurant, table=table, order=order,
+            lang=resolve_language(restaurant),
         )
 
     photo_url = None
@@ -342,6 +456,7 @@ def review_submit(slug, table_id, order_id):
         return render_template(
             'customer/review.html',
             restaurant=restaurant, table=table, order=order,
+            lang=resolve_language(restaurant),
         )
 
 

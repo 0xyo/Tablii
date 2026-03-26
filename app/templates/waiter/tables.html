@@ -93,24 +93,29 @@
                 <!-- Active orders -->
                 {% set active_session = table.sessions.filter_by(is_active=True).first() %}
                 {% if active_session %}
+                    {% if active_session.guest_name %}
+                    <div class="text-xs text-amber-400/70 flex items-center gap-1 -mt-1">
+                        <span>👤</span> {{ active_session.guest_name }}
+                    </div>
+                    {% endif %}
                     <div class="mt-2 space-y-3" id="orders-table-{{ table.id }}">
 
                     {# Orders in progress (new / accepted / preparing) #}
                     {% for order in active_session.orders.filter_by(status='new') %}
                         <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
-                            <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
                             <span class="text-[9px] uppercase tracking-widest font-bold text-amber-400 bg-amber-900/30 px-2 py-0.5 border border-amber-500/30">New</span>
                         </div>
                     {% endfor %}
                     {% for order in active_session.orders.filter_by(status='accepted') %}
                         <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
-                            <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
                             <span class="text-[9px] uppercase tracking-widest font-bold text-sapphire-400 bg-sapphire-900/30 px-2 py-0.5 border border-sapphire-500/30">Accepted</span>
                         </div>
                     {% endfor %}
                     {% for order in active_session.orders.filter_by(status='preparing') %}
                         <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
-                            <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
                             <span class="text-[9px] uppercase tracking-widest font-bold text-orange-400 bg-orange-900/30 px-2 py-0.5 border border-orange-500/30">Preparing</span>
                         </div>
                     {% endfor %}
@@ -119,7 +124,7 @@
                     {% for order in active_session.orders.filter_by(status='ready') %}
                         <div class="bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2" data-order-id="{{ order.id }}">
                             <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
-                                <span class="font-mono text-xs font-bold text-emerald-400">#{{ order.order_number.lstrip('#') }}</span>
+                                <span class="font-mono text-xs font-bold text-emerald-400 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
                                 <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
                             </div>
                             <button onclick="serveOrder('{{ order.id }}', this)"

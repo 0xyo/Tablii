@@ -7,6 +7,7 @@ from app.models.menu import Category, CustomOption, Customization, MenuItem
 from app.models.order import Order
 from app.models.restaurant import Restaurant
 from app.services import upload_service
+from app.utils.helpers import localized, resolve_language
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -26,6 +27,10 @@ def restaurant_menu(slug):
     restaurant = Restaurant.query.filter_by(slug=slug, is_active=True).first()
     if not restaurant:
         return jsonify({'error': 'Restaurant not found'}), 404
+
+    lang = request.args.get('lang', restaurant.default_language or 'fr')
+    if lang not in ('fr', 'ar', 'en'):
+        lang = 'fr'
 
     categories_data = []
     categories = (
@@ -61,7 +66,7 @@ def restaurant_menu(slug):
                 options_data = [
                     {
                         'id': opt.id,
-                        'name': opt.name_fr,
+                        'name': localized(opt, 'name', lang),
                         'extra_price': opt.extra_price,
                         'is_default': opt.is_default,
                     }
@@ -69,7 +74,7 @@ def restaurant_menu(slug):
                 ]
                 customizations_data.append({
                     'id': cust.id,
-                    'group_name': cust.group_name_fr,
+                    'group_name': localized(cust, 'group_name', lang),
                     'type': cust.selection_type,
                     'required': cust.is_required,
                     'options': options_data,
@@ -77,7 +82,8 @@ def restaurant_menu(slug):
 
             items_data.append({
                 'id': item.id,
-                'name': item.name_fr,
+                'name': localized(item, 'name', lang),
+                'description': localized(item, 'description', lang),
                 'price': item.price,
                 'image_url': item.image_url,
                 'is_available': item.is_available,
@@ -88,7 +94,7 @@ def restaurant_menu(slug):
 
         categories_data.append({
             'id': cat.id,
-            'name': cat.name_fr,
+            'name': localized(cat, 'name', lang),
             'icon': cat.icon,
             'items': items_data,
         })
@@ -128,12 +134,16 @@ def menu_item_detail(item_id):
     if not item:
         return jsonify({'error': 'Item not found'}), 404
 
+    lang = request.args.get('lang', 'fr')
+    if lang not in ('fr', 'ar', 'en'):
+        lang = 'fr'
+
     customizations_data = []
     for cust in item.customizations.all():
         options_data = [
             {
                 'id': opt.id,
-                'name': opt.name_fr,
+                'name': localized(opt, 'name', lang),
                 'extra_price': opt.extra_price,
                 'is_default': opt.is_default,
             }
@@ -141,7 +151,7 @@ def menu_item_detail(item_id):
         ]
         customizations_data.append({
             'id': cust.id,
-            'group_name': cust.group_name_fr,
+            'group_name': localized(cust, 'group_name', lang),
             'type': cust.selection_type,
             'required': cust.is_required,
             'options': options_data,
@@ -149,9 +159,9 @@ def menu_item_detail(item_id):
 
     return jsonify({
         'id': item.id,
-        'name': item.name_fr,
+        'name': localized(item, 'name', lang),
         'price': item.price,
-        'description': item.description_fr,
+        'description': localized(item, 'description', lang),
         'image_url': item.image_url,
         'is_available': item.is_available,
         'is_popular': item.is_popular,

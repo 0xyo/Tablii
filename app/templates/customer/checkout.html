@@ -1,10 +1,10 @@
 {% extends 'customer/base_customer.html' %}
 
-{% block title %}Checkout — {{ restaurant.name }}{% endblock %}
+{% block title %}{{ t('checkout', lang) }} — {{ restaurant.name }}{% endblock %}
 
 {% block customer_content %}
 <section class="px-4 pt-4">
-    <h2 class="text-xl font-bold mb-4">Confirm Order</h2>
+    <h2 class="text-xl font-bold mb-4">{{ t('confirm_order', lang) }}</h2>
 
     <!-- Order summary (rendered by JS) -->
     <div id="checkout-items" class="space-y-2 mb-6"></div>
@@ -12,44 +12,71 @@
     <!-- Totals -->
     <div class="card mb-6">
         <div class="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Subtotal</span>
+            <span>{{ t('subtotal', lang) }}</span>
             <span id="co-subtotal">0.000</span>
         </div>
         {% if restaurant.tax_rate > 0 %}
         <div class="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Tax ({{ restaurant.tax_rate }}%)</span>
+            <span>{{ t('tax', lang) }} ({{ restaurant.tax_rate }}%)</span>
             <span id="co-tax">0.000</span>
         </div>
         {% endif %}
+        {% if restaurant.service_charge > 0 %}
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+            <span>{{ t('service_charge', lang) }} ({{ restaurant.service_charge }}%)</span>
+            <span id="co-service-charge">0.000</span>
+        </div>
+        {% endif %}
         <div class="flex justify-between font-bold text-base border-t pt-2 mt-2">
-            <span>Total</span>
+            <span>{{ t('total', lang) }}</span>
             <span id="co-total">0.000</span>
         </div>
     </div>
 
     <!-- Payment method -->
     <div class="card mb-6">
-        <h3 class="font-semibold text-sm mb-3">Payment Method</h3>
+        <h3 class="font-semibold text-sm mb-3">{{ t('payment_method', lang) }}</h3>
         <label class="flex items-center gap-3 py-2 cursor-pointer">
             <input type="radio" name="payment_method" value="cash" checked class="accent-orange-500">
-            <span class="text-sm">💵 Pay at counter (Cash)</span>
+            <span class="text-sm">💵 {{ t('pay_cash', lang) }}</span>
         </label>
         {% if restaurant.online_payment %}
         <label class="flex items-center gap-3 py-2 cursor-pointer">
             <input type="radio" name="payment_method" value="online" class="accent-orange-500">
-            <span class="text-sm">💳 Pay online</span>
+            <span class="text-sm">💳 {{ t('pay_online', lang) }}</span>
         </label>
         {% endif %}
+    </div>
+
+    <!-- Gift ordering -->
+    <div class="card mb-6">
+        <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="gift-toggle" class="accent-pink-500 w-4 h-4" onchange="toggleGift(this.checked)">
+            <span class="text-sm font-semibold">🎁 {{ t('send_as_gift', lang) }}</span>
+        </label>
+        <div id="gift-section" class="hidden mt-4 space-y-3">
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">{{ t('gift_to_table', lang) }}</label>
+                <select id="gift-table" class="w-full border border-gray-200 rounded px-3 py-2 text-sm">
+                    <option value="">{{ t('select_table', lang) }}</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">{{ t('gift_message', lang) }}</label>
+                <textarea id="gift-message" maxlength="300" rows="2" class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+                          placeholder="{{ t('gift_message_placeholder', lang) }}"></textarea>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}
 
 {% block bottom_bar %}
 <a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
-    ← Back to Cart
+    {{ t('back_to_cart', lang) }}
 </a>
 <button id="confirm-order-btn" onclick="confirmOrder()" class="btn-primary">
-    Confirm Order
+    {{ t('confirm_order', lang) }}
 </button>
 {% endblock %}
 
@@ -59,6 +86,7 @@
     const cart = new Cart("{{ restaurant.slug }}", {{ table.id }});
     const currency = "{{ restaurant.currency }}";
     const taxRate = {{ restaurant.tax_rate }};
+    const serviceChargeRate = {{ restaurant.service_charge or 0 }};
     const slug = "{{ restaurant.slug }}";
     const tableId = {{ table.id }};
 
@@ -80,18 +108,47 @@
 
         const subtotal = cart.getSubtotal();
         const tax = cart.getTax(taxRate);
-        const total = cart.getTotal(taxRate);
+        const svcCharge = cart.getServiceCharge(serviceChargeRate);
+        const total = cart.getTotal(taxRate, serviceChargeRate);
         document.getElementById("co-subtotal").textContent = subtotal.toFixed(3) + " " + currency;
         if (document.getElementById("co-tax")) {
             document.getElementById("co-tax").textContent = tax.toFixed(3) + " " + currency;
         }
+        if (document.getElementById("co-service-charge")) {
+            document.getElementById("co-service-charge").textContent = svcCharge.toFixed(3) + " " + currency;
+        }
         document.getElementById("co-total").textContent = total.toFixed(3) + " " + currency;
+    }
+
+    const _t = {
+        placing_order: {{ t('placing_order', lang) | tojson }},
+        order_placed: {{ t('order_placed', lang) | tojson }},
+        confirm_order: {{ t('confirm_order', lang) | tojson }},
+        select_table: {{ t('select_table', lang) | tojson }},
+    };
+
+    // Gift toggle
+    function toggleGift(on) {
+        document.getElementById('gift-section').classList.toggle('hidden', !on);
+        if (on) loadOccupiedTables();
+    }
+
+    async function loadOccupiedTables() {
+        const sel = document.getElementById('gift-table');
+        sel.innerHTML = `<option value="">${_t.select_table}</option>`;
+        try {
+            const res = await fetch(`/r/${slug}/table/${tableId}/occupied-tables`);
+            const data = await res.json();
+            (data.tables || []).forEach(t => {
+                sel.innerHTML += `<option value="${t.id}">T-${t.table_number}</option>`;
+            });
+        } catch (_) {}
     }
 
     async function confirmOrder() {
         const btn = document.getElementById("confirm-order-btn");
         btn.disabled = true;
-        btn.textContent = "Placing order...";
+        btn.textContent = _t.placing_order;
 
         const items = cart.getItems().map(item => ({
             menu_item_id: item.id,
@@ -103,27 +160,35 @@
         const specialNotes = document.querySelector("#special-notes")?.value || "";
         const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || "cash";
 
+        const body = { items, payment_method: paymentMethod, special_notes: specialNotes };
+        const giftOn = document.getElementById('gift-toggle').checked;
+        if (giftOn) {
+            body.is_gift = true;
+            body.gift_to_table = parseInt(document.getElementById('gift-table').value) || null;
+            body.gift_message = document.getElementById('gift-message').value || '';
+        }
+
         try {
             const res = await fetch(`/r/${slug}/table/${tableId}/order`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items, payment_method: paymentMethod, special_notes: specialNotes })
+                body: JSON.stringify(body)
             });
             const data = await res.json();
 
             if (data.success) {
                 cart.clear();
-                showToast("Order placed! " + data.order_number, "success");
+                showToast(_t.order_placed + " " + data.order_number, "success");
                 window.location.href = `/r/${slug}/table/${tableId}/track/${data.order_id}`;
             } else {
                 showToast(data.error || "Failed to place order.", "error");
                 btn.disabled = false;
-                btn.textContent = "Confirm Order";
+                btn.textContent = _t.confirm_order;
             }
         } catch (err) {
             showToast("Network error. Please try again.", "error");
             btn.disabled = false;
-            btn.textContent = "Confirm Order";
+            btn.textContent = _t.confirm_order;
         }
     }
 

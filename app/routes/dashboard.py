@@ -1,6 +1,6 @@
 """Dashboard blueprint — restaurant owner admin panel."""
 import os
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time as _time, timezone
 
 from flask import (
     Blueprint, abort, current_app, flash, g, jsonify, redirect,
@@ -16,8 +16,11 @@ from app.models.restaurant import OperatingHours, Restaurant
 from app.models.review import Review
 from app.models.table import Table, TableSession
 from app.models.user import StaffUser
+from app.services.notification_service import (
+    get_unread_notifications, mark_all_read, mark_notification_read,
+)
 from app.services.qr_service import generate_table_qr as _generate_table_qr
-from app.services.upload_service import save_uploaded_file
+from app.services.upload_service import delete_file, save_uploaded_file
 from app.utils.decorators import restaurant_required, role_required
 from app.utils.validators import validate_price
 
@@ -121,6 +124,21 @@ def category_add():
         ramadan_type=request.form.get('ramadan_type') or None,
         sort_order=max_order + 1,
     )
+
+    # Time-based availability
+    avail_from = request.form.get('available_from', '').strip()
+    avail_until = request.form.get('available_until', '').strip()
+    if avail_from:
+        try:
+            cat.available_from = _time.fromisoformat(avail_from)
+        except ValueError:
+            pass
+    if avail_until:
+        try:
+            cat.available_until = _time.fromisoformat(avail_until)
+        except ValueError:
+            pass
+
     db.session.add(cat)
     db.session.commit()
     flash('Category created.', 'success')
@@ -141,8 +159,28 @@ def category_update(id):
     cat.ramadan_type = request.form.get('ramadan_type') or None
     cat.is_active = 'is_active' in request.form
 
+    # Time-based availability
+    avail_from = request.form.get('available_from', '').strip()
+    avail_until = request.form.get('available_until', '').strip()
+    if avail_from:
+        try:
+            cat.available_from = _time.fromisoformat(avail_from)
+        except ValueError:
+            pass
+    else:
+        cat.available_from = None
+    if avail_until:
+        try:
+            cat.available_until = _time.fromisoformat(avail_until)
+        except ValueError:
+            pass
+    else:
+        cat.available_until = None
+
     # Handle icon removal
     if request.form.get('remove_icon') == '1':
+        if cat.icon_url:
+            delete_file(cat.icon_url)
         cat.icon = None
         cat.icon_url = None
 
@@ -150,6 +188,8 @@ def category_update(id):
     if 'icon_image' in request.files:
         f = request.files['icon_image']
         if f and f.filename:
+            if cat.icon_url:
+                delete_file(cat.icon_url)
             cat.icon_url = save_uploaded_file(f, 'category_icons')
             cat.icon = None  # clear emoji when custom image is uploaded
 
@@ -398,6 +438,8 @@ def menu_item_delete(id):
     ).first_or_404()
 
     item.deleted_at = datetime.now(timezone.utc)
+    if item.image_url:
+        delete_file(item.image_url)
     db.session.commit()
     flash('Menu item removed.', 'success')
     return redirect(url_for('dashboard.menu_items'))
@@ -542,9 +584,19 @@ def tables():
     waiters = StaffUser.query.filter_by(
         restaurant_id=restaurant.id, role='waiter', is_active=True
     ).all()
+    floor_data = [
+        {
+            'id': t.id,
+            'table_number': t.table_number,
+            'status': t.status,
+            'pos_x': t.position_x,
+            'pos_y': t.position_y,
+        }
+        for t in all_tables
+    ]
     return render_template('dashboard/tables/list.html',
                            restaurant=restaurant, tables=all_tables,
-                           waiters=waiters)
+                           waiters=waiters, floor_data=floor_data)
 
 
 @dashboard_bp.route('/tables/add', methods=['POST'])
@@ -592,6 +644,28 @@ def table_add():
     db.session.commit()
     flash(f'Table {table_number} created with QR code.', 'success')
     return redirect(url_for('dashboard.tables'))
+
+
+@dashboard_bp.route('/tables/layout', methods=['POST'])
+@login_required
+@restaurant_required
+def table_layout():
+    """Save floor plan positions for tables."""
+    restaurant = g.restaurant
+    data = request.get_json(silent=True) or {}
+    positions = data.get('positions', [])
+
+    table_ids = {t.id for t in Table.query.filter_by(restaurant_id=restaurant.id).all()}
+    for pos in positions:
+        tid = pos.get('id')
+        if tid not in table_ids:
+            continue
+        table = Table.query.get(tid)
+        table.position_x = float(pos.get('pos_x', 0))
+        table.position_y = float(pos.get('pos_y', 0))
+
+    db.session.commit()
+    return jsonify(success=True)
 
 
 @dashboard_bp.route('/tables/<int:id>/delete', methods=['POST'])
@@ -891,16 +965,39 @@ def settings():
     if valid_svc:
         restaurant.service_charge = float(svc_str)
 
+    lang_choice = request.form.get('default_language', 'fr')
+    if lang_choice in ('fr', 'ar', 'en'):
+        restaurant.default_language = lang_choice
+
     restaurant.is_open = 'is_open' in request.form
     restaurant.auto_accept = 'auto_accept' in request.form
     restaurant.online_payment = 'online_payment' in request.form
     restaurant.ramadan_mode = 'ramadan_mode' in request.form
+    restaurant.loyalty_enabled = 'loyalty_enabled' in request.form
+
+    ppu = request.form.get('loyalty_points_per_unit', type=int)
+    if ppu and 1 <= ppu <= 100:
+        restaurant.loyalty_points_per_unit = ppu
+
+    rdv = request.form.get('loyalty_redemption_value', type=float)
+    if rdv and 0.001 <= rdv <= 10:
+        restaurant.loyalty_redemption_value = rdv
 
     # Logo upload
     if 'logo' in request.files:
         f = request.files['logo']
         if f and f.filename:
+            if restaurant.logo_url:
+                delete_file(restaurant.logo_url)
             restaurant.logo_url = save_uploaded_file(f, 'logos')
+
+    # Cover image upload
+    if 'cover' in request.files:
+        f = request.files['cover']
+        if f and f.filename:
+            if restaurant.cover_url:
+                delete_file(restaurant.cover_url)
+            restaurant.cover_url = save_uploaded_file(f, 'covers')
 
     # Operating hours (7 days, 0=Monday … 6=Sunday)
     for day in range(7):
@@ -948,6 +1045,7 @@ def analytics():
         get_popular_items,
         get_peak_hours,
         get_average_service_time,
+        get_waiter_call_stats,
     )
 
     restaurant = g.restaurant
@@ -963,6 +1061,7 @@ def analytics():
     popular_items = get_popular_items(restaurant.id, period_days=days)
     peak_hours = get_peak_hours(restaurant.id, period_days=days)
     service_time = get_average_service_time(restaurant.id, period_days=days)
+    call_stats = get_waiter_call_stats(restaurant.id, period_days=days)
 
     return render_template(
         'dashboard/analytics/reports.html',
@@ -973,6 +1072,7 @@ def analytics():
         popular_items=popular_items,
         peak_hours=peak_hours,
         service_time=service_time,
+        call_stats=call_stats,
     )
 
 
@@ -1017,3 +1117,65 @@ def reviews():
         avg_food=round(avg_food, 1),
         avg_service=round(avg_service, 1),
     )
+
+
+# ──────────────────────────────────────────────
+# 11. Notifications API
+# ──────────────────────────────────────────────
+
+@dashboard_bp.route('/notifications')
+@login_required
+@restaurant_required
+def notifications_list():
+    """Return unread notifications as JSON."""
+    restaurant = g.restaurant
+    role = None
+    if hasattr(current_user, 'role'):
+        role = current_user.role
+    notifications = get_unread_notifications(restaurant.id, role=role)
+    return jsonify(notifications=[
+        {
+            'id': n.id,
+            'type': n.type,
+            'title': n.title,
+            'body': n.body,
+            'created_at': n.created_at.isoformat() if n.created_at else None,
+        }
+        for n in notifications
+    ])
+
+
+@dashboard_bp.route('/notifications/count')
+@login_required
+@restaurant_required
+def notifications_count():
+    """Return unread notification count as JSON."""
+    restaurant = g.restaurant
+    role = None
+    if hasattr(current_user, 'role'):
+        role = current_user.role
+    notifications = get_unread_notifications(restaurant.id, role=role)
+    return jsonify(count=len(notifications))
+
+
+@dashboard_bp.route('/notifications/<int:notification_id>/read', methods=['POST'])
+@login_required
+@restaurant_required
+def notification_read(notification_id):
+    """Mark a single notification as read."""
+    restaurant = g.restaurant
+    success = mark_notification_read(notification_id, restaurant.id)
+    return jsonify(success=success)
+
+
+@dashboard_bp.route('/notifications/read-all', methods=['POST'])
+@login_required
+@restaurant_required
+def notifications_read_all():
+    """Mark all notifications as read."""
+    restaurant = g.restaurant
+    role = None
+    if hasattr(current_user, 'role'):
+        role = current_user.role
+    count = mark_all_read(restaurant.id, role=role)
+    return jsonify(success=True, count=count)

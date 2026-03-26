@@ -19,6 +19,9 @@ def create_order(
     special_notes,
     restaurant,
     table_id=None,
+    is_gift=False,
+    gift_from_table=None,
+    gift_message=None,
 ):
     """Create an order with validated items and server-side price calculation.
 
@@ -134,9 +137,13 @@ def create_order(
         payment_method=payment_method,
         subtotal=subtotal,
         tax_amount=tax_amount,
+        service_charge_amount=service_charge_amount,
         total_amount=total_amount,
         special_notes=special_notes or None,
         accepted_at=accepted_at,
+        is_gift=is_gift,
+        gift_from_table=gift_from_table,
+        gift_message=gift_message or None,
     )
     db.session.add(order)
     db.session.flush()  # Get order.id
@@ -166,6 +173,18 @@ def create_order(
         )
     except Exception:
         logger.exception('create_notification failed silently')
+
+    # Loyalty points earning
+    try:
+        from app.services.loyalty_service import earn_points
+        if session_id:
+            ts = TableSession.query.get(session_id)
+            if ts and ts.customer_id:
+                earned = earn_points(ts.customer_id, restaurant, order.total_amount)
+                if earned:
+                    db.session.commit()
+    except Exception:
+        logger.exception('loyalty earn_points failed silently')
 
     return order
 

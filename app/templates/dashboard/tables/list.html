@@ -3,9 +3,15 @@
 {% block page_title %}Tables{% endblock %}
 
 {% block dashboard_content %}
+<!-- View tabs -->
+<div class="flex items-center gap-2 mb-6">
+    <button id="tab-grid" onclick="switchTab('grid')" class="px-4 py-2 text-sm font-medium rounded-lg bg-orange-500 text-white transition-colors">Grid View</button>
+    <button id="tab-floor" onclick="switchTab('floor')" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Floor Plan</button>
+</div>
+
 <div class="flex gap-6 flex-col xl:flex-row">
-    <!-- Table grid -->
-    <div class="flex-1">
+    <!-- Grid view -->
+    <div id="view-grid" class="flex-1">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
             {% for table in tables %}
             {% set status_colors = {
@@ -55,6 +61,21 @@
         </div>
     </div>
 
+    <!-- Floor plan view -->
+    <div id="view-floor" class="flex-1 hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-xs text-gray-400">Drag tables to arrange your floor layout. Positions save automatically.</p>
+                <div class="flex items-center gap-3 text-[10px] font-medium">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> Free</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Occupied</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Reserved</span>
+                </div>
+            </div>
+            <canvas id="floor-canvas" width="800" height="500" class="border border-gray-200 rounded-lg w-full" style="max-height:500px;"></canvas>
+        </div>
+    </div>
+
     <!-- Add table form -->
     <div class="xl:w-64">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -76,4 +97,30 @@
         </div>
     </div>
 </div>
+
+<script src="{{ url_for('static', filename='js/floor_map.js') }}"></script>
+<script>
+    function switchTab(view) {
+        document.getElementById('view-grid').classList.toggle('hidden', view !== 'grid');
+        document.getElementById('view-floor').classList.toggle('hidden', view !== 'floor');
+        document.getElementById('tab-grid').className = view === 'grid'
+            ? 'px-4 py-2 text-sm font-medium rounded-lg bg-orange-500 text-white transition-colors'
+            : 'px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors';
+        document.getElementById('tab-floor').className = view === 'floor'
+            ? 'px-4 py-2 text-sm font-medium rounded-lg bg-orange-500 text-white transition-colors'
+            : 'px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors';
+        if (view === 'floor') initFloor();
+    }
+
+    let floorInitialized = false;
+    function initFloor() {
+        if (floorInitialized) return;
+        floorInitialized = true;
+        const tables = {{ floor_data | tojson }};
+        renderFloorMap('floor-canvas', tables);
+        // Override save URL to use proper Flask route
+        const origSave = saveFloorLayout;
+        window.saveFloorLayout = function() { origSave("{{ url_for('dashboard.table_layout') }}"); };
+    }
+</script>
 {% endblock %}

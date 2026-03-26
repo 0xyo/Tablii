@@ -12,16 +12,55 @@
         </svg>
     </div>
     <div>
-        <p class="font-display italic text-lg text-ruby-300">We're Currently Closed</p>
-        <p class="text-xs text-ruby-400/80 mt-1">You can browse the menu, but ordering is not available right now.</p>
+        <p class="font-display italic text-lg text-ruby-300">{{ t('closed_title', lang) }}</p>
+        <p class="text-xs text-ruby-400/80 mt-1">{{ t('closed_body', lang) }}</p>
     </div>
+</div>
+{% endif %}
+
+<!-- Hero / Cover -->
+{% if restaurant.cover_url or restaurant.description %}
+<div class="relative">
+    {% if restaurant.cover_url %}
+    <div class="w-full h-44 overflow-hidden">
+        <img src="{{ restaurant.cover_url }}" alt="{{ restaurant.name }}" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-charcoal-950/40 to-transparent"></div>
+    </div>
+    {% endif %}
+    <div class="{% if restaurant.cover_url %}absolute bottom-0 left-0 right-0{% endif %} px-5 pb-4 pt-2">
+        {% if restaurant.description %}
+        <p class="text-cream-100/80 text-sm font-light leading-relaxed line-clamp-2">{{ restaurant.description }}</p>
+        {% endif %}
+        {% if restaurant.address or restaurant.city %}
+        <p class="text-charcoal-400 text-xs mt-1 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 text-amber-600/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            {{ restaurant.address }}{% if restaurant.address and restaurant.city %}, {% endif %}{{ restaurant.city }}
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Greeting -->
+{% if guest_name %}
+<div class="mx-5 mt-4 px-4 py-2.5 bg-amber-900/10 border border-amber-500/20 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+        <span class="text-amber-500 text-sm">👋</span>
+        <span class="text-cream-100/80 text-sm font-light">{{ t('welcome_back', lang) }}, <strong class="font-medium text-amber-400">{{ guest_name }}</strong></span>
+    </div>
+    {% if loyalty_points > 0 %}
+    <span class="text-[10px] uppercase tracking-widest font-bold text-amber-500 bg-amber-900/30 px-2 py-1 border border-amber-500/30">⭐ {{ loyalty_points }} pts</span>
+    {% endif %}
 </div>
 {% endif %}
 
 <!-- Search bar -->
 <section class="px-5 pt-6 pb-2 relative z-10">
     <div class="relative group">
-        <input id="menu-search" type="text" placeholder="Search our offerings..." 
+        <input id="menu-search" type="text" placeholder="{{ t('search_placeholder', lang) }}" 
                class="w-full pl-12 pr-4 py-3.5 bg-charcoal-800/60 border border-charcoal-700/80 rounded-none text-cream-50 font-light text-sm focus:outline-none focus:border-amber-500 focus:bg-charcoal-800 transition-all placeholder:text-charcoal-400 shadow-inner">
         <svg class="absolute left-4 top-3.5 w-5 h-5 text-amber-600/60 group-focus-within:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -33,11 +72,11 @@
 <section class="px-5 pt-3 pb-2 sticky top-[73px] z-30 bg-charcoal-900/95 backdrop-blur-xl border-b border-charcoal-800/50 shadow-sm -mx-5">
     <div class="flex gap-3 overflow-x-auto pb-3 pt-1 scrollbar-hide" id="category-tabs">
         <button onclick="filterCategory('all')" class="category-tab active shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-amber-600/10 text-amber-500 border-amber-500/50 shadow-inner-glow">
-            All Collections
+            {{ t('all_collections', lang) }}
         </button>
         {% for category in categories %}
         <button onclick="filterCategory('cat-{{ category.id }}')" class="category-tab shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-charcoal-800/30 text-charcoal-400 border-charcoal-700/50 hover:bg-charcoal-800 hover:text-cream-100">
-            {{ category.name_fr }}
+            {{ localized(category, 'name', lang) }}
         </button>
         {% endfor %}
     </div>
@@ -49,18 +88,23 @@
     {% if category.active_items %}
     <section class="pt-10 menu-category" data-category="cat-{{ category.id }}">
         <div class="flex items-center gap-4 mb-6">
-            <h2 class="text-2xl font-display text-cream-50 tracking-wide italic">{{ category.name_fr }}</h2>
+            <h2 class="text-2xl font-display text-cream-50 tracking-wide italic">{{ localized(category, 'name', lang) }}</h2>
+            {% if not category.is_time_available %}
+            <span class="text-[10px] uppercase tracking-widest font-bold text-charcoal-400 bg-charcoal-800 px-2 py-1 border border-charcoal-700/50">
+                {{ t('available', lang) }} {{ category.available_from.strftime('%H:%M') }}–{{ category.available_until.strftime('%H:%M') }}
+            </span>
+            {% endif %}
             <div class="flex-1 h-px bg-gradient-to-r from-amber-900/40 to-transparent"></div>
         </div>
         
         <div class="grid grid-cols-1 gap-6">
             {% for item in category.active_items %}
-            <article class="menu-item-card group flex gap-4 bg-charcoal-800/20 hover:bg-charcoal-800/40 border border-transparent hover:border-charcoal-700/50 transition-all p-3 -mx-3 cursor-pointer" 
-                     data-name="{{ item.name_fr|lower }}" onclick="openItemModal({{ item.id }})">
+            <article class="menu-item-card group flex gap-4 bg-charcoal-800/20 hover:bg-charcoal-800/40 border border-transparent hover:border-charcoal-700/50 transition-all p-3 -mx-3 {{ 'opacity-50 pointer-events-none' if not category.is_time_available else 'cursor-pointer' }}" 
+                     data-name="{{ localized(item, 'name', lang)|lower }}" {% if category.is_time_available %}onclick="openItemModal({{ item.id }})"{% endif %}>
                 
                 <div class="w-28 h-28 flex-shrink-0 relative overflow-hidden bg-charcoal-800 border border-charcoal-700/50 p-0.5">
                     {% if item.image_url %}
-                    <img src="{{ item.image_url }}" alt="{{ item.name_fr }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
+                    <img src="{{ item.image_url }}" alt="{{ localized(item, 'name', lang) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
                     {% else %}
                     <div class="w-full h-full bg-gradient-to-br from-charcoal-800 to-charcoal-900 flex items-center justify-center">
                         <span class="text-amber-900/30 text-3xl font-display italic">T</span>
@@ -73,19 +117,21 @@
 
                 <div class="flex flex-col flex-1 py-1">
                     <div class="flex justify-between items-start gap-2">
-                        <h3 class="font-display text-lg text-cream-50 leading-tight group-hover:text-amber-400 transition-colors">{{ item.name_fr }}</h3>
+                        <h3 class="font-display text-lg text-cream-50 leading-tight group-hover:text-amber-400 transition-colors">{{ localized(item, 'name', lang) }}</h3>
                         <span class="text-amber-500 font-medium text-sm whitespace-nowrap pt-1 flex-shrink-0">{{ '%.3f'|format(item.price) }} <span class="text-[10px] uppercase text-amber-600/70">{{ restaurant.currency }}</span></span>
                     </div>
                     
-                    {% if item.description_fr %}
-                    <p class="text-charcoal-400 text-xs mt-2 line-clamp-2 leading-relaxed font-light">{{ item.description_fr }}</p>
+                    {% if localized(item, 'description', lang) %}
+                    <p class="text-charcoal-400 text-xs mt-2 line-clamp-2 leading-relaxed font-light">{{ localized(item, 'description', lang) }}</p>
                     {% endif %}
 
                     <div class="mt-auto pt-4 flex items-center justify-end">
-                        <button onclick='event.stopPropagation(); quickAdd({{ item.id }}, {{ item.name_fr | tojson }}, {{ item.price }}, {{ item.image_url | default("") | tojson }})' 
+                        {% if category.is_time_available %}
+                        <button onclick='event.stopPropagation(); quickAdd({{ item.id }}, {{ localized(item, "name", lang) | tojson }}, {{ item.price }}, {{ item.image_url | default("") | tojson }})' 
                                 class="w-8 h-8 rounded-none border border-amber-600/30 text-amber-500 hover:bg-amber-500 hover:text-charcoal-900 hover:shadow-[0_0_15px_rgba(196,149,106,0.3)] transition-all flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
                         </button>
+                        {% endif %}
                     </div>
                 </div>
             </article>
@@ -112,7 +158,7 @@
     <div class="w-8 h-8 border border-charcoal-700 rounded-none flex items-center justify-center group-hover:border-amber-500/50 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
     </div>
-    <span class="text-[10px] uppercase tracking-widest font-semibold hidden sm:inline-block">Service</span>
+    <span class="text-[10px] uppercase tracking-widest font-semibold hidden sm:inline-block">{{ t('service', lang) }}</span>
 </a>
 
 <a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" 
@@ -123,7 +169,7 @@
     </div>
     <div class="h-4 w-px bg-charcoal-900/20 mx-1"></div>
     <div class="flex flex-col items-start -space-y-0.5">
-        <span class="text-[9px] uppercase tracking-widest font-black opacity-80">Order Total</span>
+        <span class="text-[9px] uppercase tracking-widest font-black opacity-80">{{ t('order_total', lang) }}</span>
         <span id="cart-total" class="text-xs font-bold font-mono">0.000 {{ restaurant.currency }}</span>
     </div>
 </a>
@@ -134,6 +180,16 @@
 <script>
     const cart = new Cart("{{ restaurant.slug }}", {{ table.id }});
     const currency = "{{ restaurant.currency }}";
+    const _t = {
+        add_to_order: {{ t('add_to_order', lang) | tojson }},
+        required: {{ t('required', lang) | tojson }},
+        max: {{ t('max', lang) | tojson }},
+        contains: {{ t('contains', lang) | tojson }},
+        min: {{ t('min', lang) | tojson }},
+        kcal: {{ t('kcal', lang) | tojson }},
+        added_toast: {{ t('added_toast', lang) | tojson }},
+        selection_appended: {{ t('selection_appended', lang) | tojson }},
+    };
     updateCartBadge();
 
         const menuItems = {
@@ -141,8 +197,8 @@
             {% for item in category.active_items %}
             {{ item.id }}: {
                 id: {{ item.id }},
-                name: {{ item.name_fr | tojson }},
-                description: {{ (item.description_fr or '') | tojson }},
+                name: {{ localized(item, 'name', lang) | tojson }},
+                description: {{ (localized(item, 'description', lang) or '') | tojson }},
                 price: {{ item.price }},
                 image_url: {{ (item.image_url or '') | tojson }},
                 calories: {{ item.calories if item.calories is not none else 'null' }},
@@ -152,12 +208,13 @@
                     {% for cust in item.active_customizations %}
                     {
                         id: {{ cust.id }},
-                        name: {{ cust.group_name_fr | tojson }},
+                        name: {{ localized(cust, 'group_name', lang) | tojson }},
                         type: {{ cust.selection_type | tojson }},
                         required: {{ 'true' if cust.is_required else 'false' }},
+                        max_selections: {{ cust.max_selections if cust.max_selections else 'null' }},
                         options: [
                             {% for opt in cust.active_options %}
-                            { id: {{ opt.id }}, name: {{ opt.name_fr | tojson }}, extra_price: {{ opt.extra_price }} },
+                            { id: {{ opt.id }}, name: {{ localized(opt, 'name', lang) | tojson }}, extra_price: {{ opt.extra_price }}, is_default: {{ 'true' if opt.is_default else 'false' }} },
                             {% endfor %}
                         ]
                     },
@@ -171,7 +228,7 @@
     function quickAdd(id, name, price, imageUrl) {
         cart.addItem({ id, name, price, quantity: 1, options: [], image_url: imageUrl });
         updateCartBadge();
-        showToast("Added to order", "success");
+        showToast(_t.added_toast, "success");
     }
 
     function updateCartBadge() {
@@ -208,30 +265,32 @@
                     ${item.prep_time ? `
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-amber-600/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.prep_time} min</span>
+                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.prep_time} ${_t.min}</span>
                     </div>` : ''}
                     
                     ${item.calories ? `
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-amber-600/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.calories} kcal</span>
+                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.calories} ${_t.kcal}</span>
                     </div>` : ''}
                     
                     ${item.allergens ? `
                     <div class="flex items-center gap-2 bg-ruby-900/20 border border-ruby-900/50 px-2 py-0.5 mt-[-2px]">
-                        <span class="text-[10px] uppercase tracking-widest text-ruby-400 font-bold">Contains: ${item.allergens}</span>
+                        <span class="text-[10px] uppercase tracking-widest text-ruby-400 font-bold">${_t.contains}: ${item.allergens}</span>
                     </div>` : ''}
                 </div>
         `;
 
         item.customizations.forEach(cust => {
-            html += `<div class="mb-8"><div class="flex items-baseline gap-3 mb-4"><h3 class="font-display text-lg text-cream-100">${cust.name}</h3> ${cust.required ? '<span class="text-[10px] uppercase tracking-widest font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 border border-amber-500/20">Required</span>' : ''}</div><div class="space-y-2">`;
+            const maxLabel = cust.max_selections ? ` <span class="text-[10px] uppercase tracking-widest text-charcoal-400 ml-2">(${_t.max} ${cust.max_selections})</span>` : '';
+            html += `<div class="mb-8" data-cust-id="${cust.id}" data-max="${cust.max_selections || ''}"><div class="flex items-baseline gap-3 mb-4"><h3 class="font-display text-lg text-cream-100">${cust.name}${maxLabel}</h3> ${cust.required ? '<span class="text-[10px] uppercase tracking-widest font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 border border-amber-500/20">' + _t.required + '</span>' : ''}</div><div class="space-y-2">`;
             cust.options.forEach(opt => {
                 const inputType = cust.type === 'single' ? 'radio' : 'checkbox';
+                const checkedAttr = opt.is_default ? 'checked' : '';
                 html += `
                     <label class="flex items-center gap-4 py-3 px-4 border border-charcoal-700/40 bg-charcoal-800/20 hover:bg-charcoal-800 hover:border-charcoal-600/60 transition-colors cursor-pointer group">
                         <div class="relative flex items-center justify-center">
-                            <input type="${inputType}" name="cust_${cust.id}" value="${opt.id}" data-extra="${opt.extra_price}" class="modal-option peer sr-only">
+                            <input type="${inputType}" name="cust_${cust.id}" value="${opt.id}" data-extra="${opt.extra_price}" data-cust-id="${cust.id}" ${checkedAttr} class="modal-option peer sr-only" onchange="enforceMaxSelections(${cust.id}, ${cust.max_selections || 0})">
                             <div class="w-5 h-5 border border-charcoal-500 peer-checked:bg-amber-500 peer-checked:border-amber-500 ${inputType === 'radio' ? 'rounded-full' : 'rounded-none'} transition-all flex items-center justify-center mt-[1px]">
                                 <svg class="w-3 h-3 text-charcoal-900 opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </div>
@@ -252,7 +311,7 @@
                         <button onclick="changeQty(1)" class="w-12 h-12 flex items-center justify-center text-charcoal-400 hover:text-amber-500 hover:bg-charcoal-700 transition-colors text-xl font-light">+</button>
                     </div>
                     <button onclick="addFromModal(${item.id})" class="btn-primary flex-1 !p-0 flex items-center justify-center">
-                        <span class="tracking-wider uppercase text-sm">Add to Order</span>
+                        <span class="tracking-wider uppercase text-sm">${_t.add_to_order}</span>
                     </button>
                 </div>
             </div>
@@ -270,6 +329,13 @@
         
         modal.classList.remove("opacity-0");
         panel.classList.remove("translate-y-full");
+
+        // Enforce max_selections for pre-checked defaults
+        item.customizations.forEach(cust => {
+            if (cust.max_selections) {
+                enforceMaxSelections(cust.id, cust.max_selections);
+            }
+        });
     }
 
     function closeItemModal(e) {
@@ -298,7 +364,7 @@
         const item = menuItems[itemId];
         const selectedOptions = [];
         document.querySelectorAll(".modal-option:checked").forEach(el => {
-            selectedOptions.push({ id: parseInt(el.value), extra_price: parseFloat(el.dataset.extra) });
+            selectedOptions.push({ id: parseInt(el.value), extra_price: parseFloat(el.dataset.extra), name: el.closest('label').querySelector('.flex-1').textContent.trim() });
         });
 
         cart.addItem({
@@ -313,7 +379,27 @@
         modalQty = 1;
         closeItemModal();
         updateCartBadge();
-        showToast("Order selection appended", "success");
+        showToast(_t.selection_appended, "success");
+    }
+
+    function enforceMaxSelections(custId, maxSel) {
+        if (!maxSel || maxSel <= 0) return;
+        const checkboxes = document.querySelectorAll(`input[name="cust_${custId}"]`);
+        const checkedCount = document.querySelectorAll(`input[name="cust_${custId}"]:checked`).length;
+        checkboxes.forEach(cb => {
+            if (!cb.checked) {
+                const label = cb.closest('label');
+                if (checkedCount >= maxSel) {
+                    cb.disabled = true;
+                    label.classList.add('opacity-40', 'cursor-not-allowed');
+                    label.classList.remove('cursor-pointer');
+                } else {
+                    cb.disabled = false;
+                    label.classList.remove('opacity-40', 'cursor-not-allowed');
+                    label.classList.add('cursor-pointer');
+                }
+            }
+        });
     }
 
     // Category filter luxury style
@@ -358,5 +444,55 @@
             sec.style.display = hasVisibleItems ? "block" : "none";
         });
     });
+
+    // Customer identification prompt
+    {% if not guest_name %}
+    (function() {
+        const slug = "{{ restaurant.slug }}";
+        const tableId = {{ table.id }};
+        const prompted = sessionStorage.getItem(`tablii_prompted_${slug}_${tableId}`);
+        if (prompted) return;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center';
+        overlay.innerHTML = `
+            <div class="bg-charcoal-900 border-t border-charcoal-700 w-full max-w-lg p-6 pb-8 space-y-4">
+                <h3 class="font-display italic text-lg text-amber-500">{{ t('welcome_back', lang) }} 👋</h3>
+                <div>
+                    <label class="text-xs text-charcoal-400 uppercase tracking-wider font-bold block mb-1">{{ t('your_name', lang) }}</label>
+                    <input id="id-name" type="text" maxlength="100" class="w-full bg-charcoal-800 border border-charcoal-700 px-3 py-2 text-sm text-cream-50 focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="text-xs text-charcoal-400 uppercase tracking-wider font-bold block mb-1">{{ t('your_phone', lang) }}</label>
+                    <input id="id-phone" type="tel" maxlength="20" class="w-full bg-charcoal-800 border border-charcoal-700 px-3 py-2 text-sm text-cream-50 focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="flex gap-3">
+                    <button id="id-skip" class="flex-1 py-2 text-sm text-charcoal-400 border border-charcoal-700 hover:bg-charcoal-800 transition-colors">{{ t('skip', lang) }}</button>
+                    <button id="id-save" class="flex-1 py-2 text-sm font-medium bg-amber-600 text-charcoal-950 hover:bg-amber-500 transition-colors">{{ t('save_profile', lang) }}</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        sessionStorage.setItem(`tablii_prompted_${slug}_${tableId}`, '1');
+
+        document.getElementById('id-skip').onclick = () => overlay.remove();
+        document.getElementById('id-save').onclick = async () => {
+            const name = document.getElementById('id-name').value.trim();
+            if (!name) return;
+            const phone = document.getElementById('id-phone').value.trim();
+            await fetch(`/r/${slug}/table/${tableId}/identify`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, phone})
+            });
+            overlay.remove();
+            const greetEl = document.createElement('div');
+            greetEl.className = 'mx-5 mt-4 px-4 py-2.5 bg-amber-900/10 border border-amber-500/20 flex items-center gap-2';
+            greetEl.innerHTML = `<span class="text-amber-500 text-sm">👋</span><span class="text-cream-100/80 text-sm font-light">{{ t('welcome_back', lang) }}, <strong class="font-medium text-amber-400">${name}</strong></span>`;
+            const searchBar = document.querySelector('#menu-search')?.closest('section');
+            if (searchBar) searchBar.parentNode.insertBefore(greetEl, searchBar);
+        };
+    })();
+    {% endif %}
 </script>
 {% endblock %}

@@ -26,7 +26,11 @@ class Restaurant(db.Model):
     service_charge = db.Column(db.Float, default=0.0)
     auto_accept = db.Column(db.Boolean, default=False)
     online_payment = db.Column(db.Boolean, default=False)
+    default_language = db.Column(db.String(5), default='fr')
     ramadan_mode = db.Column(db.Boolean, default=False)
+    loyalty_enabled = db.Column(db.Boolean, default=False)
+    loyalty_points_per_unit = db.Column(db.Integer, default=10)  # points earned per currency unit spent
+    loyalty_redemption_value = db.Column(db.Float, default=0.1)  # currency value per redeemed point
     is_active = db.Column(db.Boolean, default=True)
     is_open = db.Column(db.Boolean, default=True)
     created_at = db.Column(

@@ -271,3 +271,44 @@ def get_average_service_time(restaurant_id: int, period_days: int = 7) -> dict:
         'avg_prep_time': _avg(prep_times),
         'avg_total_time': _avg(total_times),
     }
+
+
+# ---------------------------------------------------------------------------
+# 6. Waiter Call Stats
+# ---------------------------------------------------------------------------
+
+def get_waiter_call_stats(restaurant_id: int, period_days: int = 30) -> dict:
+    """Return waiter call counts grouped by type and by day.
+
+    Args:
+        restaurant_id: Restaurant to query.
+        period_days:   Past days to analyse.
+
+    Returns:
+        dict with total_calls, calls_by_type, calls_by_day.
+    """
+    from app.models.order import WaiterCall
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=period_days)
+    base_q = WaiterCall.query.filter(
+        WaiterCall.restaurant_id == restaurant_id,
+        WaiterCall.created_at >= cutoff,
+    )
+
+    total_calls = base_q.count()
+
+    type_rows = (
+        db.session.query(WaiterCall.call_type, func.count(WaiterCall.id))
+        .filter(
+            WaiterCall.restaurant_id == restaurant_id,
+            WaiterCall.created_at >= cutoff,
+        )
+        .group_by(WaiterCall.call_type)
+        .all()
+    )
+    calls_by_type = {row[0]: row[1] for row in type_rows}
+
+    return {
+        'total_calls': total_calls,
+        'calls_by_type': calls_by_type,
+    }

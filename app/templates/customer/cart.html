@@ -1,16 +1,16 @@
 {% extends 'customer/base_customer.html' %}
 
-{% block title %}Cart — {{ restaurant.name }}{% endblock %}
+{% block title %}{{ t('your_cart', lang) }} — {{ restaurant.name }}{% endblock %}
 
 {% block customer_content %}
 <section class="px-4 pt-4">
-    <h2 class="text-xl font-bold mb-4">Your Cart</h2>
+    <h2 class="text-xl font-bold mb-4">{{ t('your_cart', lang) }}</h2>
 
     <!-- Empty state -->
     <div id="cart-empty" class="hidden text-center py-12">
         <p class="text-5xl mb-4">🛒</p>
-        <p class="text-gray-500">Your cart is empty</p>
-        <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="btn-primary inline-block mt-4">Browse Menu</a>
+        <p class="text-gray-500">{{ t('cart_empty', lang) }}</p>
+        <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="btn-primary inline-block mt-4">{{ t('browse_menu', lang) }}</a>
     </div>
 
     <!-- Cart items -->
@@ -18,24 +18,30 @@
 
     <!-- Special notes -->
     <div id="cart-notes-section" class="mt-6">
-        <label for="special-notes" class="block text-sm font-medium text-gray-700 mb-1">Special Notes</label>
-        <textarea id="special-notes" class="input-field" rows="2" placeholder="Any allergies or preferences?"></textarea>
+        <label for="special-notes" class="block text-sm font-medium text-gray-700 mb-1">{{ t('special_notes', lang) }}</label>
+        <textarea id="special-notes" class="input-field" rows="2" placeholder="{{ t('notes_placeholder', lang) }}"></textarea>
     </div>
 
     <!-- Summary -->
     <div id="cart-summary" class="mt-6 card">
         <div class="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Subtotal</span>
+            <span>{{ t('subtotal', lang) }}</span>
             <span id="summary-subtotal">0.000 {{ restaurant.currency }}</span>
         </div>
         {% if restaurant.tax_rate > 0 %}
         <div class="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Tax ({{ restaurant.tax_rate }}%)</span>
+            <span>{{ t('tax', lang) }} ({{ restaurant.tax_rate }}%)</span>
             <span id="summary-tax">0.000 {{ restaurant.currency }}</span>
         </div>
         {% endif %}
+        {% if restaurant.service_charge > 0 %}
+        <div class="flex justify-between text-sm text-gray-600 mb-2">
+            <span>{{ t('service_charge', lang) }} ({{ restaurant.service_charge }}%)</span>
+            <span id="summary-service-charge">0.000 {{ restaurant.currency }}</span>
+        </div>
+        {% endif %}
         <div class="flex justify-between text-base font-bold border-t pt-2 mt-2">
-            <span>Total</span>
+            <span>{{ t('total', lang) }}</span>
             <span id="summary-total">0.000 {{ restaurant.currency }}</span>
         </div>
     </div>
@@ -44,10 +50,10 @@
 
 {% block bottom_bar %}
 <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
-    ← Back to Menu
+    {{ t('back_to_menu', lang) }}
 </a>
 <a href="{{ url_for('customer.checkout', slug=restaurant.slug, table_id=table.id) }}" id="checkout-btn" class="btn-primary">
-    Checkout
+    {{ t('checkout', lang) }}
 </a>
 {% endblock %}
 
@@ -57,6 +63,7 @@
     const cart = new Cart("{{ restaurant.slug }}", {{ table.id }});
     const currency = "{{ restaurant.currency }}";
     const taxRate = {{ restaurant.tax_rate }};
+    const serviceChargeRate = {{ restaurant.service_charge or 0 }};
 
     function renderCart() {
         const items = cart.getItems();
@@ -108,10 +115,14 @@
         // Update summary
         const subtotal = cart.getSubtotal();
         const tax = cart.getTax(taxRate);
-        const total = cart.getTotal(taxRate);
+        const svcCharge = cart.getServiceCharge(serviceChargeRate);
+        const total = cart.getTotal(taxRate, serviceChargeRate);
         document.getElementById("summary-subtotal").textContent = subtotal.toFixed(3) + " " + currency;
         if (document.getElementById("summary-tax")) {
             document.getElementById("summary-tax").textContent = tax.toFixed(3) + " " + currency;
+        }
+        if (document.getElementById("summary-service-charge")) {
+            document.getElementById("summary-service-charge").textContent = svcCharge.toFixed(3) + " " + currency;
         }
         document.getElementById("summary-total").textContent = total.toFixed(3) + " " + currency;
     }

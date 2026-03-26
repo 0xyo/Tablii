@@ -4,6 +4,45 @@ import re
 import secrets
 import string
 
+from flask import request, session
+
+SUPPORTED_LANGUAGES = ('fr', 'ar', 'en')
+
+
+def resolve_language(restaurant=None):
+    """Determine the active language for a customer request.
+
+    Priority: ?lang= query param  →  session  →  restaurant default  →  'fr'.
+    Stores the resolved value in the Flask session for persistence.
+    """
+    lang = request.args.get('lang', '').lower()
+    if lang in SUPPORTED_LANGUAGES:
+        session['lang'] = lang
+        return lang
+
+    lang = session.get('lang', '')
+    if lang in SUPPORTED_LANGUAGES:
+        return lang
+
+    if restaurant and getattr(restaurant, 'default_language', None) in SUPPORTED_LANGUAGES:
+        lang = restaurant.default_language
+        session['lang'] = lang
+        return lang
+
+    return 'fr'
+
+
+def localized(obj, field, lang='fr'):
+    """Return the localized value of a model field, with fallback to French.
+
+    Usage in Jinja: ``{{ item|localized('name', lang) }}``
+    """
+    val = getattr(obj, f'{field}_{lang}', None)
+    if val:
+        return val
+    # Fallback to French (always populated)
+    return getattr(obj, f'{field}_fr', '') or ''
+
 
 def generate_slug(name: str) -> str:
     """Create a URL-safe slug from a name with a random hex suffix.

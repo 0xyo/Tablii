@@ -1,23 +1,23 @@
 {% extends 'customer/base_customer.html' %}
 
-{% block title %}Order {{ order.order_number }} — {{ restaurant.name }}{% endblock %}
+{% block title %}{{ t('order_number', lang) }} {{ order.order_number }} — {{ restaurant.name }}{% endblock %}
 
 {% block customer_content %}
 <section class="px-4 pt-6">
     <!-- Order number -->
     <div class="text-center mb-8">
-        <p class="text-gray-500 text-sm">Order Number</p>
+        <p class="text-gray-500 text-sm">{{ t('order_number', lang) }}</p>
         <h2 class="text-3xl font-bold text-orange-500">{{ order.order_number }}</h2>
     </div>
 
     <!-- Status timeline -->
     <div class="relative px-4 mb-8" id="status-timeline">
         {% set steps = [
-            ('new', 'New', order.created_at),
-            ('accepted', 'Accepted', order.accepted_at),
-            ('preparing', 'Preparing', order.preparing_at),
-            ('ready', 'Ready', order.ready_at),
-            ('served', 'Served', order.served_at)
+            ('new', t('new', lang), order.created_at),
+            ('accepted', t('accepted', lang), order.accepted_at),
+            ('preparing', t('preparing', lang), order.preparing_at),
+            ('ready', t('ready', lang), order.ready_at),
+            ('served', t('served', lang), order.served_at)
         ] %}
 
         {% set step_list = ['new', 'accepted', 'preparing', 'ready', 'served'] %}
@@ -54,27 +54,33 @@
 
     <!-- Order items -->
     <div class="card">
-        <h3 class="font-semibold text-sm mb-3">Order Items</h3>
+        <h3 class="font-semibold text-sm mb-3">{{ t('order_items', lang) }}</h3>
         {% for item in order.items.all() %}
         <div class="flex justify-between text-sm py-2 border-b border-gray-50 last:border-0">
-            <span>{{ item.quantity }}× {{ item.menu_item.name_fr if item.menu_item else 'Item' }}</span>
+            <span>{{ item.quantity }}× {{ localized(item.menu_item, 'name', lang) if item.menu_item else t('item', lang) }}</span>
             <span class="font-medium">{{ '%.3f'|format(item.total_price) }} {{ restaurant.currency }}</span>
         </div>
         {% endfor %}
 
         <div class="border-t mt-3 pt-3">
             <div class="flex justify-between text-sm text-gray-600">
-                <span>Subtotal</span>
+                <span>{{ t('subtotal', lang) }}</span>
                 <span>{{ '%.3f'|format(order.subtotal) }} {{ restaurant.currency }}</span>
             </div>
             {% if order.tax_amount > 0 %}
             <div class="flex justify-between text-sm text-gray-600 mt-1">
-                <span>Tax</span>
+                <span>{{ t('tax', lang) }}</span>
                 <span>{{ '%.3f'|format(order.tax_amount) }} {{ restaurant.currency }}</span>
             </div>
             {% endif %}
+            {% if order.service_charge_amount > 0 %}
+            <div class="flex justify-between text-sm text-gray-600 mt-1">
+                <span>{{ t('service_charge', lang) }}</span>
+                <span>{{ '%.3f'|format(order.service_charge_amount) }} {{ restaurant.currency }}</span>
+            </div>
+            {% endif %}
             <div class="flex justify-between font-bold mt-2">
-                <span>Total</span>
+                <span>{{ t('total', lang) }}</span>
                 <span>{{ '%.3f'|format(order.total_amount) }} {{ restaurant.currency }}</span>
             </div>
         </div>
@@ -84,11 +90,11 @@
 
 {% block bottom_bar %}
 <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
-    ← Back to Menu
+    ← {{ t('back_to_menu', lang) }}
 </a>
 {% if order.status in ('served', 'completed') %}
 <a href="{{ url_for('customer.review_page', slug=restaurant.slug, table_id=table.id, order_id=order.id) }}" class="btn-primary">
-    Leave Review
+    {{ t('leave_review', lang) }}
 </a>
 {% endif %}
 {% endblock %}

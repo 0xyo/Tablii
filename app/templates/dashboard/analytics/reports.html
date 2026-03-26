@@ -143,6 +143,23 @@
             {% endfor %}
         </div>
     </div>
+
+    {# Waiter Call Stats #}
+    {% if call_stats and call_stats.total_calls > 0 %}
+    <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+        <h2 class="text-sm font-semibold text-gray-700 mb-4">Waiter Calls</h2>
+        <p class="text-3xl font-bold text-gray-800 mb-3">{{ call_stats.total_calls }}</p>
+        <p class="text-xs text-gray-400 mb-4">calls in selected period</p>
+        <div class="space-y-2">
+            {% for ctype, count in call_stats.calls_by_type.items() %}
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-600 capitalize">{{ ctype }}</span>
+                <span class="font-semibold text-gray-800">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 

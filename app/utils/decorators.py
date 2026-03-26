@@ -1,8 +1,8 @@
 """Access-control decorators for role and restaurant enforcement."""
 import functools
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from flask import abort, flash, g
+from flask import abort, flash, g, redirect, url_for
 from flask_login import current_user
 
 from app.models.user import User, StaffUser
@@ -64,9 +64,17 @@ def restaurant_required(f):
 
         # Check subscription expiry
         sub = restaurant.subscription
-        if sub and sub.expires_at and sub.expires_at < datetime.now(timezone.utc):
-            sub.is_active = False
-            g.subscription_expired = True
+        g.subscription_expired = False
+        g.subscription_days_left = None
+        if sub and sub.expires_at:
+            now = datetime.now(timezone.utc)
+            if sub.expires_at < now:
+                sub.is_active = False
+                g.subscription_expired = True
+            else:
+                days_left = (sub.expires_at - now).days
+                if days_left <= 7:
+                    g.subscription_days_left = days_left
         else:
             g.subscription_expired = False
 
