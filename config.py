@@ -24,6 +24,7 @@ class DevelopmentConfig(Config):
     """Development configuration for local use."""
 
     DEBUG = True
+    SOCKETIO_CORS_ORIGINS = '*'
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL', 'sqlite:///dev.db'
     )
@@ -33,6 +34,11 @@ class ProductionConfig(Config):
     """Production configuration — requires all env vars to be set."""
 
     DEBUG = False
+    SOCKETIO_CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.environ.get('SOCKETIO_CORS_ORIGINS', '').split(',')
+        if origin.strip()
+    ]
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
     # Fix Render's postgres:// scheme — SQLAlchemy 2.x requires postgresql://
     if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
@@ -49,6 +55,7 @@ class TestingConfig(Config):
     """Testing configuration — uses in-memory SQLite, disables CSRF."""
 
     TESTING = True
+    SOCKETIO_CORS_ORIGINS = '*'
     SQLALCHEMY_DATABASE_URI = 'sqlite://'
     WTF_CSRF_ENABLED = False
     SECRET_KEY = 'test-secret-key'

@@ -5,6 +5,7 @@ Creates and configures the Flask application using the factory pattern.
 Extensions are declared at module level for import by other modules.
 """
 import os
+import importlib
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -45,10 +46,11 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    socketio_cors_origins = app.config.get('SOCKETIO_CORS_ORIGINS', '*')
     # Flask 3.x compatibility: avoid Flask-SocketIO trying to assign ctx.session.
     socketio.init_app(
         app,
-        cors_allowed_origins="*",
+        cors_allowed_origins=socketio_cors_origins,
         async_mode='threading',
         manage_session=False,
     )
@@ -59,14 +61,14 @@ def create_app(config_name=None):
     register_events(socketio)
 
     # Configure Flask-Login
-    login_manager.login_view = 'auth.login'
+    setattr(login_manager, 'login_view', 'auth.login')
     login_manager.login_message_category = 'warning'
 
     # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     # Register models for Alembic detection
-    from app import models  # noqa: F401
+    importlib.import_module('app.models')
 
     # Dual user loader (User and StaffUser share session via prefixed IDs)
     from app.models.user import User, StaffUser
