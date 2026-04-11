@@ -99,7 +99,7 @@ Table operating_hours {
 
 Table categories {
   id integer [primary key]
-  restaurant_id integer [not null, index, ref: > restaurants.id]
+  restaurant_id integer [not null,  ref: > restaurants.id]
   name_ar varchar(100)
   name_fr varchar(100) [not null]
   name_en varchar(100)
@@ -116,8 +116,8 @@ Table categories {
 
 Table menu_items {
   id integer [primary key]
-  category_id integer [not null, index, ref: > categories.id]
-  restaurant_id integer [not null, index, ref: > restaurants.id]
+  category_id integer [not null,  ref: > categories.id]
+  restaurant_id integer [not null,  ref: > restaurants.id]
   name_ar varchar(150)
   name_fr varchar(150) [not null]
   name_en varchar(150)
@@ -166,7 +166,7 @@ Table custom_options {
 
 Table tables_ {
   id integer [primary key]
-  restaurant_id integer [not null, index, ref: > restaurants.id]
+  restaurant_id integer [not null,  ref: > restaurants.id]
   table_number integer [not null]
   capacity integer [default: 4]
   status varchar(20) [default: 'free']
@@ -180,7 +180,7 @@ Table tables_ {
 
 Table table_sessions {
   id integer [primary key]
-  table_id integer [not null, index, ref: > tables_.id]
+  table_id integer [not null,  ref: > tables_.id]
   restaurant_id integer [not null, ref: > restaurants.id]
   customer_id integer [ref: > customers.id]
   session_token varchar(64) [unique, not null]
@@ -199,7 +199,7 @@ Table table_sessions {
 Table orders {
   id integer [primary key]
   session_id integer [ref: > table_sessions.id]
-  restaurant_id integer [not null, index, ref: > restaurants.id]
+  restaurant_id integer [not null,  ref: > restaurants.id]
   table_id integer [ref: > tables_.id]
   customer_id integer [ref: > customers.id]
   order_number varchar(10) [not null]
@@ -226,7 +226,7 @@ Table orders {
 
 Table order_items {
   id integer [primary key]
-  order_id integer [not null, index, ref: > orders.id]
+  order_id integer [not null,  ref: > orders.id]
   menu_item_id integer [not null, ref: > menu_items.id]
   quantity integer [default: 1]
   unit_price float [not null]
@@ -254,7 +254,7 @@ Table payment_transactions {
 
 Table waiter_calls {
   id integer [primary key]
-  restaurant_id integer [not null, index, ref: > restaurants.id]
+  restaurant_id integer [not null,  ref: > restaurants.id]
   table_id integer [not null, ref: > tables_.id]
   call_type varchar(30) [not null]
   message varchar(300)
@@ -273,7 +273,7 @@ Table waiter_calls {
 Table reviews {
   id integer [primary key]
   order_id integer [not null, ref: > orders.id]
-  restaurant_id integer [not null, index, ref: > restaurants.id]
+  restaurant_id integer [not null,  ref: > restaurants.id]
   rating integer [not null]
   food_rating integer
   service_rating integer
@@ -295,7 +295,7 @@ Table loyalty_points {
 
 Table notifications {
   id integer [primary key]
-  restaurant_id integer [not null, index, ref: > restaurants.id]
+  restaurant_id integer [not null,  ref: > restaurants.id]
   target_role varchar(20)
   target_user_id integer
   type varchar(30) [not null]
