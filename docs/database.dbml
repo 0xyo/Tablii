@@ -8,7 +8,7 @@
 
 Table users {
   id integer [primary key]
-  email varchar(120) [unique, not null, index]
+  email varchar(120) [unique, not null]
   password_hash varchar(256) [not null]
   name varchar(100) [not null]
   phone varchar(20)
@@ -19,7 +19,7 @@ Table users {
 
 Table staff_users {
   id integer [primary key]
-  restaurant_id integer [not null, index]
+  restaurant_id integer [not null]
   username varchar(50) [not null]
   password_hash varchar(256) [not null]
   name varchar(100) [not null]
@@ -49,7 +49,7 @@ Table restaurants {
   id integer [primary key]
   owner_id integer [not null, ref: > users.id]
   name varchar(150) [not null]
-  slug varchar(100) [unique, not null, index]
+  slug varchar(100) [unique, not null]
   description text
   logo_url varchar(300)
   cover_url varchar(300)
