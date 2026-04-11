@@ -150,7 +150,7 @@ Table customizations {
 
 Table custom_options {
   id integer [primary key]
-  customization_id integer [not null]
+  customization_id integer [not null, ref: > customizations.id]
   name_ar varchar(100)
   name_fr varchar(100) [not null]
   name_en varchar(100)
@@ -344,3 +344,4 @@ Ref: staff_users.id < customers.id
 
 // Multi-language support
 // Arabic, French, English fields follow same pattern
+Ref: customizations.id < custom_options.customization_id
