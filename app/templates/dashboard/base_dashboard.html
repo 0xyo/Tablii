@@ -187,6 +187,12 @@
         >
           <span class="text-lg opacity-70">⚙️</span> <span>Settings</span>
         </a>
+        <a
+          href="{{ url_for('dashboard.subscription') }}"
+          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.subscription' }}"
+        >
+          <span class="text-lg opacity-70">💳</span> <span>Subscription</span>
+        </a>
       </nav>
 
       <!-- Logout -->

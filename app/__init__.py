@@ -92,11 +92,4 @@ def create_app(config_name=None):
     app.jinja_env.globals['localized'] = localized
     app.jinja_env.globals['t'] = translate_fn
 
-    # Root redirect → login
-    from flask import redirect, url_for
-
-    @app.route('/')
-    def index():
-        return redirect(url_for('auth.login'))
-
     return app

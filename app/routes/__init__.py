@@ -3,6 +3,9 @@
 
 def register_blueprints(app):
     """Register all application blueprints."""
+    from app.routes.landing import landing_bp
+    app.register_blueprint(landing_bp)
+
     from app.routes.auth import auth_bp
     app.register_blueprint(auth_bp)
 

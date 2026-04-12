@@ -34,11 +34,16 @@ class ProductionConfig(Config):
     """Production configuration — requires all env vars to be set."""
 
     DEBUG = False
+    _socketio_cors_origins_raw = os.environ['SOCKETIO_CORS_ORIGINS']
     SOCKETIO_CORS_ORIGINS = [
         origin.strip()
-        for origin in os.environ.get('SOCKETIO_CORS_ORIGINS', '').split(',')
+        for origin in _socketio_cors_origins_raw.split(',')
         if origin.strip()
     ]
+    if not SOCKETIO_CORS_ORIGINS:
+        raise ValueError(
+            'SOCKETIO_CORS_ORIGINS must contain at least one origin in production.'
+        )
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
     # Fix Render's postgres:// scheme — SQLAlchemy 2.x requires postgresql://
     if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
