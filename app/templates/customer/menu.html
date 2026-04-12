@@ -60,11 +60,12 @@
 {% if ramadan_service %}
 <div class="mx-5 mt-4 px-4 py-3 bg-amber-900/10 border border-amber-500/20 flex items-center justify-between gap-3">
     <div>
-        <p class="text-[10px] uppercase tracking-widest font-bold text-amber-500">Ramadan Mode</p>
-        <p class="text-sm text-cream-100/90 mt-1">Showing the {{ ramadan_service|title }} menu.</p>
+        <p class="text-[10px] uppercase tracking-widest font-bold text-amber-500">{{ t('ramadan.mode', lang) }}</p>
+        <p class="text-sm text-cream-100/90 mt-1">{{ t('ramadan.showing_menu', lang).format(service=ramadan_service|title) }}</p>
     </div>
     <span class="text-[10px] uppercase tracking-widest font-bold text-charcoal-300 bg-charcoal-900/70 px-3 py-1 border border-charcoal-700/60">
-        Iftar at {{ ramadan_iftar_time.strftime('%H:%M') }}
+        {{ t('ramadan.iftar_at', lang) }}
+        {{ ramadan_iftar_time.strftime('%H:%M') if ramadan_iftar_time else t('ramadan.iftar_time_unavailable', lang) }}
     </span>
 </div>
 {% endif %}
@@ -155,8 +156,8 @@
     {% endif %}
     {% endfor %}
     <div id="menu-no-results" class="hidden border border-charcoal-700/60 bg-charcoal-800/20 px-5 py-8 text-center">
-        <p class="font-display italic text-xl text-cream-100">No items found</p>
-        <p class="mt-2 text-sm text-charcoal-400">Try another keyword or clear the search.</p>
+        <p class="font-display italic text-xl text-cream-100">{{ t('no_items_found', lang) }}</p>
+        <p class="mt-2 text-sm text-charcoal-400">{{ t('try_another_keyword_or_clear_search', lang) }}</p>
     </div>
 </div>
 

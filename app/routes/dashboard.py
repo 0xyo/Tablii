@@ -1231,7 +1231,7 @@ def subscription():
 
     max_tables = sub.max_tables if sub else 5
     max_items = sub.max_items if sub else 20
-    current_plan = sub.plan if sub else 'free'
+    current_plan = sub.plan if sub and sub.plan in PLAN_ORDER else 'free'
 
     return render_template(
         'dashboard/subscription.html',
@@ -1260,8 +1260,23 @@ def subscription_change():
         return redirect(url_for('dashboard.subscription'))
 
     sub = restaurant.subscription
-    current_plan = sub.plan if sub else 'free'
+    current_plan = sub.plan if sub and sub.plan in PLAN_ORDER else 'free'
+    if sub and sub.plan not in PLAN_ORDER:
+        current_app.logger.warning(
+            'Unknown current subscription plan for restaurant %s: %s. Falling back to free.',
+            restaurant.id,
+            sub.plan,
+        )
+
     current_rank = PLAN_ORDER.index(current_plan)
+    if plan not in PLAN_ORDER:
+        current_app.logger.error(
+            'Unknown target subscription plan for restaurant %s: %s',
+            restaurant.id,
+            plan,
+        )
+        flash('Invalid plan selected.', 'error')
+        return redirect(url_for('dashboard.subscription'))
     target_rank = PLAN_ORDER.index(plan)
 
     if plan == current_plan:
@@ -1288,7 +1303,7 @@ def subscription_change():
     sub.started_at = now
     if plan == 'free':
         sub.expires_at = None
-    elif not sub.expires_at:
+    elif not sub.expires_at or sub.expires_at <= now:
         sub.expires_at = now + timedelta(days=30)
 
     db.session.commit()

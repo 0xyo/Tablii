@@ -77,6 +77,12 @@ TRANSLATIONS = {
         'your_phone': 'Téléphone (optionnel)',
         'save_profile': 'Continuer',
         'skip': 'Passer',
+        'ramadan.mode': 'Mode Ramadan',
+        'ramadan.showing_menu': 'Affichage du menu {service}.',
+        'ramadan.iftar_at': 'Iftar à',
+        'ramadan.iftar_time_unavailable': 'Heure indisponible',
+        'no_items_found': 'Aucun article trouvé',
+        'try_another_keyword_or_clear_search': 'Essayez un autre mot-clé ou effacez la recherche.',
     },
     'ar': {
         'digital_menu': 'القائمة الرقمية',
@@ -154,6 +160,12 @@ TRANSLATIONS = {
         'your_phone': 'الهاتف (اختياري)',
         'save_profile': 'متابعة',
         'skip': 'تخطي',
+        'ramadan.mode': 'وضع رمضان',
+        'ramadan.showing_menu': 'عرض قائمة {service}.',
+        'ramadan.iftar_at': 'الإفطار عند',
+        'ramadan.iftar_time_unavailable': 'الوقت غير متاح',
+        'no_items_found': 'لم يتم العثور على عناصر',
+        'try_another_keyword_or_clear_search': 'جرّب كلمة أخرى أو امسح البحث.',
     },
     'en': {
         'digital_menu': 'Digital Menu',
@@ -231,6 +243,12 @@ TRANSLATIONS = {
         'your_phone': 'Phone (optional)',
         'save_profile': 'Continue',
         'skip': 'Skip',
+        'ramadan.mode': 'Ramadan Mode',
+        'ramadan.showing_menu': 'Showing the {service} menu.',
+        'ramadan.iftar_at': 'Iftar at',
+        'ramadan.iftar_time_unavailable': 'Time unavailable',
+        'no_items_found': 'No items found',
+        'try_another_keyword_or_clear_search': 'Try another keyword or clear the search.',
     },
 }
 

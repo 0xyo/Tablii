@@ -1,9 +1,15 @@
 """Restaurant, subscription, and operating hours models."""
 from datetime import datetime, time as _time, timezone
 
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:  # pragma: no cover - Python < 3.9 fallback
+    ZoneInfo = None
+
 from app import db
 
 DEFAULT_RAMADAN_IFTAR_TIME = _time(18, 30)
+DEFAULT_RAMADAN_SUHOOR_END_TIME = _time(4, 30)
 
 
 class Restaurant(db.Model):
@@ -72,16 +78,34 @@ class Restaurant(db.Model):
         """Return the configured Iftar time or the platform fallback."""
         return self.ramadan_iftar_time or DEFAULT_RAMADAN_IFTAR_TIME
 
+    def get_effective_ramadan_suhoor_end_time(self):
+        """Return the configured Suhoor cutoff time or a safe fallback."""
+        return DEFAULT_RAMADAN_SUHOOR_END_TIME
+
     def get_current_ramadan_service(self, now_time=None):
         """Return the active Ramadan service window for the given time."""
         if not self.ramadan_mode:
             return None
-        current_time = now_time or datetime.now().time()
-        return (
-            'iftar'
-            if current_time >= self.get_effective_ramadan_iftar_time()
-            else 'suhoor'
-        )
+        if now_time is not None:
+            current_time = now_time
+        else:
+            timezone_attr = getattr(self, 'timezone', None)
+            tzinfo = timezone.utc
+            if ZoneInfo and isinstance(timezone_attr, str) and timezone_attr.strip():
+                try:
+                    tzinfo = ZoneInfo(timezone_attr.strip())
+                except Exception:
+                    tzinfo = timezone.utc
+            current_time = datetime.now(tzinfo).astimezone(tzinfo).time()
+
+        if current_time >= self.get_effective_ramadan_iftar_time():
+            return 'iftar'
+
+        suhoor_end = self.get_effective_ramadan_suhoor_end_time()
+        if current_time <= suhoor_end:
+            return 'suhoor'
+
+        return None
 
     # Relationships
     categories = db.relationship('Category', backref='restaurant', lazy='dynamic')

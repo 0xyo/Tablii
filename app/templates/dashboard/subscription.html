@@ -5,6 +5,8 @@
 {% block dashboard_content %}
 <div class="max-w-5xl space-y-8">
     {% set current_plan_key = current_plan if current_plan is defined else (subscription.plan if subscription else 'free') %}
+    {% set safe_plan_order = plan_order if plan_order is defined else ['free', 'pro', 'enterprise'] %}
+    {% set current_plan_key = current_plan_key if current_plan_key in safe_plan_order else 'free' %}
 
     <!-- Current Plan Banner -->
     <div class="bg-charcoal-800/40 border border-charcoal-700/40 p-8 relative overflow-hidden">
@@ -32,14 +34,14 @@
                     <div class="text-2xl font-display italic text-amber-500">{{ tables_used }}</div>
                     <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">of {{ max_tables }} Tables</div>
                     <div class="mt-2 h-1 bg-charcoal-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ (tables_used / max_tables * 100) | int if max_tables > 0 else 0 }}%"></div>
+                        <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ ((tables_used if tables_used <= max_tables else max_tables) / max_tables * 100) | int if max_tables > 0 else 0 }}%"></div>
                     </div>
                 </div>
                 <div class="bg-charcoal-900/60 border border-charcoal-700/50 px-6 py-4 text-center min-w-[120px]">
                     <div class="text-2xl font-display italic text-amber-500">{{ items_used }}</div>
                     <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">of {{ max_items }} Items</div>
                     <div class="mt-2 h-1 bg-charcoal-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ (items_used / max_items * 100) | int if max_items > 0 else 0 }}%"></div>
+                        <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ ((items_used if items_used <= max_items else max_items) / max_items * 100) | int if max_items > 0 else 0 }}%"></div>
                     </div>
                 </div>
             </div>
@@ -58,7 +60,7 @@
 
             {% for plan in plans %}
             {% set is_current = (subscription and subscription.plan == plan['key']) or (not subscription and plan['key'] == 'free') %}
-            {% set is_upgrade = plan_order.index(plan['key']) > plan_order.index(current_plan_key) %}
+            {% set is_upgrade = (plan['key'] in safe_plan_order and current_plan_key in safe_plan_order and safe_plan_order.index(plan['key']) > safe_plan_order.index(current_plan_key)) %}
             <div class="bg-charcoal-900/60 border {{ 'border-amber-500/40 shadow-[0_0_30px_rgba(196,149,106,0.06)]' if is_current else 'border-charcoal-700/50' }} p-6 flex flex-col relative transition-all hover:border-charcoal-600/60">
                 {% if is_current %}
                 <div class="absolute -top-3 left-6">
@@ -107,7 +109,7 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="plan" value="{{ plan['key'] }}">
                     <button type="submit" class="w-full text-center text-xs font-bold uppercase tracking-widest border border-amber-600/40 text-amber-400 px-4 py-3 hover:bg-amber-500/10 hover:border-amber-500/60 transition-all">
-                        {% if plan_order.index(plan['key']) < plan_order.index(current_plan_key) %}Downgrade{% else %}Switch{% endif %} to {{ plan['name'] }}
+                        {% if plan['key'] in safe_plan_order and current_plan_key in safe_plan_order and safe_plan_order.index(plan['key']) < safe_plan_order.index(current_plan_key) %}Downgrade{% else %}Switch{% endif %} to {{ plan['name'] }}
                     </button>
                 </form>
                 {% endif %}
