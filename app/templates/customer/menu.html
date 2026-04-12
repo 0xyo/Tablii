@@ -57,6 +57,18 @@
 </div>
 {% endif %}
 
+{% if ramadan_service %}
+<div class="mx-5 mt-4 px-4 py-3 bg-amber-900/10 border border-amber-500/20 flex items-center justify-between gap-3">
+    <div>
+        <p class="text-[10px] uppercase tracking-widest font-bold text-amber-500">Ramadan Mode</p>
+        <p class="text-sm text-cream-100/90 mt-1">Showing the {{ ramadan_service|title }} menu.</p>
+    </div>
+    <span class="text-[10px] uppercase tracking-widest font-bold text-charcoal-300 bg-charcoal-900/70 px-3 py-1 border border-charcoal-700/60">
+        Iftar at {{ ramadan_iftar_time.strftime('%H:%M') }}
+    </span>
+</div>
+{% endif %}
+
 <!-- Search bar -->
 <section class="px-5 pt-6 pb-2 relative z-10">
     <div class="relative group">
@@ -71,11 +83,11 @@
 <!-- Category tabs -->
 <section class="px-5 pt-3 pb-2 sticky top-[73px] z-30 bg-charcoal-900/95 backdrop-blur-xl border-b border-charcoal-800/50 shadow-sm -mx-5">
     <div class="flex gap-3 overflow-x-auto pb-3 pt-1 scrollbar-hide" id="category-tabs">
-        <button onclick="filterCategory('all')" class="category-tab active shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-amber-600/10 text-amber-500 border-amber-500/50 shadow-inner-glow">
+        <button onclick="filterCategory('all', this)" data-category-target="all" class="category-tab active shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-amber-600/10 text-amber-500 border-amber-500/50 shadow-inner-glow">
             {{ t('all_collections', lang) }}
         </button>
         {% for category in categories %}
-        <button onclick="filterCategory('cat-{{ category.id }}')" class="category-tab shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-charcoal-800/30 text-charcoal-400 border-charcoal-700/50 hover:bg-charcoal-800 hover:text-cream-100">
+        <button onclick="filterCategory('cat-{{ category.id }}', this)" data-category-target="cat-{{ category.id }}" class="category-tab shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-charcoal-800/30 text-charcoal-400 border-charcoal-700/50 hover:bg-charcoal-800 hover:text-cream-100">
             {{ localized(category, 'name', lang) }}
         </button>
         {% endfor %}
@@ -100,7 +112,9 @@
         <div class="grid grid-cols-1 gap-6">
             {% for item in category.active_items %}
             <article class="menu-item-card group flex gap-4 bg-charcoal-800/20 hover:bg-charcoal-800/40 border border-transparent hover:border-charcoal-700/50 transition-all p-3 -mx-3 {{ 'opacity-50 pointer-events-none' if not category.is_time_available else 'cursor-pointer' }}" 
-                     data-name="{{ localized(item, 'name', lang)|lower }}" {% if category.is_time_available %}onclick="openItemModal({{ item.id }})"{% endif %}>
+                     data-name="{{ localized(item, 'name', lang)|lower }}"
+                     data-desc="{{ (localized(item, 'description', lang) or '')|lower }}"
+                     {% if category.is_time_available %}onclick="openItemModal({{ item.id }})"{% endif %}>
                 
                 <div class="w-28 h-28 flex-shrink-0 relative overflow-hidden bg-charcoal-800 border border-charcoal-700/50 p-0.5">
                     {% if item.image_url %}
@@ -140,6 +154,10 @@
     </section>
     {% endif %}
     {% endfor %}
+    <div id="menu-no-results" class="hidden border border-charcoal-700/60 bg-charcoal-800/20 px-5 py-8 text-center">
+        <p class="font-display italic text-xl text-cream-100">No items found</p>
+        <p class="mt-2 text-sm text-charcoal-400">Try another keyword or clear the search.</p>
+    </div>
 </div>
 
 <!-- Item Detail Modal -->
@@ -402,48 +420,88 @@
         });
     }
 
-    // Category filter luxury style
-    function filterCategory(catId) {
-        const activeClasses = ['bg-amber-600/10', 'text-amber-500', 'border-amber-500/50', 'shadow-inner-glow'];
-        const inactiveClasses = ['bg-charcoal-800/30', 'text-charcoal-400', 'border-charcoal-700/50'];
+    const activeTabClasses = ['bg-amber-600/10', 'text-amber-500', 'border-amber-500/50', 'shadow-inner-glow'];
+    const inactiveTabClasses = ['bg-charcoal-800/30', 'text-charcoal-400', 'border-charcoal-700/50'];
+    const searchInput = document.getElementById('menu-search');
+    const noResults = document.getElementById('menu-no-results');
+    let activeCategory = 'all';
 
-        document.querySelectorAll(".category-tab").forEach(t => {
-            t.classList.remove(...activeClasses, 'active');
-            t.classList.add(...inactiveClasses);
-        });
-        
-        const btn = event.currentTarget;
-        btn.classList.add(...activeClasses, 'active');
-        btn.classList.remove(...inactiveClasses);
-
-        document.querySelectorAll(".menu-category").forEach(sec => {
-            const match = catId === "all" || sec.dataset.category === catId;
-            sec.style.display = match ? "block" : "none";
-            if (match) {
-                sec.classList.add('animate-fade-up');
-                // Remove class after animation to allow triggering again if needed
-                setTimeout(() => sec.classList.remove('animate-fade-up'), 600);
-            }
+    function setActiveCategoryTab() {
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            const isActive = tab.dataset.categoryTarget === activeCategory;
+            tab.classList.toggle('active', isActive);
+            tab.classList.remove(...(isActive ? inactiveTabClasses : activeTabClasses));
+            tab.classList.add(...(isActive ? activeTabClasses : inactiveTabClasses));
         });
     }
 
-    // Search
-    document.getElementById("menu-search").addEventListener("input", function() {
-        const q = this.value.toLowerCase();
-        document.querySelectorAll(".menu-item-card").forEach(card => {
-            if (card.dataset.name.includes(q)) {
-                card.parentElement.style.display = "";
-            } else {
-                card.parentElement.style.display = "none";
+    function applyMenuFilters() {
+        const query = searchInput.value.trim().toLowerCase();
+        const visibleCategories = new Set();
+
+        document.querySelectorAll('.menu-category').forEach(section => {
+            let visibleItems = 0;
+
+            section.querySelectorAll('.menu-item-card').forEach(card => {
+                const haystacks = [card.dataset.name || '', card.dataset.desc || ''];
+                const matchesSearch = !query || haystacks.some(value => value.includes(query));
+                card.style.display = matchesSearch ? '' : 'none';
+
+                if (matchesSearch) {
+                    visibleItems += 1;
+                }
+            });
+
+            const hasVisibleItems = visibleItems > 0;
+            const matchesCategory = activeCategory === 'all' || section.dataset.category === activeCategory;
+            section.style.display = hasVisibleItems && matchesCategory ? 'block' : 'none';
+
+            if (hasVisibleItems) {
+                visibleCategories.add(section.dataset.category);
             }
         });
-        
-        // Hide empty categories during search
-        document.querySelectorAll(".menu-category").forEach(sec => {
-            const hasVisibleItems = Array.from(sec.querySelectorAll(".menu-item-card")).some(card => card.parentElement.style.display !== "none");
-            sec.style.display = hasVisibleItems ? "block" : "none";
+
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            const target = tab.dataset.categoryTarget;
+            if (target === 'all') {
+                tab.style.display = '';
+                tab.disabled = false;
+                return;
+            }
+
+            const shouldShowTab = !query || visibleCategories.has(target);
+            tab.style.display = shouldShowTab ? '' : 'none';
+            tab.disabled = !shouldShowTab;
         });
+
+        const hasVisibleSection = Array.from(document.querySelectorAll('.menu-category')).some(
+            section => section.style.display !== 'none'
+        );
+        noResults.classList.toggle('hidden', hasVisibleSection);
+    }
+
+    function filterCategory(catId, button = null) {
+        activeCategory = catId;
+        setActiveCategoryTab();
+        applyMenuFilters();
+
+        if (button && activeCategory !== 'all') {
+            const targetSection = document.querySelector(`.menu-category[data-category="${catId}"]`);
+            if (targetSection && targetSection.style.display !== 'none') {
+                targetSection.classList.add('animate-fade-up');
+                setTimeout(() => targetSection.classList.remove('animate-fade-up'), 600);
+            }
+        }
+    }
+
+    searchInput.addEventListener('input', function() {
+        activeCategory = 'all';
+        setActiveCategoryTab();
+        applyMenuFilters();
     });
+
+    setActiveCategoryTab();
+    applyMenuFilters();
 
     // Customer identification prompt
     {% if not guest_name %}

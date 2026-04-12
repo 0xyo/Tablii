@@ -1,7 +1,9 @@
 """Restaurant, subscription, and operating hours models."""
-from datetime import datetime, timezone
+from datetime import datetime, time as _time, timezone
 
 from app import db
+
+DEFAULT_RAMADAN_IFTAR_TIME = _time(18, 30)
 
 
 class Restaurant(db.Model):
@@ -29,6 +31,11 @@ class Restaurant(db.Model):
     online_payment = db.Column(db.Boolean, default=False)
     default_language = db.Column(db.String(5), default='fr')
     ramadan_mode = db.Column(db.Boolean, default=False)
+    ramadan_iftar_time = db.Column(
+        db.Time,
+        nullable=True,
+        default=lambda: DEFAULT_RAMADAN_IFTAR_TIME,
+    )
     loyalty_enabled = db.Column(db.Boolean, default=False)
     loyalty_points_per_unit = db.Column(db.Integer, default=10)  # points earned per currency unit spent
     loyalty_redemption_value = db.Column(db.Float, default=0.1)  # currency value per redeemed point
@@ -60,6 +67,21 @@ class Restaurant(db.Model):
                 # overnight (e.g. 20:00 - 02:00)
                 return current_time >= hours.open_time or current_time <= hours.close_time
         return True
+
+    def get_effective_ramadan_iftar_time(self):
+        """Return the configured Iftar time or the platform fallback."""
+        return self.ramadan_iftar_time or DEFAULT_RAMADAN_IFTAR_TIME
+
+    def get_current_ramadan_service(self, now_time=None):
+        """Return the active Ramadan service window for the given time."""
+        if not self.ramadan_mode:
+            return None
+        current_time = now_time or datetime.now().time()
+        return (
+            'iftar'
+            if current_time >= self.get_effective_ramadan_iftar_time()
+            else 'suhoor'
+        )
 
     # Relationships
     categories = db.relationship('Category', backref='restaurant', lazy='dynamic')

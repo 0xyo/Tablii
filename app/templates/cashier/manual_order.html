@@ -46,6 +46,10 @@
                     <span class="text-[10px] text-charcoal-400 uppercase tracking-widest ml-1">{{ restaurant.currency }}</span>
                 </div>
             </div>
+            <button type="button" onclick="clearOrder()"
+                    class="mt-4 w-full border border-charcoal-700 text-charcoal-300 px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-bold hover:border-amber-500/50 hover:text-amber-400 transition-colors">
+                Clear Selection
+            </button>
             <p class="text-[10px] text-charcoal-500 italic mt-2 border-t border-charcoal-800 pt-2">Applicable taxes computed at checkout</p>
         </div>
 
@@ -58,21 +62,28 @@
     <!-- Right panel: items by category -->
     <div class="flex-1">
         <div class="card !p-6 min-h-full">
-            <div class="flex justify-between items-end border-b border-charcoal-700/60 pb-4 mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 border-b border-charcoal-700/60 pb-4 mb-6">
                 <div>
                     <h2 class="font-display italic text-2xl tracking-wide text-cream-50">Menu Offerings</h2>
                     <p class="text-[10px] text-charcoal-400 uppercase tracking-widest mt-1 font-bold">Select Items</p>
+                </div>
+                <div class="w-full lg:w-72 relative">
+                    <input id="item-search" type="text" placeholder="Search menu items..."
+                           class="input-field w-full pl-11 bg-charcoal-800/50 text-sm">
+                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35m1.35-5.15a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/>
+                    </svg>
                 </div>
             </div>
 
             <!-- Category tabs -->
             <div class="flex gap-3 flex-wrap mb-8">
-                <button type="button" onclick="filterCategory('all')"
+                <button type="button" onclick="filterCategory('all', this)"
                         class="cat-tab px-5 py-2 text-[10px] uppercase tracking-widest font-bold border rounded-none transition-all duration-300 bg-amber-600/10 text-amber-500 border-amber-500/50 shadow-inner-glow" data-cat="all">All Collections</button>
                 {% for cat in categories %}
-                <button type="button" onclick="filterCategory('{{ cat.id }}')"
+                <button type="button" onclick="filterCategory('{{ cat.id }}', this)"
                         class="cat-tab px-5 py-2 text-[10px] uppercase tracking-widest font-bold border rounded-none transition-all duration-300 bg-charcoal-800/30 text-charcoal-400 border-charcoal-700/50 hover:bg-charcoal-800 hover:text-cream-100"
-                        data-cat="{{ cat.id }}">{{ cat.icon or '' }} {{ cat.name_fr }}</button>
+                        data-cat="{{ cat.id }}">{{ cat.icon or '' }} {{ cat.name_fr or cat.name_en or cat.name_ar }}</button>
                 {% endfor %}
             </div>
 
@@ -80,25 +91,37 @@
             <div class="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-4" id="items-grid">
                 {% for item in menu_items %}
                 <div class="item-card bg-charcoal-800/20 border border-charcoal-700/50 p-4 flex flex-col gap-3 hover:border-amber-500/50 hover:bg-charcoal-800/50 transition-all group"
-                     data-cat="{{ item.category_id }}">
-                    <div class="font-display italic text-lg text-cream-100 leading-tight group-hover:text-amber-400 transition-colors">{{ item.name_fr }}</div>
+                     data-cat="{{ item.category_id }}"
+                     data-name="{{ (item.name_fr or item.name_en or item.name_ar)|lower }}"
+                     data-price="{{ '%.3f'|format(item.price) }}">
+                    <div class="font-display italic text-lg text-cream-100 leading-tight group-hover:text-amber-400 transition-colors">{{ item.name_fr or item.name_en or item.name_ar }}</div>
                     <div class="text-amber-500 text-sm font-semibold tracking-wide flex items-center gap-1">
                         {{ '%.3f'|format(item.price) }} <span class="text-[9px] uppercase tracking-widest text-charcoal-500 font-normal">{{ restaurant.currency }}</span>
                     </div>
-                    
-                    <div class="flex items-center justify-between mt-auto pt-4 border-t border-charcoal-700/30">
-                        <button type="button" onclick="decQty({{ item.id }}, {{ item.price }})"
+
+                    <label class="block mt-1">
+                        <span class="text-[9px] uppercase tracking-widest font-bold text-charcoal-500">Item Notes</span>
+                        <textarea name="notes_{{ item.id }}" rows="2" placeholder="No onions, extra spicy..."
+                                  class="mt-2 w-full bg-charcoal-900/70 border border-charcoal-700/60 px-3 py-2 text-xs text-cream-100 placeholder:text-charcoal-500 focus:outline-none focus:border-amber-500/50 resize-none"></textarea>
+                    </label>
+
+                    <div class="flex items-center justify-between mt-auto pt-4 border-t border-charcoal-700/30 gap-2">
+                        <button type="button" onclick="decQty({{ item.id }})"
                                 class="w-8 h-8 rounded-none border border-charcoal-600 text-charcoal-400 hover:text-amber-500 hover:border-amber-500/50 bg-charcoal-800 flex items-center justify-center font-light text-lg transition-colors">−</button>
-                        
-                        <input type="text" name="item_{{ item.id }}" id="qty-{{ item.id }}"
-                               value="0" readonly
-                               class="w-10 text-center text-sm font-bold border-0 bg-transparent focus:outline-none text-cream-50 font-mono">
-                        
-                        <button type="button" onclick="incQty({{ item.id }}, {{ item.price }})"
+
+                        <input type="number" name="item_{{ item.id }}" id="qty-{{ item.id }}"
+                               value="0" min="0" max="20" inputmode="numeric"
+                               class="qty-input w-14 text-center text-sm font-bold border border-charcoal-700 bg-charcoal-900/70 px-2 py-1 focus:outline-none focus:border-amber-500/50 text-cream-50 font-mono">
+
+                        <button type="button" onclick="incQty({{ item.id }})"
                                 class="w-8 h-8 rounded-none border border-charcoal-600 text-charcoal-400 hover:text-amber-500 hover:border-amber-500/50 bg-charcoal-800 flex items-center justify-center font-light text-lg transition-colors">+</button>
                     </div>
                 </div>
                 {% endfor %}
+            </div>
+            <div id="items-empty-state" class="hidden mt-6 border border-charcoal-700/50 bg-charcoal-800/20 px-5 py-8 text-center">
+                <p class="font-display italic text-xl text-cream-100">No matching items</p>
+                <p class="mt-2 text-sm text-charcoal-400">Try a different search or switch categories.</p>
             </div>
         </div>
     </div>
@@ -107,46 +130,99 @@
 
 {% block scripts %}
 <script>
-let runningTotal = 0;
+const activeClasses = ['bg-amber-600/10', 'text-amber-500', 'border-amber-500/50', 'shadow-inner-glow'];
+const inactiveClasses = ['bg-charcoal-800/30', 'text-charcoal-400', 'border-charcoal-700/50'];
+const searchField = document.getElementById('item-search');
+const emptyState = document.getElementById('items-empty-state');
+let activeCategory = 'all';
 
-function updateTotal() {
-    document.getElementById('running-total').textContent = runningTotal.toFixed(3);
+function sanitizeQty(value) {
+    const parsed = parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+        return 0;
+    }
+    return Math.min(20, Math.max(0, parsed));
 }
 
-function incQty(id, price) {
-    const inp = document.getElementById(`qty-${id}`);
-    inp.value = Math.min(20, parseInt(inp.value) + 1);
-    runningTotal += price;
+function updateTotal() {
+    const total = Array.from(document.querySelectorAll('.item-card')).reduce((sum, card) => {
+        const qtyInput = card.querySelector('.qty-input');
+        const qty = sanitizeQty(qtyInput.value);
+        qtyInput.value = qty;
+        return sum + (qty * parseFloat(card.dataset.price || '0'));
+    }, 0);
+
+    document.getElementById('running-total').textContent = total.toFixed(3);
+}
+
+function setQty(id, nextQty) {
+    const input = document.getElementById(`qty-${id}`);
+    input.value = sanitizeQty(nextQty);
     updateTotal();
 }
 
-function decQty(id, price) {
-    const inp = document.getElementById(`qty-${id}`);
-    if (parseInt(inp.value) > 0) {
-        inp.value = parseInt(inp.value) - 1;
-        runningTotal = Math.max(0, runningTotal - price);
-        updateTotal();
-    }
+function incQty(id) {
+    const input = document.getElementById(`qty-${id}`);
+    setQty(id, sanitizeQty(input.value) + 1);
 }
 
-function filterCategory(catId) {
-    const activeClasses = ['bg-amber-600/10', 'text-amber-500', 'border-amber-500/50', 'shadow-inner-glow'];
-    const inactiveClasses = ['bg-charcoal-800/30', 'text-charcoal-400', 'border-charcoal-700/50'];
+function decQty(id) {
+    const input = document.getElementById(`qty-${id}`);
+    setQty(id, sanitizeQty(input.value) - 1);
+}
 
-    document.querySelectorAll('.item-card').forEach(el => {
-        el.style.display = (catId === 'all' || el.dataset.cat === catId) ? '' : 'none';
+function clearOrder() {
+    document.querySelectorAll('.qty-input').forEach(input => {
+        input.value = 0;
     });
-    
+    document.querySelectorAll('textarea[name^="notes_"]').forEach(field => {
+        field.value = '';
+    });
+    updateTotal();
+}
+
+function setActiveCategoryTab() {
     document.querySelectorAll('.cat-tab').forEach(btn => {
-        const isActive = btn.dataset.cat === catId;
-        if(isActive) {
-            btn.classList.add(...activeClasses);
-            btn.classList.remove(...inactiveClasses);
-        } else {
-            btn.classList.add(...inactiveClasses);
-            btn.classList.remove(...activeClasses);
+        const isActive = btn.dataset.cat === activeCategory;
+        btn.classList.remove(...(isActive ? inactiveClasses : activeClasses));
+        btn.classList.add(...(isActive ? activeClasses : inactiveClasses));
+    });
+}
+
+function applyItemFilters() {
+    const query = searchField.value.trim().toLowerCase();
+    let visibleCount = 0;
+
+    document.querySelectorAll('.item-card').forEach(card => {
+        const matchesCategory = activeCategory === 'all' || card.dataset.cat === activeCategory;
+        const matchesSearch = !query || (card.dataset.name || '').includes(query);
+        const shouldShow = matchesCategory && matchesSearch;
+        card.style.display = shouldShow ? '' : 'none';
+        if (shouldShow) {
+            visibleCount += 1;
         }
     });
+
+    emptyState.classList.toggle('hidden', visibleCount > 0);
 }
+
+function filterCategory(catId, button = null) {
+    activeCategory = catId;
+    setActiveCategoryTab();
+    applyItemFilters();
+}
+
+document.querySelectorAll('.qty-input').forEach(input => {
+    input.addEventListener('input', () => {
+        input.value = sanitizeQty(input.value);
+        updateTotal();
+    });
+});
+
+searchField.addEventListener('input', applyItemFilters);
+
+setActiveCategoryTab();
+applyItemFilters();
+updateTotal();
 </script>
 {% endblock %}

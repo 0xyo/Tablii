@@ -10,7 +10,7 @@ from flask import (
 from app import csrf, db
 from app.models.menu import Category, MenuItem
 from app.models.order import Order, WaiterCall
-from app.models.restaurant import Restaurant
+from app.models.restaurant import DEFAULT_RAMADAN_IFTAR_TIME, Restaurant
 from app.models.review import Customer, Review
 from app.models.table import Table, TableSession
 from app.services.order_service import create_order
@@ -123,21 +123,27 @@ def menu(slug, table_id):
     """Display the restaurant menu for a table."""
     restaurant, table = _get_restaurant_and_table(slug, table_id)
     table_session = _ensure_session(table, restaurant)
+    now_time = datetime.now().time()
+    ramadan_service = restaurant.get_current_ramadan_service(now_time)
+    ramadan_iftar_time = (
+        restaurant.get_effective_ramadan_iftar_time()
+        if restaurant.ramadan_mode
+        else DEFAULT_RAMADAN_IFTAR_TIME
+    )
 
     # Query categories with active items
     categories_query = Category.query.filter_by(
         restaurant_id=restaurant.id, is_active=True
     ).order_by(Category.sort_order)
 
-    if restaurant.ramadan_mode:
+    if ramadan_service:
         categories_query = categories_query.filter(
-            Category.ramadan_type.isnot(None)
+            Category.ramadan_type == ramadan_service
         )
 
     categories = categories_query.all()
 
     # Filter categories by time-based availability
-    now_time = datetime.now().time()
     for cat in categories:
         cat.is_time_available = True
         if cat.available_from and cat.available_until:
@@ -168,6 +174,8 @@ def menu(slug, table_id):
         session_token=table_session.session_token,
         guest_name=table_session.guest_name or session.get('customer_name', ''),
         loyalty_points=_get_loyalty_points(table_session, restaurant),
+        ramadan_service=ramadan_service,
+        ramadan_iftar_time=ramadan_iftar_time,
         lang=resolve_language(restaurant),
     )
 

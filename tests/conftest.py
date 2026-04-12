@@ -5,6 +5,8 @@ import pytest
 # Force testing config before any Flask import
 os.environ['FLASK_ENV'] = 'testing'
 os.environ['SECRET_KEY'] = 'test-secret-key'
+os.environ.setdefault('SOCKETIO_CORS_ORIGINS', '*')
+os.environ.setdefault('DATABASE_URL', 'sqlite:///test-import.db')
 
 from app import create_app, db as _db  # noqa: E402
 

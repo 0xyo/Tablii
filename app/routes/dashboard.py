@@ -1,6 +1,6 @@
 """Dashboard blueprint — restaurant owner admin panel."""
 import os
-from datetime import date, datetime, time as _time, timezone
+from datetime import date, datetime, timedelta, time as _time, timezone
 
 from flask import (
     Blueprint, abort, current_app, flash, g, jsonify, redirect,
@@ -12,7 +12,12 @@ from sqlalchemy import func
 from app import db
 from app.models.menu import Category, CustomOption, Customization, MenuItem
 from app.models.order import Order
-from app.models.restaurant import OperatingHours, Restaurant
+from app.models.restaurant import (
+    DEFAULT_RAMADAN_IFTAR_TIME,
+    OperatingHours,
+    Restaurant,
+    Subscription,
+)
 from app.models.review import Review
 from app.models.table import Table, TableSession
 from app.models.user import StaffUser
@@ -973,6 +978,22 @@ def settings():
     restaurant.auto_accept = 'auto_accept' in request.form
     restaurant.online_payment = 'online_payment' in request.form
     restaurant.ramadan_mode = 'ramadan_mode' in request.form
+
+    # Ramadan Iftar time
+    iftar_str = request.form.get('ramadan_iftar_time', '').strip()
+    if iftar_str:
+        try:
+            iftar_h, iftar_m = map(int, iftar_str.split(':'))
+            from datetime import time as _t
+            restaurant.ramadan_iftar_time = _t(iftar_h, iftar_m)
+        except (ValueError, TypeError):
+            restaurant.ramadan_iftar_time = DEFAULT_RAMADAN_IFTAR_TIME
+    elif restaurant.ramadan_mode:
+        restaurant.ramadan_iftar_time = (
+            restaurant.ramadan_iftar_time or DEFAULT_RAMADAN_IFTAR_TIME
+        )
+    else:
+        restaurant.ramadan_iftar_time = None
     restaurant.loyalty_enabled = 'loyalty_enabled' in request.form
 
     ppu = request.form.get('loyalty_points_per_unit', type=int)
@@ -1179,3 +1200,97 @@ def notifications_read_all():
         role = current_user.role
     count = mark_all_read(restaurant.id, role=role)
     return jsonify(success=True, count=count)
+
+
+# ──────────────────────────────────────────────
+# 12. Subscription Management
+# ──────────────────────────────────────────────
+
+PLAN_LIMITS = {
+    'free':       {'max_tables': 5,   'max_items': 20},
+    'pro':        {'max_tables': 25,  'max_items': 100},
+    'enterprise': {'max_tables': 999, 'max_items': 999},
+}
+PLAN_ORDER = ('free', 'pro', 'enterprise')
+
+
+@dashboard_bp.route('/subscription')
+@login_required
+@role_required('owner')
+@restaurant_required
+def subscription():
+    """View current subscription and plan options."""
+    restaurant = g.restaurant
+    sub = restaurant.subscription
+
+    tables_used = Table.query.filter_by(restaurant_id=restaurant.id).count()
+    items_used = MenuItem.query.filter(
+        MenuItem.restaurant_id == restaurant.id,
+        MenuItem.deleted_at.is_(None),
+    ).count()
+
+    max_tables = sub.max_tables if sub else 5
+    max_items = sub.max_items if sub else 20
+    current_plan = sub.plan if sub else 'free'
+
+    return render_template(
+        'dashboard/subscription.html',
+        restaurant=restaurant,
+        subscription=sub,
+        current_plan=current_plan,
+        plan_order=PLAN_ORDER,
+        tables_used=tables_used,
+        items_used=items_used,
+        max_tables=max_tables,
+        max_items=max_items,
+    )
+
+
+@dashboard_bp.route('/subscription/change', methods=['POST'])
+@login_required
+@role_required('owner')
+@restaurant_required
+def subscription_change():
+    """Switch the restaurant to a different plan."""
+    restaurant = g.restaurant
+    plan = request.form.get('plan', '').strip()
+
+    if plan not in PLAN_LIMITS:
+        flash('Invalid plan selected.', 'error')
+        return redirect(url_for('dashboard.subscription'))
+
+    sub = restaurant.subscription
+    current_plan = sub.plan if sub else 'free'
+    current_rank = PLAN_ORDER.index(current_plan)
+    target_rank = PLAN_ORDER.index(plan)
+
+    if plan == current_plan:
+        flash(f'You are already on the {plan.title()} plan.', 'info')
+        return redirect(url_for('dashboard.subscription'))
+
+    if target_rank > current_rank:
+        flash(
+            'Paid upgrades are not self-serve yet. Contact support to activate a higher plan.',
+            'error',
+        )
+        return redirect(url_for('dashboard.subscription'))
+
+    if not sub:
+        sub = Subscription(restaurant_id=restaurant.id)
+        db.session.add(sub)
+
+    limits = PLAN_LIMITS[plan]
+    now = datetime.now(timezone.utc)
+    sub.plan = plan
+    sub.max_tables = limits['max_tables']
+    sub.max_items = limits['max_items']
+    sub.is_active = True
+    sub.started_at = now
+    if plan == 'free':
+        sub.expires_at = None
+    elif not sub.expires_at:
+        sub.expires_at = now + timedelta(days=30)
+
+    db.session.commit()
+    flash(f'Plan changed to {plan.title()}.', 'success')
+    return redirect(url_for('dashboard.subscription'))
