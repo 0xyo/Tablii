@@ -42,14 +42,15 @@ def seed(config_name=None):
         owner_email = _env('TABLII_OWNER_EMAIL', 'owner@tablii.com')
         owner_password = _env('TABLII_OWNER_PASSWORD', 'owner1234')
         restaurant_name = _env('TABLII_RESTAURANT_NAME', 'Chez Ahmed')
-        restaurant_slug = _env('TABLII_RESTAURANT_SLUG', generate_slug(restaurant_name))
+        restaurant_slug = _env('TABLII_RESTAURANT_SLUG', 'chez-ahmed')
         restaurant_city = _env('TABLII_RESTAURANT_CITY', 'Tunis')
         restaurant_address = _env('TABLII_RESTAURANT_ADDRESS', '15 Rue de la Kasbah, Tunis')
         restaurant_phone = _env('TABLII_RESTAURANT_PHONE', '+21671000001')
         staff_password = _env('TABLII_STAFF_PASSWORD', 'staff1234')
 
         # ── Super Admin ──────────────────────────────────────────────────────
-        if not User.query.filter_by(email=super_admin_email).first():
+        super_admin = User.query.filter_by(email=super_admin_email).first()
+        if not super_admin:
             sa = User(
                 name='Super Admin',
                 email=super_admin_email,
@@ -61,7 +62,10 @@ def seed(config_name=None):
             db.session.flush()
             print('  [+] Super admin created')
         else:
-            print('  [-] Super admin already exists, skipped')
+            super_admin.role = 'super_admin'
+            super_admin.is_active = True
+            super_admin.set_password(super_admin_password)
+            print('  [~] Super admin password refreshed')
 
         # ── Owner ────────────────────────────────────────────────────────────
         owner = User.query.filter_by(email=owner_email).first()
@@ -77,7 +81,10 @@ def seed(config_name=None):
             db.session.flush()
             print('  [+] Owner created')
         else:
-            print('  [-] Owner already exists, skipped')
+            owner.role = 'owner'
+            owner.is_active = True
+            owner.set_password(owner_password)
+            print('  [~] Owner password refreshed')
 
         # ── Restaurant ───────────────────────────────────────────────────────
         restaurant = Restaurant.query.filter_by(slug=restaurant_slug).first()
@@ -148,8 +155,12 @@ def seed(config_name=None):
                 )
                 staff.set_password(s['password'])
                 db.session.add(staff)
+            else:
+                exists.role = s['role']
+                exists.is_active = True
+                exists.set_password(s['password'])
         db.session.flush()
-        print('  [+] Staff created (cashier, waiter, kitchen)')
+        print('  [~] Staff accounts ensured (cashier, waiter, kitchen)')
 
         # ── Categories ───────────────────────────────────────────────────────
         existing_cats = restaurant.categories.count()
