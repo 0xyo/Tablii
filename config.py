@@ -45,10 +45,14 @@ class ProductionConfig(Config):
             'SOCKETIO_CORS_ORIGINS must contain at least one origin in production.'
         )
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
-    # Fix Render's postgres:// scheme — SQLAlchemy 2.x requires postgresql://
+    # Fix Render's postgres:// scheme and ensure psycopg (v3) driver is used.
     if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
         SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace(
             'postgres://', 'postgresql://', 1
+        )
+    if SQLALCHEMY_DATABASE_URI.startswith('postgresql://'):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace(
+            'postgresql://', 'postgresql+psycopg://', 1
         )
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
