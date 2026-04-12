@@ -58,6 +58,8 @@ def _clear_attempts():
 def login():
     """Render the login page."""
     if current_user.is_authenticated:
+        if isinstance(current_user, User) and current_user.role == 'super_admin':
+            return redirect(url_for('admin.restaurants'))
         return redirect('/dashboard')
     login_type = request.args.get('login_type', 'owner')
     return render_template('auth/login.html', login_type=login_type)
@@ -67,6 +69,8 @@ def login():
 def login_post():
     """Handle login form submission for owners and staff."""
     if current_user.is_authenticated:
+        if isinstance(current_user, User) and current_user.role == 'super_admin':
+            return redirect(url_for('admin.restaurants'))
         return redirect('/dashboard')
 
     login_type = request.form.get('login_type', 'owner')
@@ -100,6 +104,8 @@ def _handle_owner_login():
     _clear_attempts()
     login_user(user)
     flash('Welcome back!', 'success')
+    if user.role == 'super_admin':
+        return redirect(url_for('admin.restaurants'))
     return redirect('/dashboard')
 
 
@@ -149,6 +155,8 @@ def _handle_staff_login():
 def register():
     """Render the registration page."""
     if current_user.is_authenticated:
+        if isinstance(current_user, User) and current_user.role == 'super_admin':
+            return redirect(url_for('admin.restaurants'))
         return redirect('/dashboard')
     return render_template('auth/register.html')
 
@@ -157,6 +165,8 @@ def register():
 def register_post():
     """Handle registration form submission."""
     if current_user.is_authenticated:
+        if isinstance(current_user, User) and current_user.role == 'super_admin':
+            return redirect(url_for('admin.restaurants'))
         return redirect('/dashboard')
 
     name = request.form.get('name', '').strip()
