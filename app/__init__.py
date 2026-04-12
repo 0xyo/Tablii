@@ -22,6 +22,39 @@ socketio = SocketIO()
 csrf = CSRFProtect()
 
 
+def _ensure_super_admin_from_env(app):
+    """Create/update super admin from env vars when provided."""
+    if app.config.get('TESTING'):
+        return
+
+    email = (os.environ.get('TABLII_SUPERADMIN_EMAIL') or '').strip().lower()
+    password = (os.environ.get('TABLII_SUPERADMIN_PASSWORD') or '').strip()
+
+    if not email or not password:
+        return
+
+    from app.models.user import User
+
+    try:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(
+                name='Super Admin',
+                email=email,
+                role='super_admin',
+                is_active=True,
+            )
+            db.session.add(user)
+
+        user.role = 'super_admin'
+        user.is_active = True
+        user.set_password(password)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('Failed to bootstrap super admin from environment.')
+
+
 def create_app(config_name=None):
     """
     Application factory.
@@ -69,6 +102,9 @@ def create_app(config_name=None):
 
     # Register models for Alembic detection
     importlib.import_module('app.models')
+
+    with app.app_context():
+        _ensure_super_admin_from_env(app)
 
     # Dual user loader (User and StaffUser share session via prefixed IDs)
     from app.models.user import User, StaffUser
