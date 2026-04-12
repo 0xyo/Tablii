@@ -31,10 +31,10 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    """Production configuration — requires all env vars to be set."""
+    """Production configuration with sensible environment fallbacks."""
 
     DEBUG = False
-    _socketio_cors_origins_raw = os.environ['SOCKETIO_CORS_ORIGINS']
+    _socketio_cors_origins_raw = os.environ.get('SOCKETIO_CORS_ORIGINS', '*')
     SOCKETIO_CORS_ORIGINS = [
         origin.strip()
         for origin in _socketio_cors_origins_raw.split(',')
