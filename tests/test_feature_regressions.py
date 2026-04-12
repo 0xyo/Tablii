@@ -98,14 +98,16 @@ class TestRamadanMode:
         )
 
         assert restaurant.get_effective_ramadan_iftar_time() == DEFAULT_RAMADAN_IFTAR_TIME
-        assert restaurant.get_current_ramadan_service(time(17, 0)) == 'suhoor'
+        assert restaurant.get_current_ramadan_service(time(3, 0)) == 'suhoor'
+        assert restaurant.get_current_ramadan_service(time(17, 0)) is None
         assert restaurant.get_current_ramadan_service(time(19, 0)) == 'iftar'
 
     @pytest.mark.parametrize(
-        ('current_time', 'expected_text', 'missing_text', 'service_text'),
+        ('current_time', 'expected_texts', 'missing_texts', 'service_text'),
         [
-            (time(17, 0), b'Suhoor Choices', b'Iftar Specials', b'Showing the Suhoor menu.'),
-            (time(19, 0), b'Iftar Specials', b'Suhoor Choices', b'Showing the Iftar menu.'),
+            (time(3, 0), [b'Suhoor Choices'], [b'Iftar Specials'], b'Affichage du menu Suhoor.'),
+            (time(17, 0), [b'Iftar Specials', b'Suhoor Choices'], [], None),
+            (time(19, 0), [b'Iftar Specials'], [b'Suhoor Choices'], b'Affichage du menu Iftar.'),
         ],
     )
     def test_customer_menu_filters_ramadan_categories_by_time(
@@ -115,8 +117,8 @@ class TestRamadanMode:
         sample_restaurant,
         monkeypatch,
         current_time,
-        expected_text,
-        missing_text,
+        expected_texts,
+        missing_texts,
         service_text,
     ):
         """Menu should only render the active Ramadan meal window."""
@@ -193,6 +195,11 @@ class TestRamadanMode:
         )
 
         assert response.status_code == 200
-        assert expected_text in response.data
-        assert missing_text not in response.data
-        assert service_text in response.data
+        for expected_text in expected_texts:
+            assert expected_text in response.data
+        for missing_text in missing_texts:
+            assert missing_text not in response.data
+        if service_text:
+            assert service_text in response.data
+        else:
+            assert b'Mode Ramadan' not in response.data
