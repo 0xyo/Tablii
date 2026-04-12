@@ -7,7 +7,7 @@ services:
       npm install
       npm run build:css
       flask db upgrade
-    startCommand: gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT run:app
+    startCommand: gunicorn --worker-class gthread --threads 4 -w 1 --bind 0.0.0.0:$PORT run:app
     envVars:
       - key: FLASK_ENV
         value: production
