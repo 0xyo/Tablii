@@ -76,9 +76,9 @@ def create_app(config_name=None):
     @login_manager.user_loader
     def load_user(user_id):
         if user_id.startswith('user_'):
-            return User.query.get(int(user_id.split('_')[1]))
+            return db.session.get(User, int(user_id.split('_')[1]))
         elif user_id.startswith('staff_'):
-            return StaffUser.query.get(int(user_id.split('_')[1]))
+            return db.session.get(StaffUser, int(user_id.split('_')[1]))
         return None
 
     # Register blueprints

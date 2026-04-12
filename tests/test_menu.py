@@ -15,7 +15,7 @@ class TestCategory:
         db.session.add(cat)
         db.session.commit()
 
-        fetched = Category.query.get(cat.id)
+        fetched = db.session.get(Category, cat.id)
         assert fetched is not None, 'Category should be persisted'
         assert fetched.restaurant_id == sample_restaurant.id, (
             'Category must belong to the sample restaurant'
@@ -42,7 +42,7 @@ class TestMenuItem:
         db.session.add(item)
         db.session.commit()
 
-        fetched = MenuItem.query.get(item.id)
+        fetched = db.session.get(MenuItem, item.id)
         assert fetched is not None, 'MenuItem should be persisted'
         assert fetched.price == pytest.approx(16.5), (
             f'Price should be 16.5, got {fetched.price}'
@@ -74,7 +74,7 @@ class TestSoftDelete:
         item.deleted_at = datetime.now(timezone.utc)
         db.session.commit()
 
-        refetched = MenuItem.query.get(item.id)
+        refetched = db.session.get(MenuItem, item.id)
         assert refetched.deleted_at is not None, 'deleted_at must be set after soft delete'
 
         # Active query must exclude deleted items

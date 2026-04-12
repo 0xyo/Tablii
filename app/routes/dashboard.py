@@ -665,7 +665,7 @@ def table_layout():
         tid = pos.get('id')
         if tid not in table_ids:
             continue
-        table = Table.query.get(tid)
+        table = db.session.get(Table, tid)
         table.position_x = float(pos.get('pos_x', 0))
         table.position_y = float(pos.get('pos_y', 0))
 

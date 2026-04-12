@@ -79,14 +79,14 @@ def create_order(
             # Validate max_selections per customization group
             group_counts = {}
             for opt_id in selected_options:
-                option = CustomOption.query.get(opt_id)
+                option = db.session.get(CustomOption, opt_id)
                 if option:
                     unit_price += option.extra_price
                     gid = option.customization_id
                     group_counts[gid] = group_counts.get(gid, 0) + 1
 
             for gid, count in group_counts.items():
-                cust = Customization.query.get(gid)
+                cust = db.session.get(Customization, gid)
                 if cust and cust.max_selections and count > cust.max_selections:
                     raise ValueError(
                         f'Too many selections for "{cust.group_name_fr}" '
@@ -178,7 +178,7 @@ def create_order(
     try:
         from app.services.loyalty_service import earn_points
         if session_id:
-            ts = TableSession.query.get(session_id)
+            ts = db.session.get(TableSession, session_id)
             if ts and ts.customer_id:
                 earned = earn_points(ts.customer_id, restaurant, order.total_amount)
                 if earned:
@@ -342,7 +342,7 @@ def _maybe_release_table(session_id: int):
     from app.models.order import Order
     from app.models.table import TableSession
 
-    table_session = TableSession.query.get(session_id)
+    table_session = db.session.get(TableSession, session_id)
     if not table_session or not table_session.is_active:
         return
 

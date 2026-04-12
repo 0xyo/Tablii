@@ -182,7 +182,7 @@ def order_status(order_id):
         JSON with order_id, status, and all relevant timestamps.
         404 if the order does not exist.
     """
-    order = Order.query.get(order_id)
+    order = db.session.get(Order, order_id)
     if not order:
         return jsonify({'error': 'Order not found'}), 404
 

@@ -38,7 +38,7 @@ def initiate_flouci_payment(order_id: int, amount: float, success_url: str, fail
     Returns:
         dict with ``payment_url`` and ``payment_id``, or ``None`` on error.
     """
-    order = Order.query.get(order_id)
+    order = db.session.get(Order, order_id)
     if order is None:
         logger.warning('initiate_flouci_payment: order %s not found', order_id)
         return None
@@ -148,7 +148,7 @@ def verify_flouci_payment(payment_id: str) -> bool:
         if status == 'SUCCESS':
             txn.status = 'completed'
             txn.raw_response = raw_json
-            order = Order.query.get(txn.order_id)
+            order = db.session.get(Order, txn.order_id)
             if order:
                 order.payment_status = 'paid'
                 # Auto-advance served orders to completed on payment

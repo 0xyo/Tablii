@@ -159,7 +159,7 @@ class TestGiftAndLoyaltyFlows:
         data = res.get_json()
         assert data['success'] is True
 
-        order = Order.query.get(data['order_id'])
+        order = db.session.get(Order, data['order_id'])
         assert order is not None
         assert order.is_gift is True
         assert order.table_id == target_table.id
