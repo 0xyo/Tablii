@@ -13,6 +13,7 @@ Creates (idempotent — safe to run multiple times):
     Items       : 15 menu items with French/Arabic names
     Tables      : 8 tables
 """
+import os
 from datetime import time, timedelta, datetime, timezone
 
 from app import create_app, db
@@ -23,21 +24,39 @@ from app.models.user import StaffUser, User
 from app.utils.helpers import generate_slug
 
 
-def seed():
+def _env(name, default):
+    """Return a trimmed environment variable with a sensible fallback."""
+    value = os.environ.get(name, '').strip()
+    return value or default
+
+
+def seed(config_name=None):
     """Seed the database with demo data. Idempotent — skips existing records."""
-    app = create_app('development')
+    resolved_config = config_name or os.environ.get('FLASK_ENV', 'development')
+    app = create_app(resolved_config)
     with app.app_context():
         db.create_all()
 
+        super_admin_email = _env('TABLII_SUPERADMIN_EMAIL', 'superadmin@tablii.com')
+        super_admin_password = _env('TABLII_SUPERADMIN_PASSWORD', 'admin1234')
+        owner_email = _env('TABLII_OWNER_EMAIL', 'owner@tablii.com')
+        owner_password = _env('TABLII_OWNER_PASSWORD', 'owner1234')
+        restaurant_name = _env('TABLII_RESTAURANT_NAME', 'Chez Ahmed')
+        restaurant_slug = _env('TABLII_RESTAURANT_SLUG', generate_slug(restaurant_name))
+        restaurant_city = _env('TABLII_RESTAURANT_CITY', 'Tunis')
+        restaurant_address = _env('TABLII_RESTAURANT_ADDRESS', '15 Rue de la Kasbah, Tunis')
+        restaurant_phone = _env('TABLII_RESTAURANT_PHONE', '+21671000001')
+        staff_password = _env('TABLII_STAFF_PASSWORD', 'staff1234')
+
         # ── Super Admin ──────────────────────────────────────────────────────
-        if not User.query.filter_by(email='superadmin@tablii.com').first():
+        if not User.query.filter_by(email=super_admin_email).first():
             sa = User(
                 name='Super Admin',
-                email='superadmin@tablii.com',
+                email=super_admin_email,
                 role='super_admin',
                 is_active=True,
             )
-            sa.set_password('admin1234')
+            sa.set_password(super_admin_password)
             db.session.add(sa)
             db.session.flush()
             print('  [+] Super admin created')
@@ -45,15 +64,15 @@ def seed():
             print('  [-] Super admin already exists, skipped')
 
         # ── Owner ────────────────────────────────────────────────────────────
-        owner = User.query.filter_by(email='owner@tablii.com').first()
+        owner = User.query.filter_by(email=owner_email).first()
         if not owner:
             owner = User(
                 name='Ahmed Ben Ali',
-                email='owner@tablii.com',
+                email=owner_email,
                 role='owner',
                 is_active=True,
             )
-            owner.set_password('owner1234')
+            owner.set_password(owner_password)
             db.session.add(owner)
             db.session.flush()
             print('  [+] Owner created')
@@ -61,16 +80,16 @@ def seed():
             print('  [-] Owner already exists, skipped')
 
         # ── Restaurant ───────────────────────────────────────────────────────
-        restaurant = Restaurant.query.filter_by(slug='chez-ahmed').first()
+        restaurant = Restaurant.query.filter_by(slug=restaurant_slug).first()
         if not restaurant:
             restaurant = Restaurant(
                 owner_id=owner.id,
-                name='Chez Ahmed',
-                slug='chez-ahmed',
+                name=restaurant_name,
+                slug=restaurant_slug,
                 description='Cuisine tunisienne authentique -- saveurs du terroir',
-                city='Tunis',
-                address='15 Rue de la Kasbah, Tunis',
-                phone='+21671000001',
+                city=restaurant_city,
+                address=restaurant_address,
+                phone=restaurant_phone,
                 currency='TND',
                 tax_rate=7.0,
                 auto_accept=False,
@@ -111,9 +130,9 @@ def seed():
 
         # ── Staff ────────────────────────────────────────────────────────────
         staff_data = [
-            {'username': 'caisse1',   'name': 'Sami Caissier',  'role': 'cashier',  'password': 'staff1234'},
-            {'username': 'serveur1',  'name': 'Rim Serveuse',   'role': 'waiter',   'password': 'staff1234'},
-            {'username': 'cuisine1',  'name': 'Omar Cuisine',   'role': 'kitchen',  'password': 'staff1234'},
+            {'username': 'caisse1',   'name': 'Sami Caissier',  'role': 'cashier',  'password': staff_password},
+            {'username': 'serveur1',  'name': 'Rim Serveuse',   'role': 'waiter',   'password': staff_password},
+            {'username': 'cuisine1',  'name': 'Omar Cuisine',   'role': 'kitchen',  'password': staff_password},
         ]
         for s in staff_data:
             exists = StaffUser.query.filter_by(
@@ -217,12 +236,13 @@ def seed():
         print()
         print('[OK] Seed complete!')
         print()
-        print('  Super Admin : superadmin@tablii.com / admin1234')
-        print('  Owner Login : owner@tablii.com / owner1234')
-        print('  Restaurant  : Chez Ahmed (slug: chez-ahmed)')
-        print('  Staff       : caisse1 / serveur1 / cuisine1 (password: staff1234)')
+        print(f'  Config Used : {resolved_config}')
+        print(f'  Super Admin : {super_admin_email} / {super_admin_password}')
+        print(f'  Owner Login : {owner_email} / {owner_password}')
+        print(f'  Restaurant  : {restaurant_name} (slug: {restaurant_slug})')
+        print(f'  Staff       : caisse1 / serveur1 / cuisine1 (password: {staff_password})')
         print()
-        print('  Menu API    : http://127.0.0.1:5000/api/restaurant/chez-ahmed/menu')
+        print(f'  Menu API    : http://127.0.0.1:5000/api/restaurant/{restaurant_slug}/menu')
         print('  Login URL   : http://127.0.0.1:5000/login')
         print('  Admin URL   : http://127.0.0.1:5000/admin/restaurants')
 
