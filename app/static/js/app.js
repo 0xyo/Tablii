@@ -30,13 +30,3 @@ function showToast(message, type = "info") {
  * @param {number} amount
  * @returns {string}
  */
-function formatCurrency(amount) {
-  return `${parseFloat(amount).toFixed(3)} TND`;
-}
-
-/**
- * Smooth scroll to top of page.
- */
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
