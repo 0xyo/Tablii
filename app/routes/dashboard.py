@@ -1,16 +1,16 @@
 """Dashboard blueprint — restaurant owner admin panel."""
 import os
-from datetime import date, datetime, timedelta, time as _time, timezone
+from datetime import date, datetime
 
 from flask import (
-    Blueprint, abort, current_app, flash, g, jsonify, redirect,
+    Blueprint, g, jsonify, redirect,
     render_template, request, send_file, url_for,
 )
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from app import db
-from app.models.menu import Category, CustomOption, Customization, MenuItem
+from app.models.menu import Category, Customization, MenuItem
 from app.models.order import Order
 from app.models.restaurant import (
     DEFAULT_RAMADAN_IFTAR_TIME,
