@@ -1,13 +1,13 @@
 """JSON API blueprint — CSRF-exempt endpoints for external/mobile access."""
 from flask import Blueprint, jsonify, request
-from flask_login import current_user, login_required
+from flask_login import login_required
 
 from app import db
-from app.models.menu import Category, CustomOption, Customization, MenuItem
+from app.models.menu import Category, Customization, MenuItem
 from app.models.order import Order
 from app.models.restaurant import Restaurant
 from app.services import upload_service
-from app.utils.helpers import localized, resolve_language
+from app.utils.helpers import localized
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 

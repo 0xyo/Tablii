@@ -1,6 +1,4 @@
 """Cashier blueprint — order Kanban board and manual order entry."""
-import json
-from datetime import datetime, timezone
 
 from flask import (
     Blueprint, g, jsonify, redirect, render_template,
