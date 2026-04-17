@@ -53,6 +53,7 @@ async function callWaiter(slug, tableId, type, message = '') {
     } else {
       _showToast(data.error || 'Failed to call waiter', 'error');
     }
+    return data;
   } catch (err) {
     console.error('callWaiter error:', err);
     _showToast('Network error — please try again.', 'error');
@@ -75,13 +76,14 @@ const CALL_TYPE_ICONS = {
  */
 function showWaiterCall(data) {
   // Remove any existing banner for same call
-  const existing = document.getElementById(`wc-${data.call_id}`);
+  const callId = data.call_id || data.id;
+  const existing = document.getElementById(`wc-${callId}`);
   if (existing) existing.remove();
 
   const icon = CALL_TYPE_ICONS[data.call_type] || '🔔';
 
   const banner = document.createElement('div');
-  banner.id = `wc-${data.call_id}`;
+  banner.id = `wc-${callId}`;
   banner.className = [
     'fixed top-4 right-4 z-50 max-w-xs w-full',
     'bg-orange-500 text-white rounded-xl shadow-2xl p-4',
@@ -90,10 +92,10 @@ function showWaiterCall(data) {
   banner.innerHTML = `
     <span class="text-2xl">${icon}</span>
     <div class="flex-1 min-w-0">
-      <p class="font-bold text-sm">Table ${data.table_number}</p>
-      <p class="text-xs capitalize">${data.call_type}${data.message ? ' — ' + data.message : ''}</p>
+      <p class="font-bold text-sm">Table ${data.table_number || data.table_id}</p>
+      <p class="text-xs capitalize">${(data.call_type || '').replace('_', ' ')}${data.message ? ' — ' + data.message : ''}</p>
     </div>
-    <button onclick="resolveCall(${data.call_id})"
+    <button onclick="resolveCall(${callId})"
             class="text-white/70 hover:text-white text-xs shrink-0">✕</button>
   `;
   document.body.appendChild(banner);
@@ -109,8 +111,11 @@ function showWaiterCall(data) {
     playSound('call_waiter');
   }
 
-  // Auto-dismiss after 30 seconds
-  setTimeout(() => banner.remove(), 30_000);
+  // Auto-dismiss after 60 seconds (increased from 30)
+  setTimeout(() => {
+      const el = document.getElementById(`wc-${callId}`);
+      if (el) el.remove();
+  }, 60_000);
 }
 
 // ── 3. resolveCall ─────────────────────────────────────────────────────────
@@ -131,7 +136,13 @@ async function resolveCall(callId) {
     if (data.success) {
       const banner = document.getElementById(`wc-${callId}`);
       if (banner) banner.remove();
+      
+      // If we are on the waiter dashboard, we might want to update badges
+      if (typeof updateCallBadge === 'function' && data.table_id) {
+          updateCallBadge(data.table_id, -1);
+      }
     }
+    return data;
   } catch (err) {
     console.error('resolveCall error:', err);
   }

@@ -1,5 +1,5 @@
 """Authentication blueprint — login, register, logout."""
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
@@ -8,6 +8,7 @@ from app import db
 from app.models.restaurant import OperatingHours, Restaurant, Subscription
 from app.models.user import StaffUser, User
 
+from app.utils.helpers import generate_slug
 from app.utils.validators import validate_email, validate_phone
 
 auth_bp = Blueprint('auth', __name__)

@@ -37,23 +37,6 @@
     </header>
 
     <main class="p-8 max-w-7xl mx-auto relative z-10">
-        <!-- Call alert banner -->
-        <div id="call-banner" class="hidden mb-8 bg-ruby-900/20 border border-ruby-500/30 p-5 flex items-center gap-4 shadow-[0_0_20px_rgba(225,29,72,0.15)] backdrop-blur-sm">
-            <div class="w-10 h-10 border border-ruby-500/50 bg-ruby-900/40 flex items-center justify-center text-ruby-400 animate-pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-            </div>
-            <div class="flex-1">
-                <p class="font-display italic text-lg text-ruby-300 tracking-wide" id="call-text">Service Request</p>
-                <p class="text-xs text-ruby-400/80 mt-1 uppercase tracking-widest font-bold" id="call-sub"></p>
-            </div>
-            <button onclick="resolveCall(currentCallId)"
-                    class="bg-ruby-900/80 hover:bg-ruby-800 text-cream-50 px-6 py-2 border border-ruby-500/50 text-xs font-bold uppercase tracking-widest transition-colors shadow-inner-glow">
-                Acknowledge
-            </button>
-        </div>
-
         <!-- Table grid -->
         <div class="flex items-center justify-between mb-6 border-b border-charcoal-700/60 pb-3">
             <h2 class="font-display italic text-xl text-cream-50 tracking-wide">Assigned Stations</h2>
@@ -180,13 +163,12 @@
         {% endif %}
     </main>
 
-    <!-- WebSocket -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/waiter_calls.js') }}"></script>
 
     <script>
         const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
-        let currentCallId = null;
 
         async function serveOrder(id, btn) {
             const res = await fetch(`/waiter/orders/${id}/served`, {
@@ -237,26 +219,11 @@
             }
         }
 
-        async function resolveCall(id) {
-            if (!id) return;
-            const res = await fetch(`/waiter/calls/${id}/resolve`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
-            });
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById('call-banner').classList.add('hidden');
-                currentCallId = null;
-                // Update the badge on the table card
-                updateCallBadge(data.table_id, -1);
-            }
-        }
-
         function updateCallBadge(tableId, delta) {
             const card = document.querySelector(`[data-table-id="${tableId}"]`);
             if (!card) return;
             let badge = card.querySelector('.call-badge');
-            if (badge && delta < 0) {
+            if (badge) {
                 const current = parseInt(badge.textContent.trim()) || 0;
                 const next = current + delta;
                 if (next <= 0) {
@@ -264,7 +231,7 @@
                 } else {
                     badge.textContent = next;
                 }
-            } else if (!badge && delta > 0) {
+            } else if (delta > 0) {
                 badge = document.createElement('span');
                 badge.className = 'absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10 call-badge';
                 badge.textContent = delta;
@@ -272,20 +239,11 @@
             }
         }
 
-        function showCallBanner(call) {
-            currentCallId = call.call_id || call.id;
-            document.getElementById('call-text').textContent =
-                `Station T-${call.table_number || call.table_id}: ${(call.call_type || '').replace('_', ' ')}`;
-            document.getElementById('call-sub').textContent = call.message || '';
-            document.getElementById('call-banner').classList.remove('hidden');
-            playSound('call_waiter');
-        }
-
         // Connect via WebSocket (instant calls, no polling)
         connectAsWaiter("{{ restaurant.id }}", "{{ current_user.id }}");
 
         onEvent('waiter_call', function (data) {
-            showCallBanner(data);
+            showWaiterCall(data);
             // Increment badge on the table card
             updateCallBadge(data.table_id, 1);
         });

@@ -100,12 +100,22 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/socket.js') }}"></script>
 <script src="{{ url_for('static', filename='js/order_tracking.js') }}"></script>
 <script>
-    // WebSocket connection for real-time updates will be added in Phase 8
-    // For now, the status is rendered server-side
-    const orderId = {{ order.id }};
-    const slug = "{{ restaurant.slug }}";
-    const tableId = {{ table.id }};
+    document.addEventListener('DOMContentLoaded', () => {
+        const sessionToken = "{{ order.session.session_token }}";
+        
+        // Connect to WebSocket as customer
+        connectAsCustomer(sessionToken);
+
+        // Listen for status updates
+        onEvent('order_status_update', (data) => {
+            if (data.order_id === {{ order.id }}) {
+                updateOrderStatus(data.status);
+                showStatusNotification(data.status);
+            }
+        });
+    });
 </script>
 {% endblock %}
