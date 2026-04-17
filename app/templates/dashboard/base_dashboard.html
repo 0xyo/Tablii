@@ -188,6 +188,12 @@
           <span class="text-lg opacity-70">⚙️</span> <span>Settings</span>
         </a>
         <a
+          href="{{ url_for('dashboard.profile') }}"
+          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.profile' }}"
+        >
+          <span class="text-lg opacity-70">👤</span> <span>Profile</span>
+        </a>
+        <a
           href="{{ url_for('dashboard.subscription') }}"
           class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.subscription' }}"
         >

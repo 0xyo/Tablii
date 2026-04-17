@@ -1,0 +1,73 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Profile — Admin{% endblock %}
+
+{% block content %}
+<div style="max-width:760px; margin:0 auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:1.5rem; font-weight:700; color:#f5c56a; margin:0 0 4px;">Admin Profile</h1>
+      <p style="margin:0; color:#8a7f70; font-size:0.9rem;">Update your platform account details.</p>
+    </div>
+  </div>
+
+  <div style="background:#1a1814; border:1px solid #2a2826; border-radius:10px; padding:22px;">
+    <form method="POST" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <img
+          src="{{ user.avatar_url if user.avatar_url else url_for('static', filename='icons/icon-192.png') }}"
+          alt="Admin avatar"
+          style="width:64px; height:64px; border-radius:999px; object-fit:cover; border:1px solid #2a2826;"
+        >
+        <div style="flex:1;">
+          <label style="display:block; color:#8a7f70; font-size:0.78rem; margin-bottom:5px;">Avatar</label>
+          <input
+            type="file"
+            name="avatar"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            style="width:100%; background:#0F0D0B; border:1px solid #2a2826; color:#c9b99a; padding:10px; border-radius:6px;"
+          >
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block; color:#8a7f70; font-size:0.78rem; margin-bottom:5px;">Full Name *</label>
+        <input
+          type="text"
+          name="name"
+          required
+          value="{{ (form.name if form else None) or user.name }}"
+          style="width:100%; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; padding:10px 12px; border-radius:6px;"
+        >
+      </div>
+
+      <div>
+        <label style="display:block; color:#8a7f70; font-size:0.78rem; margin-bottom:5px;">Email *</label>
+        <input
+          type="email"
+          name="email"
+          required
+          value="{{ (form.email if form else None) or user.email }}"
+          style="width:100%; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; padding:10px 12px; border-radius:6px;"
+        >
+      </div>
+
+      <div>
+        <label style="display:block; color:#8a7f70; font-size:0.78rem; margin-bottom:5px;">New Password (leave blank to keep current)</label>
+        <input
+          type="password"
+          name="password"
+          minlength="8"
+          style="width:100%; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; padding:10px 12px; border-radius:6px;"
+        >
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:4px;">
+        <button type="submit" style="background:#f5c56a; color:#2a2008; border:none; padding:10px 16px; border-radius:6px; font-weight:700; cursor:pointer;">Save Changes</button>
+        <a href="{{ url_for('admin.restaurants') }}" style="display:inline-flex; align-items:center; border:1px solid #2a2826; color:#c9b99a; text-decoration:none; padding:10px 16px; border-radius:6px;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

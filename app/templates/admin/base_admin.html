@@ -39,6 +39,9 @@
         <a href="{{ url_for('admin.analytics') }}" class="admin-nav-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}">
           📊 Analytics
         </a>
+        <a href="{{ url_for('admin.profile') }}" class="admin-nav-link {% if request.endpoint == 'admin.profile' %}active{% endif %}">
+          👤 Profile
+        </a>
       </nav>
       <div style="padding: 16px 8px; border-top: 1px solid #2a2826;">
         <a href="{{ url_for('auth.logout') }}" class="admin-nav-link" style="color:#e57373;">

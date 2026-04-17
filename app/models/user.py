@@ -17,6 +17,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(256), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20), nullable=True)
+    avatar_url = db.Column(db.String(300), nullable=True)
     role = db.Column(db.String(20), nullable=False, default='owner')
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(
@@ -56,6 +57,7 @@ class StaffUser(db.Model, UserMixin):
     username = db.Column(db.String(50), nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     name = db.Column(db.String(100), nullable=False)
+    avatar_url = db.Column(db.String(300), nullable=True)
     role = db.Column(db.String(20), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(
