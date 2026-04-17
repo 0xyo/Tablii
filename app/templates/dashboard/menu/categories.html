@@ -16,6 +16,7 @@
             <table class="w-full text-sm" id="categories-table">
                 <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
                     <tr>
+                        <th class="px-6 py-3 text-left">Order</th>
                         <th class="px-6 py-3 text-left">Name</th>
                         <th class="px-6 py-3 text-left">Icon</th>
                         <th class="px-6 py-3 text-left">Items</th>
@@ -23,9 +24,12 @@
                         <th class="px-6 py-3 text-left">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody class="divide-y divide-gray-50" id="category-list">
                     {% for cat in categories %}
-                    <tr data-id="{{ cat.id }}">
+                    <tr data-cat-id="{{ cat.id }}" class="cursor-move">
+                        <td class="px-6 py-3 text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path></svg>
+                        </td>
                         <td class="px-6 py-3">
                             <div class="font-medium text-gray-800">{{ cat.name_fr }}</div>
                             {% if cat.name_ar %}<div class="text-xs text-gray-400" style="font-family: 'Noto Sans Arabic', sans-serif;">{{ cat.name_ar }}</div>{% endif %}
@@ -65,7 +69,7 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">No categories yet.</td></tr>
+                    <tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">No categories yet.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -210,19 +214,29 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/menu_builder.js') }}"></script>
 <script>
-/* ── Image Upload Preview ── */
-function previewUpload(prefix, input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById(prefix + '-upload-img').src = e.target.result;
-            document.getElementById(prefix + '-upload-preview').classList.remove('hidden');
-            document.getElementById(prefix + '-upload-placeholder').classList.add('hidden');
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
+document.addEventListener('DOMContentLoaded', () => {
+    initDragDropCategories('category-list');
+    initImagePreview('add-icon-file', 'add-upload-img');
+    
+    // For the add icon placeholder
+    document.getElementById('add-icon-file').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            document.getElementById('add-upload-preview').classList.remove('hidden');
+            document.getElementById('add-upload-placeholder').classList.add('hidden');
+        }
+    });
+
+    initImagePreview('edit-icon-file', 'edit-upload-img');
+    // For the edit icon placeholder
+    document.getElementById('edit-icon-file').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            document.getElementById('edit-upload-preview').classList.remove('hidden');
+            document.getElementById('edit-upload-placeholder').classList.add('hidden');
+        }
+    });
+});
 
 function removeCurrentIcon() {
     document.getElementById('edit-current-icon').style.display = 'none';
