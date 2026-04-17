@@ -45,8 +45,12 @@ def create_order(
     # Block orders if subscription has expired
     sub = restaurant.subscription
     if sub and sub.expires_at:
-        from datetime import timezone as _tz
-        if sub.expires_at < datetime.now(_tz.utc):
+        expires_at = sub.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        else:
+            expires_at = expires_at.astimezone(timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
             raise ValueError('Restaurant subscription has expired.')
 
     order_items = []
