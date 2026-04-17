@@ -1,6 +1,6 @@
 """Dashboard blueprint — restaurant owner admin panel."""
 import os
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta, timezone
 
 from flask import (
     Blueprint, abort, current_app, flash, g, jsonify, redirect,
@@ -10,7 +10,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from app import db
-from app.models.menu import Category, Customization, MenuItem
+from app.models.menu import Category, Customization, CustomOption, MenuItem
 from app.models.order import Order
 from app.models.restaurant import (
     DEFAULT_RAMADAN_IFTAR_TIME,
@@ -135,12 +135,12 @@ def category_add():
     avail_until = request.form.get('available_until', '').strip()
     if avail_from:
         try:
-            cat.available_from = _time.fromisoformat(avail_from)
+            cat.available_from = time.fromisoformat(avail_from)
         except ValueError:
             pass
     if avail_until:
         try:
-            cat.available_until = _time.fromisoformat(avail_until)
+            cat.available_until = time.fromisoformat(avail_until)
         except ValueError:
             pass
 
@@ -169,14 +169,14 @@ def category_update(id):
     avail_until = request.form.get('available_until', '').strip()
     if avail_from:
         try:
-            cat.available_from = _time.fromisoformat(avail_from)
+            cat.available_from = time.fromisoformat(avail_from)
         except ValueError:
             pass
     else:
         cat.available_from = None
     if avail_until:
         try:
-            cat.available_until = _time.fromisoformat(avail_until)
+            cat.available_until = time.fromisoformat(avail_until)
         except ValueError:
             pass
     else:
@@ -465,6 +465,26 @@ def menu_item_toggle(id):
     item.is_available = not item.is_available
     db.session.commit()
     return jsonify(success=True, is_available=item.is_available)
+
+
+@dashboard_bp.route('/menu/items/reorder', methods=['POST'])
+@login_required
+@restaurant_required
+def menu_item_reorder():
+    """Accept JSON order update for drag-and-drop item sorting."""
+    restaurant = g.restaurant
+    data = request.get_json(silent=True) or {}
+    order = data.get('order', [])
+
+    for entry in order:
+        item = MenuItem.query.filter_by(
+            id=entry['id'], restaurant_id=restaurant.id
+        ).first()
+        if item:
+            item.sort_order = entry['sort_order']
+
+    db.session.commit()
+    return jsonify(success=True)
 
 
 # ──────────────────────────────────────────────
@@ -964,7 +984,7 @@ def profile():
     return redirect(url_for('dashboard.profile'))
 
 
-# ──────────────────────────────────────────────
+# ──────────────────────────────────���───────────
 # 7. Order History
 # ──────────────────────────────────────────────
 

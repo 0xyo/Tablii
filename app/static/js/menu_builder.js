@@ -71,8 +71,9 @@ async function _saveCategoryOrder(url, container) {
  * Enable drag-and-drop reordering of menu item rows.
  *
  * @param {string} containerId - ID of the items container.
+ * @param {string} reorderUrl  - POST URL for /dashboard/menu/items/reorder.
  */
-function initDragDropItems(containerId = 'item-list') {
+function initDragDropItems(containerId = 'item-list', reorderUrl = '/dashboard/menu/items/reorder') {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -101,12 +102,28 @@ function initDragDropItems(containerId = 'item-list') {
         } else {
           container.insertBefore(dragSrc, row);
         }
+        _saveItemOrder(reorderUrl, container);
       }
     });
   });
 }
 
-// ── 3. initImagePreview ────────────────────────────────────────────────────
+async function _saveItemOrder(url, container) {
+  const rows = [...container.querySelectorAll('[data-item-id]')];
+  const order = rows.map((r, i) => ({ id: parseInt(r.dataset.itemId), sort_order: i }));
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+      body: JSON.stringify({ order }),
+    });
+  } catch (err) {
+    console.error('Item reorder failed:', err);
+  }
+}
+
+// ── 3. initImagePreview ───────────────────────────────────────────────────
 
 /**
  * Wire up an image file input to show a live preview.

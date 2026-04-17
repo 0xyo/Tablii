@@ -8,15 +8,15 @@
 
     <!-- Quick action buttons -->
     <div class="grid grid-cols-3 gap-3 mb-6">
-        <button onclick="callWaiter('water')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
+        <button onclick="handleCallWaiter('water')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
             <span class="text-3xl">💧</span>
             <span class="text-sm font-medium">{{ t('water', lang) }}</span>
         </button>
-        <button onclick="callWaiter('bill')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
+        <button onclick="handleCallWaiter('bill')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
             <span class="text-3xl">🧾</span>
             <span class="text-sm font-medium">{{ t('bill', lang) }}</span>
         </button>
-        <button onclick="callWaiter('help')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
+        <button onclick="handleCallWaiter('help')" class="call-btn card flex flex-col items-center gap-2 py-6 hover:border-orange-300 transition-colors">
             <span class="text-3xl">🆘</span>
             <span class="text-sm font-medium">{{ t('help', lang) }}</span>
         </button>
@@ -26,18 +26,18 @@
     <div class="card">
         <label for="custom-msg" class="block text-sm font-medium text-gray-700 mb-2">{{ t('custom_message', lang) }}</label>
         <textarea id="custom-msg" class="input-field" rows="3" placeholder="{{ t('type_request', lang) }}"></textarea>
-        <button onclick="callWaiter('custom', document.getElementById('custom-msg').value)" class="btn-primary w-full mt-3">
+        <button onclick="handleCallWaiter('custom', document.getElementById('custom-msg').value)" class="btn-primary w-full mt-3">
             {{ t('send_request', lang) }}
         </button>
     </div>
 
-    <!-- Confirmation overlay -->
+    <!-- Confirmation overlay (Optional - waiter_calls.js uses toast by default) -->
     <div id="call-confirm" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 items-center justify-center">
         <div class="bg-white rounded-2xl p-8 text-center max-w-xs mx-4">
             <p class="text-5xl mb-4">✅</p>
             <h3 class="text-lg font-bold">{{ t('request_sent', lang) }}</h3>
             <p class="text-gray-500 text-sm mt-1">{{ t('waiter_coming', lang) }}</p>
-            <button onclick="hideCallConfirm()" class="btn-primary mt-4">{{ t('ok', lang) }}</button>
+            <button onclick="document.getElementById('call-confirm').classList.add('hidden'); document.getElementById('call-confirm').classList.remove('flex');" class="btn-primary mt-4">{{ t('ok', lang) }}</button>
         </div>
     </div>
 </section>
@@ -50,41 +50,18 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/waiter_calls.js') }}"></script>
 <script>
     const slug = "{{ restaurant.slug }}";
     const tableId = Number("{{ table.id|int }}");
 
-    function showCallConfirm() {
-        const modal = document.getElementById("call-confirm");
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-    }
-
-    function hideCallConfirm() {
-        const modal = document.getElementById("call-confirm");
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
-    }
-
-    async function callWaiter(callType, message = "") {
-        try {
-            const res = await fetch(`/r/${slug}/table/${tableId}/call-waiter`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ call_type: callType, message })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                showCallConfirm();
-                if (document.getElementById("custom-msg")) {
-                    document.getElementById("custom-msg").value = "";
-                }
-            } else {
-                showToast(data.error || "Failed to send request.", "error");
-            }
-        } catch (err) {
-            showToast("Network error.", "error");
+    /**
+     * Wrap the library's callWaiter to add UI cleanup
+     */
+    async function handleCallWaiter(type, message = "") {
+        await callWaiter(slug, tableId, type, message);
+        if (type === 'custom') {
+            document.getElementById('custom-msg').value = '';
         }
     }
 </script>

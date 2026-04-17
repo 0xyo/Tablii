@@ -86,10 +86,23 @@
             <!-- Image upload -->
             <div>
                 <label class="block text-xs font-medium text-gray-600 mb-1">Image</label>
-                {% if item and item.image_url %}
-                <img src="{{ item.image_url }}" alt="{{ item.name_fr }}" class="w-24 h-24 object-cover rounded-lg mb-2">
-                {% endif %}
-                <input type="file" name="image" accept="image/*" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
+                <div class="flex items-start gap-4">
+                    {% if item and item.image_url %}
+                    <div class="relative">
+                        <img src="{{ item.image_url }}" alt="{{ item.name_fr }}" class="w-24 h-24 object-cover rounded-lg border border-gray-100">
+                        <span class="absolute -top-2 -right-2 bg-white text-[10px] px-1.5 py-0.5 rounded border border-gray-100 shadow-sm text-gray-400">Current</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div id="preview-container" class="hidden">
+                        <img id="image-preview" src="" alt="preview" class="w-24 h-24 object-cover rounded-lg border-2 border-orange-300">
+                    </div>
+
+                    <div class="flex-1">
+                        <input type="file" name="image" id="image-input" accept="image/*" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                        <p class="text-[10px] text-gray-400 mt-1">PNG, JPG or WebP. Max 2MB.</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Popular checkbox -->
@@ -108,4 +121,20 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/menu_builder.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    initImagePreview('image-input', 'image-preview');
+    
+    // Show container when file is selected
+    document.getElementById('image-input').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            document.getElementById('preview-container').classList.remove('hidden');
+        }
+    });
+});
+</script>
 {% endblock %}
