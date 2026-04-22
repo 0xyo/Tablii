@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: "DM Sans", sans-serif;
+    @apply bg-charcoal-900 text-cream-50 antialiased selection:bg-amber-500/30 selection:text-amber-100;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Playfair Display", serif;
+  }
+
+  [dir="rtl"] body,
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3,
+  [dir="rtl"] h4,
+  [dir="rtl"] h5,
+  [dir="rtl"] h6 {
+    font-family: "Cairo", sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-br from-amber-600 to-amber-500 text-charcoal-900 font-semibold py-3 px-8 rounded-none border border-amber-400/50
+           transition-all duration-300 ease-out shadow-dark
+           focus:outline-none focus:ring-1 focus:ring-amber-400 focus:ring-offset-1 focus:ring-offset-charcoal-900
+           hover:-translate-y-px hover:shadow-gold hover:border-amber-300
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply bg-charcoal-800 text-cream-100 font-medium py-3 px-8 rounded-none border border-charcoal-600
+           transition-all duration-300 hover:bg-charcoal-700 hover:border-charcoal-500 hover:shadow-dark;
+  }
+
+  .btn-danger {
+    @apply bg-ruby-600/90 hover:bg-ruby-500 text-white font-semibold py-3 px-8 rounded-none border border-ruby-500/50
+           transition-all duration-300 shadow-dark hover:-translate-y-px hover:shadow-lg;
+  }
+
+  .input-field {
+    @apply w-full px-5 py-3 text-base bg-charcoal-800/50 text-cream-50 border border-charcoal-700/80 rounded-none
+           focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 focus:bg-charcoal-800
+           placeholder:text-charcoal-400 transition-all duration-300
+           hover:border-charcoal-600;
+  }
+
+  .card {
+    @apply bg-charcoal-800/40 backdrop-blur-sm border border-charcoal-700/50 p-8 shadow-dark
+           transition-all duration-300 relative overflow-hidden;
+  }
+
+  .card-hover {
+    @apply bg-charcoal-800/40 backdrop-blur-sm border border-charcoal-700/50 p-8 shadow-dark
+           transition-all duration-300 hover:shadow-gold-lg hover:border-amber-900/40 hover:-translate-y-1 cursor-pointer relative overflow-hidden;
+  }
+
+  /* ── Status badges (Luxury variant) ──────────────────────────────── */
+  .badge-new {
+    @apply bg-sapphire-900/40 text-sapphire-400 border border-sapphire-700/50 text-xs font-semibold px-3 py-1 uppercase tracking-wider shadow-inner-glow;
+  }
+  .badge-accepted {
+    @apply bg-emerald-900/40 text-emerald-400 border border-emerald-700/50 text-xs font-semibold px-3 py-1 uppercase tracking-wider shadow-inner-glow;
+  }
+  .badge-preparing {
+    @apply bg-topaz-900/40 text-topaz-400 border border-topaz-700/50 text-xs font-semibold px-3 py-1 uppercase tracking-wider shadow-inner-glow;
+  }
+  .badge-ready {
+    @apply bg-emerald-800/50 text-emerald-300 border border-emerald-500/50 text-xs font-semibold px-3 py-1 uppercase tracking-wider shadow-inner-glow;
+  }
+  .badge-served {
+    @apply bg-charcoal-700/50 text-charcoal-200 border border-charcoal-600/50 text-xs font-semibold px-3 py-1 uppercase tracking-wider shadow-inner-glow;
+  }
+  .badge-cancelled {
+    @apply bg-ruby-900/40 text-ruby-400 border border-ruby-700/50 text-xs font-semibold px-3 py-1 uppercase tracking-wider shadow-inner-glow;
+  }
+  .badge-completed {
+    @apply bg-charcoal-800 text-charcoal-400 border border-charcoal-700 text-xs font-semibold px-3 py-1 uppercase tracking-wider shadow-inner-glow;
+  }
+
+  /* ── Pulse dot for active orders ────────────────── */
+  .pulse-dot {
+    @apply relative;
+  }
+  .pulse-dot::before {
+    content: "";
+    @apply absolute w-3 h-3 bg-green-400 rounded-full animate-ping;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

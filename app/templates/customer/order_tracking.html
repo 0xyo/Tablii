@@ -1,0 +1,121 @@
+{% extends 'customer/base_customer.html' %}
+
+{% block title %}{{ t('order_number', lang) }} {{ order.order_number }} — {{ restaurant.name }}{% endblock %}
+
+{% block customer_content %}
+<section class="px-4 pt-6">
+    <!-- Order number -->
+    <div class="text-center mb-8">
+        <p class="text-gray-500 text-sm">{{ t('order_number', lang) }}</p>
+        <h2 class="text-3xl font-bold text-orange-500">{{ order.order_number }}</h2>
+    </div>
+
+    <!-- Status timeline -->
+    <div class="relative px-4 mb-8" id="status-timeline">
+        {% set steps = [
+            ('new', t('new', lang), order.created_at),
+            ('accepted', t('accepted', lang), order.accepted_at),
+            ('preparing', t('preparing', lang), order.preparing_at),
+            ('ready', t('ready', lang), order.ready_at),
+            ('served', t('served', lang), order.served_at)
+        ] %}
+
+        {% set step_list = ['new', 'accepted', 'preparing', 'ready', 'served'] %}
+        {% set current_idx = step_list.index(order.status) if order.status in step_list else 0 %}
+
+        {% for step_key, step_label, step_time in steps %}
+        {% set idx = loop.index0 %}
+        <div class="flex items-start gap-4 pb-6 relative" data-step="{{ step_key }}">
+            <!-- Line -->
+            {% if not loop.last %}
+            <div class="absolute left-[15px] top-8 w-0.5 h-full {{ 'bg-orange-400' if idx < current_idx else 'bg-gray-200' }}"></div>
+            {% endif %}
+
+            <!-- Dot -->
+            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10
+                {% if idx < current_idx %}bg-orange-500 text-white
+                {% elif idx == current_idx %}bg-orange-500 text-white animate-pulse
+                {% else %}bg-gray-200 text-gray-400{% endif %}">
+                {% if idx < current_idx %}✓
+                {% elif idx == current_idx %}●
+                {% else %}○{% endif %}
+            </div>
+
+            <!-- Label -->
+            <div>
+                <p class="font-medium text-sm {{ 'text-gray-900' if idx <= current_idx else 'text-gray-400' }}">{{ step_label }}</p>
+                {% if step_time %}
+                <p class="text-xs text-gray-400" data-timestamp="{{ step_key }}">{{ step_time.strftime('%H:%M') }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Order items -->
+    <div class="card">
+        <h3 class="font-semibold text-sm mb-3">{{ t('order_items', lang) }}</h3>
+        {% for item in order.items.all() %}
+        <div class="flex justify-between text-sm py-2 border-b border-gray-50 last:border-0">
+            <span>{{ item.quantity }}× {{ localized(item.menu_item, 'name', lang) if item.menu_item else t('item', lang) }}</span>
+            <span class="font-medium">{{ '%.3f'|format(item.total_price) }} {{ restaurant.currency }}</span>
+        </div>
+        {% endfor %}
+
+        <div class="border-t mt-3 pt-3">
+            <div class="flex justify-between text-sm text-gray-600">
+                <span>{{ t('subtotal', lang) }}</span>
+                <span>{{ '%.3f'|format(order.subtotal) }} {{ restaurant.currency }}</span>
+            </div>
+            {% if order.tax_amount > 0 %}
+            <div class="flex justify-between text-sm text-gray-600 mt-1">
+                <span>{{ t('tax', lang) }}</span>
+                <span>{{ '%.3f'|format(order.tax_amount) }} {{ restaurant.currency }}</span>
+            </div>
+            {% endif %}
+            {% if order.service_charge_amount > 0 %}
+            <div class="flex justify-between text-sm text-gray-600 mt-1">
+                <span>{{ t('service_charge', lang) }}</span>
+                <span>{{ '%.3f'|format(order.service_charge_amount) }} {{ restaurant.currency }}</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between font-bold mt-2">
+                <span>{{ t('total', lang) }}</span>
+                <span>{{ '%.3f'|format(order.total_amount) }} {{ restaurant.currency }}</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block bottom_bar %}
+<a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
+    ← {{ t('back_to_menu', lang) }}
+</a>
+{% if order.status in ('served', 'completed') %}
+<a href="{{ url_for('customer.review_page', slug=restaurant.slug, table_id=table.id, order_id=order.id) }}" class="btn-primary">
+    {{ t('leave_review', lang) }}
+</a>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+<script src="{{ url_for('static', filename='js/order_tracking.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sessionToken = "{{ order.session.session_token }}";
+        
+        // Connect to WebSocket as customer
+        connectAsCustomer(sessionToken);
+
+        // Listen for status updates
+        onEvent('order_status_update', (data) => {
+            if (data.order_id === {{ order.id }}) {
+                updateOrderStatus(data.status);
+                showStatusNotification(data.status);
+            }
+        });
+    });
+</script>
+{% endblock %}

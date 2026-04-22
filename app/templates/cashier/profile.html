@@ -1,0 +1,87 @@
+{% extends 'cashier/base_cashier.html' %}
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block cashier_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-charcoal-800/40 backdrop-blur-sm border border-charcoal-700/60 p-6 shadow-dark">
+        <h2 class="font-display italic text-xl text-cream-50 tracking-wide">Profile Settings</h2>
+        <p class="text-xs uppercase tracking-widest text-charcoal-400 mt-1">Update your account details.</p>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-4 mt-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="flex items-center gap-4 pb-1">
+                <img
+                    src="{{ user.avatar_url if user.avatar_url else url_for('static', filename='icons/icon-192.png') }}"
+                    alt="Profile avatar"
+                    class="w-16 h-16 rounded-full object-cover border border-charcoal-700"
+                >
+                <div class="flex-1">
+                    <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Avatar</label>
+                    <input
+                        type="file"
+                        name="avatar"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                    >
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Full Name *</label>
+                <input
+                    type="text"
+                    name="name"
+                    required
+                    value="{{ (form.name if form else None) or user.name }}"
+                    class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                >
+            </div>
+
+            {% if user.username is defined %}
+            <div>
+                <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Username *</label>
+                <input
+                    type="text"
+                    name="username"
+                    required
+                    value="{{ (form.username if form else None) or user.username }}"
+                    class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                >
+            </div>
+            {% else %}
+            <div>
+                <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Email *</label>
+                <input
+                    type="email"
+                    name="email"
+                    required
+                    value="{{ (form.email if form else None) or user.email }}"
+                    class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                >
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">New Password (optional)</label>
+                <input
+                    type="password"
+                    name="password"
+                    minlength="{{ 6 if user.username is defined else 8 }}"
+                    class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                >
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit" class="bg-amber-500 text-charcoal-900 px-6 py-2 text-xs uppercase tracking-widest font-bold hover:bg-amber-400 transition-colors">
+                    Save Changes
+                </button>
+                <a href="{{ url_for('cashier.orders') }}" class="border border-charcoal-700 px-6 py-2 text-xs uppercase tracking-widest font-bold text-charcoal-300 hover:text-cream-100 hover:border-charcoal-500 transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

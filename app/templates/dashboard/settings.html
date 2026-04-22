@@ -1,0 +1,206 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Restaurant Settings{% endblock %}
+
+{% block dashboard_content %}
+<form method="POST" enctype="multipart/form-data" class="max-w-3xl space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- General Info -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="font-semibold text-gray-800 mb-4">General Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Restaurant Name *</label>
+                <input type="text" name="name" value="{{ restaurant.name }}" required
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                <input type="text" name="phone" value="{{ restaurant.phone or '' }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                <textarea name="description" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">{{ restaurant.description or '' }}</textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Address</label>
+                <input type="text" name="address" value="{{ restaurant.address or '' }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">City</label>
+                <input type="text" name="city" value="{{ restaurant.city or '' }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="font-semibold text-gray-800 mb-4">Logo</h2>
+        {% if restaurant.logo_url %}
+        <img src="{{ restaurant.logo_url }}" alt="{{ restaurant.name }} logo" class="w-20 h-20 rounded-full object-cover mb-3">
+        {% endif %}
+        <input type="file" name="logo" accept="image/*" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 w-full">
+    </div>
+
+    <!-- Cover Image -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="font-semibold text-gray-800 mb-4">Cover Image</h2>
+        <p class="text-xs text-gray-500 mb-3">Displayed as a banner on your customer menu page. Recommended size: 1200×400.</p>
+        {% if restaurant.cover_url %}
+        <img src="{{ restaurant.cover_url }}" alt="Cover" class="w-full h-32 object-cover rounded-lg mb-3 border border-gray-200">
+        {% endif %}
+        <input type="file" name="cover" accept="image/*" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 w-full">
+    </div>
+
+    <!-- Billing -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="font-semibold text-gray-800 mb-4">Pricing & Fees</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Tax Rate (%)</label>
+                <input type="number" name="tax_rate" step="0.01" min="0" max="100"
+                       value="{{ restaurant.tax_rate or 0 }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Service Charge (%)</label>
+                <input type="number" name="service_charge" step="0.01" min="0" max="100"
+                       value="{{ restaurant.service_charge or 0 }}"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Default Menu Language</label>
+                <select name="default_language"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <option value="fr" {{ 'selected' if restaurant.default_language == 'fr' }}>🇫🇷 Français</option>
+                    <option value="ar" {{ 'selected' if restaurant.default_language == 'ar' }}>🇹🇳 العربية</option>
+                    <option value="en" {{ 'selected' if restaurant.default_language == 'en' }}>🇬🇧 English</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restaurant Status -->
+    <div class="bg-white rounded-xl shadow-sm border p-6 {{ 'border-green-200 bg-green-50/30' if restaurant.is_open else 'border-red-200 bg-red-50/30' }}">
+        <h2 class="font-semibold text-gray-800 mb-4">Restaurant Status</h2>
+        <div class="flex items-center justify-between">
+            <div>
+                <label class="flex items-center gap-3 text-sm">
+                    <input type="checkbox" name="is_open" class="accent-orange-500 w-5 h-5" {{ 'checked' if restaurant.is_open }}
+                           onchange="this.closest('div.bg-white, div.border-green-200, div.border-red-200').className = this.checked ? 'bg-white rounded-xl shadow-sm border p-6 border-green-200 bg-green-50/30' : 'bg-white rounded-xl shadow-sm border p-6 border-red-200 bg-red-50/30'">
+                    <div>
+                        <span class="font-medium text-base">Accept Orders</span>
+                        <p class="text-xs text-gray-400">When off, customers see "Restaurant is closed" and can't place orders. Use this for emergencies or end of service.</p>
+                    </div>
+                </label>
+            </div>
+            <span class="text-xs font-bold uppercase tracking-widest px-3 py-1 border rounded-full {{ 'text-green-700 border-green-300 bg-green-100' if restaurant.is_open else 'text-red-700 border-red-300 bg-red-100' }}">
+                {{ 'Open' if restaurant.is_open else 'Closed' }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="font-semibold text-gray-800 mb-4">Features</h2>
+        <div class="space-y-3">
+            <label class="flex items-center gap-3 text-sm">
+                <input type="checkbox" name="auto_accept" class="accent-orange-500 w-4 h-4" {{ 'checked' if restaurant.auto_accept }}>
+                <div>
+                    <span class="font-medium">Auto-Accept Orders</span>
+                    <p class="text-xs text-gray-400">Orders are automatically accepted without manual approval.</p>
+                </div>
+            </label>
+            <label class="flex items-center gap-3 text-sm">
+                <input type="checkbox" name="online_payment" class="accent-orange-500 w-4 h-4" {{ 'checked' if restaurant.online_payment }}>
+                <div>
+                    <span class="font-medium">Online Payment</span>
+                    <p class="text-xs text-gray-400">Allow customers to pay online.</p>
+                </div>
+            </label>
+            <label class="flex items-center gap-3 text-sm">
+                <input type="checkbox" name="ramadan_mode" class="accent-orange-500 w-4 h-4" {{ 'checked' if restaurant.ramadan_mode }}>
+                <div>
+                    <span class="font-medium">Ramadan Mode</span>
+                    <p class="text-xs text-gray-400">Show only Ramadan-tagged categories.</p>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <!-- Operating Hours -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="font-semibold text-gray-800 mb-4">Operating Hours</h2>
+        {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+        <div class="space-y-3">
+            {% for i in range(7) %}
+            {% set h = hours.get(i) %}
+            <div class="flex items-center gap-3 text-sm flex-wrap">
+                <span class="w-24 font-medium text-gray-700">{{ days[i] }}</span>
+                <label class="flex items-center gap-1.5">
+                    <input type="checkbox"
+       name="closed_{{ i }}"
+       class="accent-orange-500"
+       {% if h and h.is_closed %}checked{% endif %}
+       data-day="{{ i }}"
+       onchange="toggleDay(Number(this.dataset.day), this.checked)">
+                    <span class="text-gray-500">Closed</span>
+                </label>
+                <div id="hours-{{ i }}" class="{{ 'opacity-30 pointer-events-none' if h and h.is_closed else '' }} flex items-center gap-2">
+                    <input type="time" name="open_{{ i }}"
+                           value="{{ h.open_time.strftime('%H:%M') if h and h.open_time else '09:00' }}"
+                           class="border border-gray-200 rounded-lg px-2 py-1 text-sm">
+                    <span class="text-gray-400">–</span>
+                    <input type="time" name="close_{{ i }}"
+                           value="{{ h.close_time.strftime('%H:%M') if h and h.close_time else '22:00' }}"
+                           class="border border-gray-200 rounded-lg px-2 py-1 text-sm">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Loyalty Program -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Loyalty Program</h2>
+        <div class="space-y-4">
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="loyalty_enabled" class="accent-orange-500 w-4 h-4"
+                       {% if restaurant.loyalty_enabled %}checked{% endif %}>
+                <span class="text-sm font-medium text-gray-700">Enable loyalty points</span>
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Points per 1 {{ restaurant.currency }} spent</label>
+                    <input type="number" name="loyalty_points_per_unit" min="1" max="100"
+                           value="{{ restaurant.loyalty_points_per_unit or 10 }}"
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Redemption value per point ({{ restaurant.currency }})</label>
+                    <input type="number" name="loyalty_redemption_value" min="0.001" max="10" step="0.001"
+                           value="{{ restaurant.loyalty_redemption_value or 0.1 }}"
+                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+            </div>
+            <p class="text-xs text-gray-400">Example: A customer spending 50 {{ restaurant.currency }} earns {{ (restaurant.loyalty_points_per_unit or 10) * 50 }} points.</p>
+        </div>
+    </div>
+
+    <button type="submit" class="bg-orange-500 text-white px-8 py-2.5 rounded-lg font-medium hover:bg-orange-600 transition-colors">Save Settings</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleDay(i, closed) {
+    const el = document.getElementById(`hours-${i}`);
+    el.classList.toggle('opacity-30', closed);
+    el.classList.toggle('pointer-events-none', closed);
+}
+</script>
+{% endblock %}

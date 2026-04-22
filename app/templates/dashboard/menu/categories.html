@@ -1,0 +1,295 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Categories{% endblock %}
+{% block page_title %}Menu — Categories{% endblock %}
+
+{% block dashboard_content %}
+<div class="flex flex-col xl:flex-row gap-6">
+    <!-- Category list -->
+    <div class="flex-1 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">Categories</h2>
+            <div class="flex gap-2">
+                <a href="{{ url_for('dashboard.menu_items') }}" class="text-sm text-orange-500 hover:text-orange-600">View Items →</a>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm" id="categories-table">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3 text-left">Order</th>
+                        <th class="px-6 py-3 text-left">Name</th>
+                        <th class="px-6 py-3 text-left">Icon</th>
+                        <th class="px-6 py-3 text-left">Items</th>
+                        <th class="px-6 py-3 text-left">Active</th>
+                        <th class="px-6 py-3 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50" id="category-list">
+                    {% for cat in categories %}
+                    <tr data-cat-id="{{ cat.id }}" class="cursor-move">
+                        <td class="px-6 py-3 text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path></svg>
+                        </td>
+                        <td class="px-6 py-3">
+                            <div class="font-medium text-gray-800">{{ cat.name_fr }}</div>
+                            {% if cat.name_ar %}<div class="text-xs text-gray-400" style="font-family: 'Noto Sans Arabic', sans-serif;">{{ cat.name_ar }}</div>{% endif %}
+                        </td>
+                        <td class="px-6 py-3">
+                            {% if cat.icon_url %}
+                                <img src="{{ cat.icon_url }}" alt="icon" class="w-8 h-8 object-cover rounded">
+                            {% elif cat.icon %}
+                                <span class="text-xl">{{ cat.icon }}</span>
+                            {% else %}
+                                <span class="text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 text-gray-600">{{ cat.item_count }}</td>
+                        <td class="px-6 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full {{ 'bg-green-100 text-green-700' if cat.is_active else 'bg-gray-100 text-gray-500' }}">
+                                {{ 'Active' if cat.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-3 flex gap-2">
+                            <button type="button"
+                                    onclick="openEditModalFromButton(this)"
+                                    data-id="{{ cat.id }}"
+                                    data-name-fr="{{ cat.name_fr|e }}"
+                                    data-name-ar="{{ (cat.name_ar or '')|e }}"
+                                    data-name-en="{{ (cat.name_en or '')|e }}"
+                                    data-icon-url="{{ (cat.icon_url or '')|e }}"
+                                    data-is-active="{{ '1' if cat.is_active else '0' }}"
+                                    data-ramadan-type="{{ (cat.ramadan_type or '')|e }}"
+                                    data-available-from="{{ cat.available_from.strftime('%H:%M') if cat.available_from else '' }}"
+                                    data-available-until="{{ cat.available_until.strftime('%H:%M') if cat.available_until else '' }}"
+                                    class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                            <form method="POST" action="{{ url_for('dashboard.category_delete', id=cat.id) }}" onsubmit="return confirm('Delete this category?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">No categories yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Category form -->
+    <div class="xl:w-80">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="font-semibold text-gray-800 mb-4">Add Category</h3>
+            <form method="POST" action="{{ url_for('dashboard.category_add') }}" enctype="multipart/form-data" class="space-y-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (FR) *</label>
+                    <input type="text" name="name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (AR)</label>
+                    <input type="text" name="name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300" style="font-family: 'Noto Sans Arabic', sans-serif;">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (EN)</label>
+                    <input type="text" name="name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+
+                <!-- Icon Upload -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Category Icon</label>
+                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-orange-300 transition-colors cursor-pointer" onclick="document.getElementById('add-icon-file').click()">
+                        <input type="file" name="icon_image" id="add-icon-file" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                               class="hidden" onchange="previewUpload('add', this)">
+                        <div id="add-upload-preview" class="hidden mb-2">
+                            <img id="add-upload-img" class="w-14 h-14 object-cover rounded-lg mx-auto border border-gray-200" src="" alt="preview">
+                        </div>
+                        <div id="add-upload-placeholder">
+                            <div class="text-2xl mb-1 opacity-50">🖼️</div>
+                            <div class="text-xs text-gray-500 font-medium">Click to upload icon</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WebP, SVG</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Ramadan Type</label>
+                    <select name="ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                        <option value="">None</option>
+                        <option value="iftar">Iftar</option>
+                        <option value="suhoor">Suhoor</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Available From</label>
+                        <input type="time" name="available_from" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Available Until</label>
+                        <input type="time" name="available_until" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    </div>
+                    <p class="col-span-2 text-[10px] text-gray-400">Leave empty for all-day availability.</p>
+                </div>
+                <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">Add Category</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <h3 class="font-semibold text-gray-800 mb-4">Edit Category</h3>
+        <form id="edit-form" method="POST" enctype="multipart/form-data" class="space-y-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Name (FR) *</label>
+                <input type="text" name="name_fr" id="edit_name_fr" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Name (AR)</label>
+                <input type="text" name="name_ar" id="edit_name_ar" dir="rtl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300" style="font-family: 'Noto Sans Arabic', sans-serif;">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Name (EN)</label>
+                <input type="text" name="name_en" id="edit_name_en" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            </div>
+
+            <!-- Icon Upload (Edit) -->
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Category Icon</label>
+                <!-- Current icon preview -->
+                <div id="edit-current-icon" class="hidden mb-2 items-center gap-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
+                    <img id="edit-current-icon-img" class="w-10 h-10 object-cover rounded" src="" alt="current icon">
+                    <span class="text-xs text-gray-500 flex-1">Current icon</span>
+                    <button type="button" onclick="removeCurrentIcon()" class="text-xs text-red-400 hover:text-red-600">Remove</button>
+                </div>
+                <input type="hidden" name="remove_icon" id="edit-remove-icon" value="">
+
+                <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-orange-300 transition-colors cursor-pointer" onclick="document.getElementById('edit-icon-file').click()">
+                    <input type="file" name="icon_image" id="edit-icon-file" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                           class="hidden" onchange="previewUpload('edit', this)">
+                    <div id="edit-upload-preview" class="hidden mb-2">
+                        <img id="edit-upload-img" class="w-14 h-14 object-cover rounded-lg mx-auto border border-gray-200" src="" alt="preview">
+                    </div>
+                    <div id="edit-upload-placeholder">
+                        <div class="text-2xl mb-1 opacity-50">🖼️</div>
+                        <div class="text-xs text-gray-500 font-medium">Click to upload new icon</div>
+                        <div class="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WebP, SVG</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Ramadan Type</label>
+                <select name="ramadan_type" id="edit_ramadan_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    <option value="">None</option>
+                    <option value="iftar">Iftar</option>
+                    <option value="suhoor">Suhoor</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Available From</label>
+                    <input type="time" name="available_from" id="edit_available_from" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Available Until</label>
+                    <input type="time" name="available_until" id="edit_available_until" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+                <p class="col-span-2 text-[10px] text-gray-400">Leave empty for all-day availability.</p>
+            </div>
+            <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="is_active" id="edit_is_active" class="accent-orange-500">
+                <span class="text-gray-700">Active</span>
+            </label>
+            <div class="flex gap-2 pt-2">
+                <button type="submit" class="flex-1 bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Save</button>
+                <button type="button" onclick="closeEditModal()" class="flex-1 border border-gray-200 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-600">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/menu_builder.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    initDragDropCategories('category-list');
+    initImagePreview('add-icon-file', 'add-upload-img');
+    
+    // For the add icon placeholder
+    document.getElementById('add-icon-file').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            document.getElementById('add-upload-preview').classList.remove('hidden');
+            document.getElementById('add-upload-placeholder').classList.add('hidden');
+        }
+    });
+
+    initImagePreview('edit-icon-file', 'edit-upload-img');
+    // For the edit icon placeholder
+    document.getElementById('edit-icon-file').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            document.getElementById('edit-upload-preview').classList.remove('hidden');
+            document.getElementById('edit-upload-placeholder').classList.add('hidden');
+        }
+    });
+});
+
+function removeCurrentIcon() {
+    document.getElementById('edit-current-icon').style.display = 'none';
+    document.getElementById('edit-remove-icon').value = '1';
+}
+
+/* ── Edit Modal ── */
+function openEditModalFromButton(btn) {
+    openEditModal(
+        parseInt(btn.dataset.id, 10),
+        btn.dataset.nameFr || '',
+        btn.dataset.nameAr || '',
+        btn.dataset.nameEn || '',
+        btn.dataset.iconUrl || '',
+        btn.dataset.isActive === '1',
+        btn.dataset.ramadanType || '',
+        btn.dataset.availableFrom || '',
+        btn.dataset.availableUntil || ''
+    );
+}
+
+function openEditModal(id, nameFr, nameAr, nameEn, iconUrl, isActive, ramadanType, availableFrom, availableUntil) {
+    document.getElementById('edit_name_fr').value = nameFr;
+    document.getElementById('edit_name_ar').value = nameAr;
+    document.getElementById('edit_name_en').value = nameEn;
+    document.getElementById('edit_ramadan_type').value = ramadanType || '';
+    document.getElementById('edit_is_active').checked = isActive;
+    document.getElementById('edit_available_from').value = availableFrom || '';
+    document.getElementById('edit_available_until').value = availableUntil || '';
+    document.getElementById('edit-form').action = '/dashboard/menu/categories/' + id + '/update';
+    document.getElementById('edit-remove-icon').value = '';
+
+    // Show current icon if exists
+    const currentIconDiv = document.getElementById('edit-current-icon');
+    if (iconUrl) {
+        document.getElementById('edit-current-icon-img').src = iconUrl;
+        currentIconDiv.style.display = 'flex';
+    } else {
+        currentIconDiv.style.display = 'none';
+    }
+
+    // Reset upload preview
+    document.getElementById('edit-upload-preview').classList.add('hidden');
+    document.getElementById('edit-upload-placeholder').classList.remove('hidden');
+    document.getElementById('edit-icon-file').value = '';
+
+    document.getElementById('edit-modal').classList.remove('hidden');
+    document.getElementById('edit-modal').classList.add('flex');
+}
+
+function closeEditModal() {
+    document.getElementById('edit-modal').classList.add('hidden');
+    document.getElementById('edit-modal').classList.remove('flex');
+}
+</script>
+{% endblock %}

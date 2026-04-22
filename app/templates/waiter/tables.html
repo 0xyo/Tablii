@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Service Floor — {{ restaurant.name }}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+</head>
+<body class="min-h-screen bg-charcoal-950 font-body text-cream-50 selection:bg-amber-500/30 selection:text-amber-100">
+
+    <!-- Global Background Texture -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-overlay bg-grain"></div>
+
+    <!-- Top bar -->
+    <header class="bg-charcoal-900/90 backdrop-blur-md border-b border-charcoal-800/60 h-16 flex items-center justify-between px-8 shadow-sm relative z-10">
+        <div class="flex items-center gap-4">
+            <h1 class="font-display italic text-amber-500 text-xl tracking-wide">Service Floor</h1>
+            <span class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold border-l border-charcoal-700 pl-4">{{ restaurant.name }}</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 border border-amber-900/50 bg-charcoal-800 flex items-center justify-center text-amber-500 font-display italic text-xs shadow-inner-glow">
+                    {{ current_user.name[0]|upper }}
+                </div>
+                <span class="font-medium text-xs text-cream-100 tracking-wide">{{ current_user.name }}</span>
+            </div>
+            <a href="{{ url_for('waiter.profile') }}" class="text-[10px] uppercase tracking-widest font-bold text-amber-500 hover:text-amber-400 transition-colors">Profile</a>
+            <a href="{{ url_for('auth.logout') }}" class="text-[10px] uppercase tracking-widest font-bold text-ruby-400 hover:text-ruby-300 transition-colors">Sign Out →</a>
+        </div>
+    </header>
+
+    <main class="p-8 max-w-7xl mx-auto relative z-10">
+        <!-- Table grid -->
+        <div class="flex items-center justify-between mb-6 border-b border-charcoal-700/60 pb-3">
+            <h2 class="font-display italic text-xl text-cream-50 tracking-wide">Assigned Stations</h2>
+            <div class="flex gap-4 text-[10px] uppercase font-bold tracking-widest text-charcoal-400">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-charcoal-700 block"></span> Free</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-amber-500/50 block border border-amber-500"></span> Occupied</span>
+            </div>
+        </div>
+
+        {% if tables %}
+        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for table in tables %}
+            {% set calls = call_counts.get(table.id, 0) %}
+            <div data-table-id="{{ table.id }}" class="bg-charcoal-800/40 backdrop-blur-sm p-6 flex flex-col gap-4 shadow-dark relative transition-all duration-300 hover:bg-charcoal-800 border-t-2
+                        {{ 'border-t-charcoal-600 border-x border-b border-x-charcoal-700/50 border-b-charcoal-700/50' if table.status == 'free'
+                           else 'border-t-amber-500 border-x border-b border-x-amber-500/30 border-b-amber-500/30 bg-amber-900/5' if table.status == 'occupied'
+                           else 'border-t-sapphire-500 border-x border-b border-x-sapphire-500/30 border-b-sapphire-500/30' }}">
+                
+                {% if calls > 0 %}
+                <span class="absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10 call-badge">
+                    {{ calls }}
+                </span>
+                {% endif %}
+
+                <div class="flex items-center justify-between">
+                    <span class="font-display italic text-2xl text-cream-50">T-{{ table.table_number }}</span>
+                    <span class="text-[9px] px-2 py-1 uppercase tracking-widest font-bold border
+                                 {{ 'bg-charcoal-700/50 text-charcoal-300 border-charcoal-600' if table.status == 'free'
+                                    else 'bg-amber-900/30 text-amber-500 border-amber-500/30' if table.status == 'occupied'
+                                    else 'bg-sapphire-900/30 text-sapphire-400 border-sapphire-500/30' }}">
+                        {{ table.status|title }}
+                    </span>
+                </div>
+
+                <div class="text-[10px] uppercase font-bold tracking-widest text-charcoal-400 pt-3 border-t border-charcoal-700/40">Capacity: {{ table.capacity }} pax</div>
+
+                {% if table.status == 'occupied' %}
+                <!-- Active orders -->
+                {% set active_session = table.sessions.filter_by(is_active=True).first() %}
+                {% if active_session %}
+                    {% if active_session.guest_name %}
+                    <div class="text-xs text-amber-400/70 flex items-center gap-1 -mt-1">
+                        <span>👤</span> {{ active_session.guest_name }}
+                    </div>
+                    {% endif %}
+                    <div class="mt-2 space-y-3" id="orders-table-{{ table.id }}">
+
+                    {# Orders in progress (new / accepted / preparing) #}
+                    {% for order in active_session.orders.filter_by(status='new').all() %}
+                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-amber-400 bg-amber-900/30 px-2 py-0.5 border border-amber-500/30">New</span>
+                        </div>
+                    {% endfor %}
+                    {% for order in active_session.orders.filter_by(status='accepted').all() %}
+                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-sapphire-400 bg-sapphire-900/30 px-2 py-0.5 border border-sapphire-500/30">Accepted</span>
+                        </div>
+                    {% endfor %}
+                    {% for order in active_session.orders.filter_by(status='preparing').all() %}
+                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-orange-400 bg-orange-900/30 px-2 py-0.5 border border-orange-500/30">Preparing</span>
+                        </div>
+                    {% endfor %}
+
+                    {# Ready orders — actionable #}
+                    {% for order in active_session.orders.filter_by(status='ready').all() %}
+                        <div class="bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2" data-order-id="{{ order.id }}">
+                            <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
+                                <span class="font-mono text-xs font-bold text-emerald-400 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
+                                <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
+                            </div>
+                            <button onclick="serveOrder('{{ order.id }}', this)"
+                                    class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
+                                Serve Order →
+                            </button>
+                        </div>
+                    {% endfor %}
+
+                    {# Served orders — show payment status + collect button #}
+                    {% for order in active_session.orders.filter_by(status='served').all() %}
+                        <div class="border p-3 flex flex-col gap-2
+                            {{ 'bg-emerald-900/10 border-emerald-500/20' if order.payment_status == 'paid' else 'bg-ruby-900/10 border-ruby-500/20' }}"
+                             data-order-id="{{ order.id }}">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border
+                                        {{ 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30' if order.payment_status == 'paid'
+                                           else 'bg-ruby-900/30 text-ruby-400 border-ruby-500/30' }}">
+                                        {{ '💵 Paid' if order.payment_status == 'paid' else '⚠ Unpaid' }}
+                                    </span>
+                                    <span class="text-[9px] uppercase tracking-widest font-bold text-cream-300/60">Served</span>
+                                </div>
+                            </div>
+                            {% if order.payment_status != 'paid' %}
+                            <button onclick="collectPayment({{ order.id }}, this)"
+                                    class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
+                                💵 Collect Payment
+                            </button>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    </div>
+
+                    {# Close table button #}
+                    <button onclick="closeTable({{ table.id }}, this)"
+                            class="w-full mt-3 text-center bg-ruby-900/20 hover:bg-ruby-900/40 text-ruby-400 border border-ruby-500/30 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
+                        Close Table ✕
+                    </button>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-charcoal-800/40 border border-charcoal-700/60 p-12 text-center text-charcoal-400 flex flex-col items-center justify-center">
+            <span class="font-display italic text-2xl mb-2 text-cream-100">No Assignments</span>
+            <p class="text-xs uppercase tracking-widest">You have no tables assigned to your station.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/waiter_calls.js') }}"></script>
+
+    <script>
+        const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
+
+        async function serveOrder(id, btn) {
+            const res = await fetch(`/waiter/orders/${id}/served`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.success) {
+                btn.closest('[data-order-id]')?.remove();
+            } else {
+                alert(data.error);
+            }
+        }
+
+        async function collectPayment(orderId, btn) {
+            const res = await fetch(`/waiter/orders/${orderId}/confirm-payment`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.success) {
+                const card = btn.closest('[data-order-id]');
+                if (card) {
+                    card.className = card.className.replace('bg-ruby-900/10 border-ruby-500/20', 'bg-emerald-900/10 border-emerald-500/20');
+                    btn.remove();
+                    const badgeEl = card.querySelector('[class*="bg-ruby-900/30"]');
+                    if (badgeEl) {
+                        badgeEl.className = badgeEl.className.replace('bg-ruby-900/30 text-ruby-400 border-ruby-500/30', 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30');
+                        badgeEl.textContent = '💵 Paid';
+                    }
+                }
+            } else {
+                alert(data.error || 'Failed to confirm payment');
+            }
+        }
+
+        async function closeTable(tableId, btn) {
+            if (!confirm('Close this table and mark it as free?')) return;
+            const res = await fetch(`/waiter/tables/${tableId}/close`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to close table');
+            }
+        }
+
+        function updateCallBadge(tableId, delta) {
+            const card = document.querySelector(`[data-table-id="${tableId}"]`);
+            if (!card) return;
+            let badge = card.querySelector('.call-badge');
+            if (badge) {
+                const current = parseInt(badge.textContent.trim()) || 0;
+                const next = current + delta;
+                if (next <= 0) {
+                    badge.remove();
+                } else {
+                    badge.textContent = next;
+                }
+            } else if (delta > 0) {
+                badge = document.createElement('span');
+                badge.className = 'absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10 call-badge';
+                badge.textContent = delta;
+                card.appendChild(badge);
+            }
+        }
+
+        // Connect via WebSocket (instant calls, no polling)
+        connectAsWaiter("{{ restaurant.id }}", "{{ current_user.id }}");
+
+        onEvent('waiter_call', function (data) {
+            showWaiterCall(data);
+            // Increment badge on the table card
+            updateCallBadge(data.table_id, 1);
+        });
+
+        onEvent('order_ready', function (data) {
+            playSound('order_ready');
+            // Inject the ready order card into the correct table
+            const container = document.getElementById('orders-table-' + data.table_id);
+            if (container) {
+                const card = document.createElement('div');
+                card.className = 'bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2';
+                card.dataset.orderId = data.order_id;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
+                        <span class="font-mono text-xs font-bold text-emerald-400">#${(data.order_number || '').replace('#','')}</span>
+                        <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
+                    </div>
+                    <button onclick="serveOrder('${data.order_id}', this)"
+                            class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
+                        Serve Order →
+                    </button>`;
+                container.appendChild(card);
+            } else {
+                // Table not on screen — full reload to pick it up
+                location.reload();
+            }
+        });
+
+        onEvent('table_status_change', function (data) {
+            // Reload when a table status changes (e.g. freed)
+            location.reload();
+        });
+    </script>
+</body>
+</html>

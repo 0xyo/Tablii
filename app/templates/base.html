@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="{{ lang|default('fr') }}" dir="{{ 'rtl' if lang|default('fr') == 'ar' else 'ltr' }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>{% block title %}Tablii{% endblock %}</title>
+
+    <!-- Tailwind CSS (compiled) -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/output.css') }}"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Cairo:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- PWA -->
+    <link
+      rel="manifest"
+      href="{{ url_for('static', filename='manifest.json') }}"
+    />
+    <meta name="theme-color" content="#0F0D0B" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="{{ url_for('static', filename='icons/icon-192.png') }}"
+    />
+
+    {% block head %}{% endblock %}
+  </head>
+  <body
+    class="font-body bg-charcoal-900 text-cream-50 antialiased min-h-screen flex flex-col relative selection:bg-amber-500/30 selection:text-amber-100"
+  >
+    <!-- Background Texture -->
+    <div
+      class="fixed inset-0 pointer-events-none z-[-1] opacity-70 mix-blend-overlay bg-grain"
+    ></div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div
+      id="flash-messages"
+      class="fixed top-6 right-6 z-50 space-y-3 max-w-sm w-full"
+    >
+      {% for category, message in messages %}
+      <div
+        class="flash-msg px-5 py-4 flex items-start gap-4 shadow-dark border border-charcoal-700/50 backdrop-blur-md bg-charcoal-800/90 text-sm animate-slide-in-right relative overflow-hidden group {% if category == 'error' %}border-l-4 border-l-ruby-500{% elif category == 'success' %}border-l-4 border-l-emerald-500{% elif category == 'warning' %}border-l-4 border-l-topaz-500{% else %}border-l-4 border-l-sapphire-500{% endif %}"
+        role="alert"
+      >
+        <span class="text-cream-50 flex-1 leading-relaxed">{{ message }}</span>
+        <button
+          onclick="this.parentElement.remove()"
+          class="text-charcoal-400 hover:text-cream-100 transition-colors p-1 -m-1"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <main class="flex-grow flex flex-col relative z-0">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Socket.IO (loaded on every page, connected only where needed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+
+    <!-- Global JS utilities -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+
+    <script>
+      // Auto-dismiss flash messages after 5 seconds
+      setTimeout(() => {
+        document.querySelectorAll(".flash-msg").forEach((el) => {
+          el.style.transition = "opacity 0.5s";
+          el.style.opacity = "0";
+          setTimeout(() => el.remove(), 500);
+        });
+      }, 5000);
+
+      // PWA Service Worker registration
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/static/sw.js").catch(() => {
+          /* SW registration failed silently */
+        });
+      }
+    </script>
+  </body>
+</html>

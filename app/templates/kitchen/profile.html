@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Profile — {{ restaurant.name }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+</head>
+<body class="min-h-screen bg-charcoal-950 font-body text-cream-50 selection:bg-amber-500/30 selection:text-amber-100">
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-overlay bg-grain"></div>
+
+    <header class="bg-charcoal-900/90 backdrop-blur-md border-b border-charcoal-800/60 h-16 flex items-center justify-between px-8 shadow-sm relative z-10">
+        <div class="flex items-center gap-4">
+            <h1 class="font-display italic text-amber-500 text-xl tracking-wide">Kitchen Profile</h1>
+            <span class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold border-l border-charcoal-700 pl-4">{{ restaurant.name }}</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="{{ url_for('kitchen.display') }}" class="text-[10px] uppercase tracking-widest font-bold text-amber-500 hover:text-amber-400 transition-colors">Back to Display</a>
+            <a href="{{ url_for('auth.logout') }}" class="text-[10px] uppercase tracking-widest font-bold text-ruby-400 hover:text-ruby-300 transition-colors">Sign Out →</a>
+        </div>
+    </header>
+
+    <main class="p-8 max-w-3xl mx-auto relative z-10">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for cat, msg in messages %}
+                <div class="px-4 py-3 text-sm border-l-2 bg-charcoal-800/80 backdrop-blur-sm
+                    {{ 'border-emerald-500 text-emerald-100' if cat == 'success'
+                       else 'border-ruby-500 text-ruby-100' if cat == 'error'
+                       else 'border-sapphire-500 text-sapphire-100' }}">
+                    {{ msg }}
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="bg-charcoal-800/40 border border-charcoal-700/60 p-6 shadow-dark">
+            <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="flex items-center gap-4 pb-1">
+                    <img
+                        src="{{ user.avatar_url if user.avatar_url else url_for('static', filename='icons/icon-192.png') }}"
+                        alt="Profile avatar"
+                        class="w-16 h-16 rounded-full object-cover border border-charcoal-700"
+                    >
+                    <div class="flex-1">
+                        <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Avatar</label>
+                        <input
+                            type="file"
+                            name="avatar"
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Full Name *</label>
+                    <input
+                        type="text"
+                        name="name"
+                        required
+                        value="{{ (form.name if form else None) or user.name }}"
+                        class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                    >
+                </div>
+
+                {% if user.username is defined %}
+                <div>
+                    <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Username *</label>
+                    <input
+                        type="text"
+                        name="username"
+                        required
+                        value="{{ (form.username if form else None) or user.username }}"
+                        class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                    >
+                </div>
+                {% else %}
+                <div>
+                    <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">Email *</label>
+                    <input
+                        type="email"
+                        name="email"
+                        required
+                        value="{{ (form.email if form else None) or user.email }}"
+                        class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                    >
+                </div>
+                {% endif %}
+
+                <div>
+                    <label class="block text-[11px] uppercase tracking-widest text-charcoal-400 font-bold mb-1">New Password (optional)</label>
+                    <input
+                        type="password"
+                        name="password"
+                        minlength="{{ 6 if user.username is defined else 8 }}"
+                        class="w-full bg-charcoal-900 border border-charcoal-700/60 px-3 py-2 text-sm text-cream-100 focus:outline-none focus:border-amber-500"
+                    >
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" class="bg-amber-500 text-charcoal-900 px-6 py-2 text-xs uppercase tracking-widest font-bold hover:bg-amber-400 transition-colors">
+                        Save Changes
+                    </button>
+                    <a href="{{ url_for('kitchen.display') }}" class="border border-charcoal-700 px-6 py-2 text-xs uppercase tracking-widest font-bold text-charcoal-300 hover:text-cream-100 hover:border-charcoal-500 transition-colors">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

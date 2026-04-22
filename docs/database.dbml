@@ -1,0 +1,347 @@
+// Tablii Database Schema
+// Generated DBML for multi-tenant restaurant SaaS platform
+// Docs: https://dbml.dbdiagram.io/docs
+
+// ============================================================================
+// USER & AUTHENTICATION
+// ============================================================================
+
+Table users {
+  id integer [primary key]
+  email varchar(120) [unique, not null]
+  password_hash varchar(256) [not null]
+  name varchar(100) [not null]
+  phone varchar(20)
+  role varchar(20) [not null, default: 'owner']
+  is_active boolean [default: true]
+  created_at timestamp
+}
+
+Table staff_users {
+  id integer [primary key]
+  restaurant_id integer [not null]
+  username varchar(50) [not null]
+  password_hash varchar(256) [not null]
+  name varchar(100) [not null]
+  role varchar(20) [not null]
+  is_active boolean [default: true]
+  created_at timestamp
+  
+  Note: 'Staff scoped to one restaurant with unique (restaurant_id, username)'
+}
+
+Table customers {
+  id integer [primary key]
+  phone varchar(20) [unique, not null]
+  name varchar(100)
+  email varchar(120)
+  password_hash varchar(256)
+  created_at timestamp
+  
+  Note: 'End customer identified by phone'
+}
+
+// ============================================================================
+// RESTAURANT & SUBSCRIPTION
+// ============================================================================
+
+Table restaurants {
+  id integer [primary key]
+  owner_id integer [not null]
+  name varchar(150) [not null]
+  slug varchar(100) [unique, not null]
+  description text
+  logo_url varchar(300)
+  cover_url varchar(300)
+  address varchar(300)
+  phone varchar(20)
+  city varchar(100)
+  currency varchar(10) [default: 'TND']
+  tax_rate float [default: 0.0]
+  service_charge float [default: 0.0]
+  auto_accept boolean [default: false]
+  online_payment boolean [default: false]
+  default_language varchar(5) [default: 'fr']
+  ramadan_mode boolean [default: false]
+  loyalty_enabled boolean [default: false]
+  loyalty_points_per_unit integer [default: 10]
+  loyalty_redemption_value float [default: 0.1]
+  is_active boolean [default: true]
+  is_open boolean [default: true]
+  created_at timestamp
+}
+
+Table subscriptions {
+  id integer [primary key]
+  restaurant_id integer [unique, not null]
+  plan varchar(30) [default: 'free']
+  max_tables integer [default: 5]
+  max_items integer [default: 20]
+  started_at timestamp
+  expires_at timestamp
+  is_active boolean [default: true]
+}
+
+Table operating_hours {
+  id integer [primary key]
+  restaurant_id integer [not null]
+  day_of_week integer [not null]
+  open_time time
+  close_time time
+  is_closed boolean [default: false]
+  
+  Note: 'Weekly schedule, unique (restaurant_id, day_of_week)'
+}
+
+// ============================================================================
+// MENU
+// ============================================================================
+
+Table categories {
+  id integer [primary key]
+  restaurant_id integer [not null]
+  name_ar varchar(100)
+  name_fr varchar(100) [not null]
+  name_en varchar(100)
+  icon varchar(10)
+  icon_url varchar(300)
+  sort_order integer [default: 0]
+  is_active boolean [default: true]
+  available_from time
+  available_until time
+  ramadan_type varchar(20)
+  
+  Note: 'Multi-language category with Ramadan type'
+}
+
+Table menu_items {
+  id integer [primary key]
+  category_id integer [not null]
+  restaurant_id integer [not null]
+  name_ar varchar(150)
+  name_fr varchar(150) [not null]
+  name_en varchar(150)
+  description_ar text
+  description_fr text
+  description_en text
+  price float [not null]
+  image_url varchar(300)
+  is_available boolean [default: true]
+  sort_order integer [default: 0]
+  prep_time integer
+  calories integer
+  allergens varchar(300)
+  is_popular boolean [default: false]
+  deleted_at timestamp
+}
+
+Table customizations {
+  id integer [primary key]
+  menu_item_id integer [not null]
+  group_name_ar varchar(100)
+  group_name_fr varchar(100) [not null]
+  group_name_en varchar(100)
+  selection_type varchar(20) [not null]
+  is_required boolean [default: false]
+  max_selections integer
+  
+  Note: 'Option group (Size, Extras, etc.)'
+}
+
+Table custom_options {
+  id integer [primary key]
+  customization_id integer [not null]
+  name_ar varchar(100)
+  name_fr varchar(100) [not null]
+  name_en varchar(100)
+  extra_price float [default: 0.0]
+  is_default boolean [default: false]
+  
+  Note: 'Selectable option within a customization group'
+}
+
+// ============================================================================
+// TABLES & SESSIONS
+// ============================================================================
+
+Table tables_ {
+  id integer [primary key]
+  restaurant_id integer [not null]
+  table_number integer [not null]
+  capacity integer [default: 4]
+  status varchar(20) [default: 'free']
+  qr_code_url varchar(300)
+  position_x float
+  position_y float
+  assigned_waiter_id integer [pk]
+  
+  Note: 'Physical table, unique (restaurant_id, table_number)'
+}
+
+Table table_sessions {
+  id integer [primary key]
+  table_id integer [not null]
+  restaurant_id integer [not null]
+  customer_id integer [pk]
+  session_token varchar(64) [unique, not null]
+  guest_name varchar(100)
+  started_at timestamp
+  ended_at timestamp
+  is_active boolean [default: true]
+  
+  Note: 'Active dining session at a table'
+}
+
+// ============================================================================
+// ORDERS
+// ============================================================================
+
+Table orders {
+  id integer [primary key]
+  session_id integer [pk]
+  restaurant_id integer [not null]
+  table_id integer [pk]
+  customer_id integer [pk]
+  order_number varchar(10) [not null]
+  status varchar(20) [default: 'new']
+  payment_method varchar(20)
+  payment_status varchar(20) [default: 'pending']
+  subtotal float [default: 0.0]
+  tax_amount float [default: 0.0]
+  service_charge_amount float [default: 0.0]
+  total_amount float [default: 0.0]
+  special_notes text
+  is_gift boolean [default: false]
+  gift_from_table integer
+  gift_message varchar(300)
+  created_at timestamp
+  accepted_at timestamp
+  preparing_at timestamp
+  ready_at timestamp
+  served_at timestamp
+  completed_at timestamp
+  
+  Note: 'Order status: new → accepted → preparing → ready → served → completed'
+}
+
+Table order_items {
+  id integer [primary key]
+  order_id integer [not null]
+  menu_item_id integer [not null]
+  quantity integer [default: 1]
+  unit_price float [not null]
+  total_price float [not null]
+  selected_options text
+  notes varchar(300)
+}
+
+Table payment_transactions {
+  id integer [primary key]
+  order_id integer [unique, not null]
+  gateway varchar(30) [not null]
+  amount float [not null]
+  gateway_transaction_id varchar(200)
+  status varchar(20) [default: 'pending']
+  raw_response text
+  created_at timestamp
+  
+  Note: 'Flouci payment gateway records'
+}
+
+// ============================================================================
+// STAFF INTERACTIONS
+// ============================================================================
+
+Table waiter_calls {
+  id integer [primary key]
+  restaurant_id integer [not null]
+  table_id integer [not null]
+  call_type varchar(30) [not null]
+  message varchar(300)
+  status varchar(20) [default: 'pending']
+  created_at timestamp
+  resolved_at timestamp
+  resolved_by integer [pk]
+  
+  Note: 'Customer waiter call request (water, bill, help, custom)'
+}
+
+// ============================================================================
+// REVIEWS & LOYALTY
+// ============================================================================
+
+Table reviews {
+  id integer [primary key]
+  order_id integer [not null]
+  restaurant_id integer [not null]
+  rating integer [not null]
+  food_rating integer
+  service_rating integer
+  comment text
+  photo_url varchar(300)
+  created_at timestamp
+}
+
+Table loyalty_points {
+  id integer [primary key]
+  customer_id integer [not null]
+  restaurant_id integer [not null]
+  points integer [default: 0]
+  total_earned integer [default: 0]
+  total_redeemed integer [default: 0]
+  
+  Note: 'Unique (customer_id, restaurant_id)'
+}
+
+Table notifications {
+  id integer [primary key]
+  restaurant_id integer [not null]
+  target_role varchar(20)
+  target_user_id integer
+  type varchar(30) [not null]
+  title varchar(200) [not null]
+  body text
+  is_read boolean [default: false]
+  created_at timestamp
+}
+
+// ============================================================================
+// RELATIONSHIPS
+// ============================================================================
+
+Ref: users.id < restaurants.owner_id
+Ref: restaurants.id < staff_users.restaurant_id
+Ref: restaurants.id < categories.restaurant_id
+Ref: restaurants.id < menu_items.restaurant_id
+Ref: restaurants.id < tables_.restaurant_id
+Ref: restaurants.id < table_sessions.restaurant_id
+Ref: restaurants.id < orders.restaurant_id
+Ref: restaurants.id < waiter_calls.restaurant_id
+Ref: restaurants.id < reviews.restaurant_id
+Ref: restaurants.id < loyalty_points.restaurant_id
+Ref: restaurants.id < notifications.restaurant_id
+Ref: restaurants.id < subscriptions.restaurant_id
+Ref: restaurants.id < operating_hours.restaurant_id
+
+Ref: categories.id < menu_items.category_id
+Ref: menu_items.id < customizations.menu_item_id
+Ref: menu_items.id < order_items.menu_item_id
+
+Ref: tables_.id < table_sessions.table_id
+Ref: tables_.id < orders.table_id
+Ref: tables_.id < waiter_calls.table_id
+Ref: tables_.id < tables_.assigned_waiter_id
+
+Ref: table_sessions.id < orders.session_id
+Ref: table_sessions.customer_id < customers.id
+
+Ref: orders.id < order_items.order_id
+Ref: orders.id < payment_transactions.order_id
+Ref: orders.id < reviews.order_id
+
+Ref: waiter_calls.resolved_by < staff_users.id
+Ref: staff_users.id < customers.id
+
+// Multi-language support
+// Arabic, French, English fields follow same pattern
+Ref: customizations.id < custom_options.customization_id

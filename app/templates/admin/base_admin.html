@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>{% block title %}Admin — Tablii{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}" />
+    <!-- Admin Theme System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300..800&display=swap" rel="stylesheet" />
+
+    <style>
+      body { font-family: 'DM Sans', sans-serif; }
+    </style>
+    {% block head %}{% endblock %}
+  </head>
+  <body style="display:flex; background:var(--bg-secondary); color:var(--text-primary); margin:0;">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" style="position:sticky; top:0; height:100vh; display:flex; flex-direction:column;">
+      <div class="admin-sidebar-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>⚡ Tablii Admin</span>
+        <button id="theme-toggle" class="theme-toggle-compact" aria-label="Toggle dark/light mode" title="Toggle theme" style="background:none; border:none; cursor:pointer; font-size:1.2rem; padding:4px 8px; display:flex; align-items:center; justify-content:center;">
+          <span id="theme-icon">🌙</span>
+        </button>
+      </div>
+      <nav class="admin-nav">
+        <a href="{{ url_for('admin.restaurants') }}" class="admin-nav-link {% if request.endpoint == 'admin.restaurants' %}active{% endif %}" title="Restaurant management">
+          <span class="icon" style="color:#f5c56a;">◆</span> <span>Restaurants</span>
+        </a>
+        <a href="{{ url_for('admin.subscriptions') }}" class="admin-nav-link {% if request.endpoint == 'admin.subscriptions' %}active{% endif %}" title="Subscription plans">
+          <span class="icon" style="color:#64b5f6;">▨</span> <span>Subscriptions</span>
+        </a>
+        <a href="{{ url_for('admin.analytics') }}" class="admin-nav-link {% if request.endpoint == 'admin.analytics' %}active{% endif %}" title="Platform analytics">
+          <span class="icon" style="color:#66bb6a;">▲</span> <span>Analytics</span>
+        </a>
+        <a href="{{ url_for('admin.profile') }}" class="admin-nav-link {% if request.endpoint == 'admin.profile' %}active{% endif %}" title="Admin profile">
+          <span class="icon" style="color:#ce93d8;">●</span> <span>Profile</span>
+        </a>
+      </nav>
+      <div class="admin-nav-footer">
+        <a href="{{ url_for('auth.logout') }}" class="admin-nav-link" title="Sign out">
+          <span class="icon">⟿</span> <span>Logout</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="admin-main" style="padding: 32px 40px; flex:1; overflow-y:auto;">
+
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash-message {% if category == 'error' %}error{% elif category == 'success' %}success{% else %}info{% endif %}" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+
+    {% block scripts %}{% endblock %}
+    
+    <script>
+      // Theme Toggle System
+      const themeToggle = document.getElementById('theme-toggle');
+      const themeIcon = document.getElementById('theme-icon');
+      const htmlElement = document.documentElement;
+      
+      // Load theme from localStorage
+      function initTheme() {
+        const savedTheme = localStorage.getItem('tablii-admin-theme') || 'light';
+        if (savedTheme === 'dark') {
+          htmlElement.classList.add('dark-mode');
+          themeIcon.textContent = '☀️';
+        } else {
+          htmlElement.classList.remove('dark-mode');
+          themeIcon.textContent = '🌙';
+        }
+      }
+      
+      // Toggle theme
+      themeToggle.addEventListener('click', () => {
+        const isDarkMode = htmlElement.classList.contains('dark-mode');
+        if (isDarkMode) {
+          htmlElement.classList.remove('dark-mode');
+          localStorage.setItem('tablii-admin-theme', 'light');
+          themeIcon.textContent = '🌙';
+        } else {
+          htmlElement.classList.add('dark-mode');
+          localStorage.setItem('tablii-admin-theme', 'dark');
+          themeIcon.textContent = '☀️';
+        }
+      });
+      
+      // Initialize theme on page load
+      initTheme();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tablii — Smart Restaurant Platform</title>
+    <meta name="description" content="Tablii is the all-in-one SaaS platform for restaurants. QR code menus, real-time orders, kitchen display, analytics, and more." />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}" />
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
+
+    <style>
+        html { scroll-behavior: smooth; }
+        .hero-gradient {
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(196,149,106,0.12) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(196,149,106,0.06) 0%, transparent 50%);
+        }
+        .feature-card { transition: transform 0.4s cubic-bezier(.4,0,.2,1), box-shadow 0.4s ease; }
+        .feature-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 30px rgba(196,149,106,0.05); }
+        .pricing-card { transition: transform 0.4s cubic-bezier(.4,0,.2,1), border-color 0.3s ease; }
+        .pricing-card:hover { transform: translateY(-4px); }
+        .pricing-popular { border-color: rgba(196,149,106,0.5); box-shadow: 0 0 40px rgba(196,149,106,0.08); }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+        .float-anim { animation: float 6s ease-in-out infinite; }
+        @keyframes fadeUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.8s ease-out forwards; }
+        .fade-up-d1 { animation-delay: 0.1s; opacity: 0; }
+        .fade-up-d2 { animation-delay: 0.25s; opacity: 0; }
+        .fade-up-d3 { animation-delay: 0.4s; opacity: 0; }
+        .nav-blur { backdrop-filter: blur(16px) saturate(180%); }
+    </style>
+</head>
+<body class="font-body bg-charcoal-950 text-cream-50 antialiased selection:bg-amber-500/30 selection:text-amber-100">
+
+    <!-- Background Texture -->
+    <div class="fixed inset-0 pointer-events-none z-[-1] opacity-50 mix-blend-overlay bg-grain"></div>
+
+    <!-- ═══════════════════════════════════════
+         NAVIGATION
+    ═══════════════════════════════════════ -->
+    <nav class="fixed top-0 inset-x-0 z-50 nav-blur bg-charcoal-950/80 border-b border-charcoal-800/40">
+        <div class="max-w-7xl mx-auto px-6 lg:px-10 h-[72px] flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 border border-amber-800/60 bg-charcoal-900 flex items-center justify-center text-amber-500 font-display italic text-xl shadow-sm group-hover:border-amber-600/80 transition-colors">T</div>
+                <span class="text-xl font-display italic tracking-wide text-cream-50 group-hover:text-amber-400 transition-colors">Tablii</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#features" class="text-sm text-charcoal-300 hover:text-amber-400 transition-colors tracking-wide">Features</a>
+                <a href="#pricing" class="text-sm text-charcoal-300 hover:text-amber-400 transition-colors tracking-wide">Pricing</a>
+                <a href="#how-it-works" class="text-sm text-charcoal-300 hover:text-amber-400 transition-colors tracking-wide">How It Works</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('auth.login') }}" class="text-sm font-medium text-charcoal-200 hover:text-amber-400 transition-colors px-4 py-2">Sign In</a>
+                <a href="{{ url_for('auth.register') }}" class="text-sm font-semibold bg-gradient-to-r from-amber-600 to-amber-500 text-charcoal-950 px-6 py-2.5 hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_15px_rgba(196,149,106,0.25)] hover:shadow-[0_6px_25px_rgba(196,149,106,0.35)]">Get Started Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════
+         HERO
+    ═══════════════════════════════════════ -->
+    <section class="hero-gradient relative min-h-screen flex items-center pt-[72px] overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute top-40 left-10 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl pointer-events-none float-anim"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-amber-600/3 rounded-full blur-3xl pointer-events-none float-anim" style="animation-delay: 3s;"></div>
+
+        <div class="max-w-7xl mx-auto px-6 lg:px-10 py-24 lg:py-32 relative z-10">
+            <div class="max-w-3xl">
+                <div class="fade-up">
+                    <span class="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-1.5 mb-8">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        Restaurant SaaS Platform
+                    </span>
+                </div>
+
+                <h1 class="fade-up fade-up-d1 text-5xl lg:text-7xl font-display italic tracking-wide text-cream-50 leading-[1.1] mb-6">
+                    Transform Your Restaurant into a
+                    <span class="text-amber-400">Digital Experience</span>
+                </h1>
+
+                <p class="fade-up fade-up-d2 text-lg lg:text-xl text-charcoal-300 leading-relaxed max-w-2xl mb-10 font-light">
+                    QR code menus, real-time order management, kitchen display, analytics dashboards, and staff tools — all from one platform. No hardware required.
+                </p>
+
+                <div class="fade-up fade-up-d3 flex flex-wrap gap-4">
+                    <a href="{{ url_for('auth.register') }}" class="inline-flex items-center gap-3 bg-gradient-to-r from-amber-600 to-amber-500 text-charcoal-950 px-8 py-4 font-semibold text-sm tracking-wider hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_6px_30px_rgba(196,149,106,0.3)] hover:shadow-[0_8px_40px_rgba(196,149,106,0.4)] hover:-translate-y-px">
+                        Start Free Trial
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                    <a href="#features" class="inline-flex items-center gap-2 text-sm font-medium text-charcoal-200 border border-charcoal-700 px-8 py-4 hover:border-amber-600/50 hover:text-amber-400 transition-all">
+                        See Features ↓
+                    </a>
+                </div>
+
+                <!-- Stats row -->
+                <div class="mt-16 flex flex-wrap gap-10 lg:gap-16 pt-10 border-t border-charcoal-800/50">
+                    <div>
+                        <div class="text-3xl font-display italic text-amber-500">50+</div>
+                        <div class="text-xs text-charcoal-400 uppercase tracking-widest font-bold mt-1">Restaurants</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-display italic text-amber-500">10k+</div>
+                        <div class="text-xs text-charcoal-400 uppercase tracking-widest font-bold mt-1">Orders / Month</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-display italic text-amber-500">99.9%</div>
+                        <div class="text-xs text-charcoal-400 uppercase tracking-widest font-bold mt-1">Uptime</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-display italic text-amber-500">3 min</div>
+                        <div class="text-xs text-charcoal-400 uppercase tracking-widest font-bold mt-1">Setup Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         FEATURES
+    ═══════════════════════════════════════ -->
+    <section id="features" class="py-24 lg:py-32 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-10">
+            <div class="text-center mb-16 lg:mb-20">
+                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-600 mb-4 block">Everything You Need</span>
+                <h2 class="text-4xl lg:text-5xl font-display italic text-cream-50 tracking-wide">Powerful Features,<br><span class="text-amber-400">Zero Complexity</span></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="feature-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 group">
+                    <div class="w-14 h-14 border border-amber-800/40 bg-amber-900/20 flex items-center justify-center mb-6 text-2xl">📱</div>
+                    <h3 class="text-lg font-display italic text-cream-50 mb-3 group-hover:text-amber-400 transition-colors">QR Code Menus</h3>
+                    <p class="text-sm text-charcoal-400 leading-relaxed font-light">Customers scan a QR code at their table and browse your full menu — with images, descriptions, allergens, and multi-language support.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="feature-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 group">
+                    <div class="w-14 h-14 border border-amber-800/40 bg-amber-900/20 flex items-center justify-center mb-6 text-2xl">⚡</div>
+                    <h3 class="text-lg font-display italic text-cream-50 mb-3 group-hover:text-amber-400 transition-colors">Real-Time Orders</h3>
+                    <p class="text-sm text-charcoal-400 leading-relaxed font-light">Orders flow instantly from customer phones to your kitchen display and cashier. WebSocket-powered — no refresh needed.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="feature-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 group">
+                    <div class="w-14 h-14 border border-amber-800/40 bg-amber-900/20 flex items-center justify-center mb-6 text-2xl">🖥️</div>
+                    <h3 class="text-lg font-display italic text-cream-50 mb-3 group-hover:text-amber-400 transition-colors">Kitchen Display</h3>
+                    <p class="text-sm text-charcoal-400 leading-relaxed font-light">A dedicated kitchen screen with ticket-based workflow. Mark items as preparing, ready, or served with a single tap.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="feature-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 group">
+                    <div class="w-14 h-14 border border-amber-800/40 bg-amber-900/20 flex items-center justify-center mb-6 text-2xl">📊</div>
+                    <h3 class="text-lg font-display italic text-cream-50 mb-3 group-hover:text-amber-400 transition-colors">Analytics Dashboard</h3>
+                    <p class="text-sm text-charcoal-400 leading-relaxed font-light">Revenue charts, popular items, peak hours, and performance reports — all in one elegant dashboard with visual insights.</p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="feature-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 group">
+                    <div class="w-14 h-14 border border-amber-800/40 bg-amber-900/20 flex items-center justify-center mb-6 text-2xl">👥</div>
+                    <h3 class="text-lg font-display italic text-cream-50 mb-3 group-hover:text-amber-400 transition-colors">Staff Management</h3>
+                    <p class="text-sm text-charcoal-400 leading-relaxed font-light">Role-based access for cashiers, waiters, and kitchen staff. Each role gets a dedicated, focused interface.</p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="feature-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 group">
+                    <div class="w-14 h-14 border border-amber-800/40 bg-amber-900/20 flex items-center justify-center mb-6 text-2xl">🌙</div>
+                    <h3 class="text-lg font-display italic text-cream-50 mb-3 group-hover:text-amber-400 transition-colors">Ramadan Mode</h3>
+                    <p class="text-sm text-charcoal-400 leading-relaxed font-light">Automatic Iftar and Suhoor menu switching based on time of day. Serve the right meals at the right time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         HOW IT WORKS
+    ═══════════════════════════════════════ -->
+    <section id="how-it-works" class="py-24 lg:py-32 bg-charcoal-900/40 border-y border-charcoal-800/40">
+        <div class="max-w-7xl mx-auto px-6 lg:px-10">
+            <div class="text-center mb-16 lg:mb-20">
+                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-600 mb-4 block">Simple Setup</span>
+                <h2 class="text-4xl lg:text-5xl font-display italic text-cream-50 tracking-wide">Up and Running<br><span class="text-amber-400">in Minutes</span></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto border border-amber-500/30 bg-amber-500/10 flex items-center justify-center text-amber-500 font-display italic text-2xl mb-6">1</div>
+                    <h3 class="font-display italic text-xl text-cream-50 mb-3">Create Your Account</h3>
+                    <p class="text-sm text-charcoal-400 font-light leading-relaxed">Sign up for free. Enter your restaurant name and basic details — no credit card required.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto border border-amber-500/30 bg-amber-500/10 flex items-center justify-center text-amber-500 font-display italic text-2xl mb-6">2</div>
+                    <h3 class="font-display italic text-xl text-cream-50 mb-3">Build Your Menu</h3>
+                    <p class="text-sm text-charcoal-400 font-light leading-relaxed">Add categories, items, photos, prices, and customizations. Set up tables and print QR codes.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto border border-amber-500/30 bg-amber-500/10 flex items-center justify-center text-amber-500 font-display italic text-2xl mb-6">3</div>
+                    <h3 class="font-display italic text-xl text-cream-50 mb-3">Start Receiving Orders</h3>
+                    <p class="text-sm text-charcoal-400 font-light leading-relaxed">Place QR codes on tables. Customers scan, order, and you manage everything from your dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         PRICING
+    ═══════════════════════════════════════ -->
+    <section id="pricing" class="py-24 lg:py-32">
+        <div class="max-w-7xl mx-auto px-6 lg:px-10">
+            <div class="text-center mb-16 lg:mb-20">
+                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-600 mb-4 block">Transparent Pricing</span>
+                <h2 class="text-4xl lg:text-5xl font-display italic text-cream-50 tracking-wide">Choose Your<br><span class="text-amber-400">Plan</span></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+                <!-- Free -->
+                <div class="pricing-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 flex flex-col">
+                    <div class="mb-6">
+                        <h3 class="font-display italic text-2xl text-cream-50 mb-1">Free</h3>
+                        <p class="text-xs text-charcoal-400 uppercase tracking-widest font-bold">Get Started</p>
+                    </div>
+                    <div class="mb-8">
+                        <span class="text-4xl font-display italic text-cream-50">0</span>
+                        <span class="text-sm text-charcoal-400 ml-1">TND / month</span>
+                    </div>
+                    <ul class="space-y-3 mb-10 flex-1">
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Up to 5 tables</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Up to 20 menu items</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> QR code menus</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Real-time orders</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Basic analytics</li>
+                    </ul>
+                    <a href="{{ url_for('auth.register') }}" class="block text-center text-sm font-semibold border border-charcoal-600 text-charcoal-200 px-6 py-3.5 hover:border-amber-500/50 hover:text-amber-400 transition-all">Start Free</a>
+                </div>
+
+                <!-- Pro (Popular) -->
+                <div class="pricing-card pricing-popular bg-charcoal-900/80 border-2 border-amber-500/40 p-8 flex flex-col relative">
+                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                        <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-charcoal-950 bg-gradient-to-r from-amber-500 to-amber-400 px-5 py-1.5 shadow-lg">Most Popular</span>
+                    </div>
+                    <div class="mb-6">
+                        <h3 class="font-display italic text-2xl text-amber-400 mb-1">Pro</h3>
+                        <p class="text-xs text-charcoal-400 uppercase tracking-widest font-bold">For Growing Restaurants</p>
+                    </div>
+                    <div class="mb-8">
+                        <span class="text-4xl font-display italic text-cream-50">49</span>
+                        <span class="text-sm text-charcoal-400 ml-1">TND / month</span>
+                    </div>
+                    <ul class="space-y-3 mb-10 flex-1">
+                        <li class="flex items-start gap-3 text-sm text-charcoal-200"><span class="text-amber-500 mt-0.5">✓</span> Up to 25 tables</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-200"><span class="text-amber-500 mt-0.5">✓</span> Up to 100 menu items</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-200"><span class="text-amber-500 mt-0.5">✓</span> Everything in Free</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-200"><span class="text-amber-500 mt-0.5">✓</span> Online payments</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-200"><span class="text-amber-500 mt-0.5">✓</span> Advanced analytics</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-200"><span class="text-amber-500 mt-0.5">✓</span> Loyalty program</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-200"><span class="text-amber-500 mt-0.5">✓</span> Ramadan mode</li>
+                    </ul>
+                    <a href="{{ url_for('auth.register') }}" class="block text-center text-sm font-semibold bg-gradient-to-r from-amber-600 to-amber-500 text-charcoal-950 px-6 py-3.5 hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_4px_20px_rgba(196,149,106,0.3)]">Get Started</a>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="pricing-card bg-charcoal-900/60 border border-charcoal-800/60 p-8 flex flex-col">
+                    <div class="mb-6">
+                        <h3 class="font-display italic text-2xl text-cream-50 mb-1">Enterprise</h3>
+                        <p class="text-xs text-charcoal-400 uppercase tracking-widest font-bold">Unlimited Scale</p>
+                    </div>
+                    <div class="mb-8">
+                        <span class="text-4xl font-display italic text-cream-50">129</span>
+                        <span class="text-sm text-charcoal-400 ml-1">TND / month</span>
+                    </div>
+                    <ul class="space-y-3 mb-10 flex-1">
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Unlimited tables</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Unlimited menu items</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Everything in Pro</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Multi-branch support</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Priority support</li>
+                        <li class="flex items-start gap-3 text-sm text-charcoal-300"><span class="text-amber-500 mt-0.5">✓</span> Custom integrations</li>
+                    </ul>
+                    <a href="{{ url_for('auth.register') }}" class="block text-center text-sm font-semibold border border-charcoal-600 text-charcoal-200 px-6 py-3.5 hover:border-amber-500/50 hover:text-amber-400 transition-all">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         CTA
+    ═══════════════════════════════════════ -->
+    <section class="py-24 lg:py-32 bg-charcoal-900/40 border-t border-charcoal-800/40">
+        <div class="max-w-3xl mx-auto px-6 lg:px-10 text-center">
+            <h2 class="text-3xl lg:text-5xl font-display italic text-cream-50 tracking-wide mb-6">Ready to <span class="text-amber-400">Modernize</span> Your Restaurant?</h2>
+            <p class="text-charcoal-300 text-lg font-light mb-10">Join restaurants already using Tablii. Free plan available — no credit card required.</p>
+            <a href="{{ url_for('auth.register') }}" class="inline-flex items-center gap-3 bg-gradient-to-r from-amber-600 to-amber-500 text-charcoal-950 px-10 py-4 font-semibold text-sm tracking-wider hover:from-amber-500 hover:to-amber-400 transition-all shadow-[0_6px_30px_rgba(196,149,106,0.3)] hover:shadow-[0_8px_40px_rgba(196,149,106,0.4)]">
+                Create Your Account
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         FOOTER
+    ═══════════════════════════════════════ -->
+    <footer class="border-t border-charcoal-800/40 py-12">
+        <div class="max-w-7xl mx-auto px-6 lg:px-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 border border-amber-800/50 bg-charcoal-900 flex items-center justify-center text-amber-500 font-display italic text-sm">T</div>
+                    <span class="font-display italic text-cream-50 tracking-wide">Tablii</span>
+                </div>
+                <div class="flex items-center gap-8 text-sm text-charcoal-400">
+                    <a href="#features" class="hover:text-amber-400 transition-colors">Features</a>
+                    <a href="#pricing" class="hover:text-amber-400 transition-colors">Pricing</a>
+                    <a href="{{ url_for('auth.login') }}" class="hover:text-amber-400 transition-colors">Sign In</a>
+                    <a href="{{ url_for('auth.register') }}" class="hover:text-amber-400 transition-colors">Register</a>
+                </div>
+                <p class="text-xs text-charcoal-500">© 2026 Tablii. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
