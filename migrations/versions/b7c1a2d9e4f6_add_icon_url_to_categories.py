@@ -1,7 +1,7 @@
 """add icon_url to categories
 
 Revision ID: b7c1a2d9e4f6
-Revises: f3d4b6a7c9e1
+Revises: a6b3f1c2d4e5
 Create Date: 2026-04-22 20:05:00.000000
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'b7c1a2d9e4f6'
-down_revision = 'f3d4b6a7c9e1'
+down_revision = 'a6b3f1c2d4e5'
 branch_labels = None
 depends_on = None
 

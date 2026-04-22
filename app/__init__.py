@@ -162,6 +162,7 @@ def _maybe_seed_demo_data(app):
         from seed import seed_current_app
         seed_current_app(os.environ.get('FLASK_ENV', 'development'))
     except Exception:
+        db.session.rollback()
         app.logger.exception('Failed to auto-seed demo data.')
 
 
