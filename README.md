@@ -43,42 +43,104 @@
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## 🚀 Quick Start (Local Development - Windows Only)
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/tablii.git
-cd tablii
+Use **PowerShell** on Windows. Do everything from the project root folder.
 
-# 2. Create a virtual environment
-python -m venv venv
-source venv/bin/activate        # Linux / macOS
-# venv\Scripts\activate         # Windows
+### 1. Clone the repo and enter the project
 
-# 3. Install Python dependencies
+```powershell
+git clone https://github.com/0xyo/Tablii.git
+cd Tablii
+```
+
+If your folder is named `restaurant` instead of `Tablii`, use:
+
+```powershell
+cd C:\Users\YOUR_NAME\Desktop\restaurant
+```
+
+### 2. Create and activate the virtual environment
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+If PowerShell blocks activation, run this once in the same PowerShell window:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+```
+
+### 3. Install Python packages
+
+```powershell
 pip install -r requirements.txt
+```
 
-# 4. Install Node dependencies
+### 4. Install Node packages
+
+```powershell
 npm install
+```
 
-# 5. Build Tailwind CSS
+### 5. Create the local `.env` file
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Make sure `.env` contains at least:
+
+```env
+FLASK_ENV=development
+DATABASE_URL=sqlite:///dev.db
+SECRET_KEY=dev-secret
+SOCKETIO_CORS_ORIGINS=*
+```
+
+### 6. Build the CSS
+
+```powershell
 npm run build:css
+```
 
-# 6. Set up environment variables
-cp .env.example .env
-# Edit .env with your values (see Environment Variables below)
+### 7. Create/update the database
 
-# 7. Initialize the database
+```powershell
 flask db upgrade
+```
 
-# 8. (Optional) Seed with demo data
+### 8. Seed demo accounts
+
+```powershell
 python seed.py
+```
 
-# 9. Run the development server
+Demo logins:
+
+- Super admin: `superadmin@tablii.com` / `admin1234`
+- Owner: `owner@tablii.com` / `owner1234`
+- Staff restaurant slug: `chez-ahmed`
+- Staff users: `caisse1`, `serveur1`, `cuisine1` / `staff1234`
+
+### 9. Run the app
+
+```powershell
 python run.py
 ```
 
-The app will be available at **http://localhost:5000**.
+Open: **http://127.0.0.1:5000**
+
+### Common mistakes
+
+- Do **not** run the app from the old nested `tablii` folder.
+- Run commands from the project root, the folder that contains `run.py`.
+- If `python run.py` says it cannot find the file, you are in the wrong folder.
+- If login always fails, run `python seed.py` again.
+- The local SQLite file should be created at `instance\dev.db`.
 
 ---
 

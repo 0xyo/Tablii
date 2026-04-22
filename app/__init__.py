@@ -155,7 +155,7 @@ def _maybe_seed_demo_data(app):
     if app.config.get('TESTING'):
         return
 
-    if not _truthy_env('TABLII_AUTO_SEED'):
+    if not _demo_bootstrap_requested():
         return
 
     try:
