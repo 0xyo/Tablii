@@ -23,6 +23,8 @@ node_modules/
 # IDE
 .vscode/
 .idea/
+.agents/
+.impeccable/
 
 # OS
 .DS_Store
@@ -30,6 +32,12 @@ Thumbs.db
 
 # Database
 *.db
+
+# Test / local tooling
+.pytest_cache/
+
+# Local planning notes
+phase-*
 
 # Docs
 *.md
