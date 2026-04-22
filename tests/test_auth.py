@@ -101,6 +101,7 @@ def test_owner_bootstrap_is_available_when_demo_bootstrap_requested(monkeypatch)
     monkeypatch.delenv('TABLII_AUTO_SEED', raising=False)
 
     from app import create_app, db, _ensure_owner_from_env
+    from app.models.restaurant import Restaurant
     from app.models.user import User
 
     app = create_app('development')
@@ -111,4 +112,7 @@ def test_owner_bootstrap_is_available_when_demo_bootstrap_requested(monkeypatch)
         assert owner is not None
         assert owner.role == 'owner'
         assert owner.check_password('owner1234')
+        restaurant = Restaurant.query.filter_by(owner_id=owner.id).first()
+        assert restaurant is not None
+        assert restaurant.slug == 'chez-ahmed'
         db.drop_all()

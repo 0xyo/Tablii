@@ -72,18 +72,24 @@ def _ensure_super_admin_from_env(app):
 
 
 def _ensure_owner_from_env(app):
-    """Create/update owner demo account when deploy bootstrap is enabled."""
+    """Create/update owner demo account and its restaurant when enabled."""
     if app.config.get('TESTING') or not _demo_bootstrap_requested():
         return
 
     email = (os.environ.get('TABLII_OWNER_EMAIL') or 'owner@tablii.com').strip().lower()
     password = (os.environ.get('TABLII_OWNER_PASSWORD') or 'owner1234').strip()
     name = (os.environ.get('TABLII_OWNER_NAME') or 'Ahmed Ben Ali').strip()
+    restaurant_name = (os.environ.get('TABLII_RESTAURANT_NAME') or 'Chez Ahmed').strip()
+    restaurant_slug = (os.environ.get('TABLII_RESTAURANT_SLUG') or 'chez-ahmed').strip()
+    restaurant_city = (os.environ.get('TABLII_RESTAURANT_CITY') or 'Tunis').strip()
+    restaurant_address = (os.environ.get('TABLII_RESTAURANT_ADDRESS') or '15 Rue de la Kasbah, Tunis').strip()
+    restaurant_phone = (os.environ.get('TABLII_RESTAURANT_PHONE') or '+21671000001').strip()
 
     if not email or not password:
         return
 
     from app.models.user import User
+    from app.models.restaurant import Restaurant, Subscription
 
     try:
         user = User.query.filter_by(email=email).first()
@@ -100,6 +106,44 @@ def _ensure_owner_from_env(app):
         user.role = 'owner'
         user.is_active = True
         user.set_password(password)
+        db.session.flush()
+
+        restaurant = Restaurant.query.filter_by(slug=restaurant_slug).first()
+        if not restaurant:
+            restaurant = Restaurant(
+                owner_id=user.id,
+                name=restaurant_name,
+                slug=restaurant_slug,
+                description='Cuisine tunisienne authentique -- saveurs du terroir',
+                city=restaurant_city or None,
+                address=restaurant_address or None,
+                phone=restaurant_phone or None,
+                currency='TND',
+                tax_rate=7.0,
+                auto_accept=False,
+                is_active=True,
+                is_open=True,
+            )
+            db.session.add(restaurant)
+            db.session.flush()
+        else:
+            restaurant.owner_id = user.id
+            restaurant.name = restaurant_name or restaurant.name
+            restaurant.city = restaurant_city or restaurant.city
+            restaurant.address = restaurant_address or restaurant.address
+            restaurant.phone = restaurant_phone or restaurant.phone
+            restaurant.is_active = True
+            restaurant.is_open = True
+
+        if not restaurant.subscription:
+            db.session.add(Subscription(
+                restaurant_id=restaurant.id,
+                plan='pro',
+                max_tables=20,
+                max_items=100,
+                is_active=True,
+            ))
+
         db.session.commit()
     except Exception:
         db.session.rollback()
