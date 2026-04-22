@@ -4,40 +4,40 @@
 
 {% block dashboard_content %}
 <div class="max-w-2xl">
-    <a href="{{ url_for('dashboard.menu_items') }}" class="text-sm text-gray-500 hover:text-orange-500 mb-4 inline-block">← Back to Items</a>
+    <a href="{{ url_for('dashboard.menu_items') }}" class="text-sm hover:text-orange-500 mb-4 inline-block" style="color:var(--text-muted);">← Back to Items</a>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <form method="POST" enctype="multipart/form-data" class="space-y-5">
+        <form method="POST" enctype="multipart/form-data" class="space-y-5" id="item-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- Names -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (FR) *</label>
-                    <input type="text" name="name_fr" required
+                    <label for="name_fr" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Name (FR) <span style="color:var(--color-red);">*</span></label>
+                    <input type="text" id="name_fr" name="name_fr" required aria-required="true"
                            value="{{ (form.name_fr if form else None) or (item.name_fr if item else '') }}"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary); focus:ring-color:var(--color-amber);">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (AR)</label>
-                    <input type="text" name="name_ar" dir="rtl"
+                    <label for="name_ar" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Name (AR)</label>
+                    <input type="text" id="name_ar" name="name_ar" dir="rtl"
                            value="{{ (form.name_ar if form else None) or (item.name_ar if item else '') }}"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary); font-family: 'Noto Sans Arabic', sans-serif;">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Name (EN)</label>
-                    <input type="text" name="name_en"
+                    <label for="name_en" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Name (EN)</label>
+                    <input type="text" id="name_en" name="name_en"
                            value="{{ (form.name_en if form else None) or (item.name_en if item else '') }}"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
                 </div>
             </div>
 
             <!-- Category & Price -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Category *</label>
-                    <select name="category_id" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
-                        <option value="">Select category...</option>
+                    <label for="category_id" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Category <span style="color:var(--color-red);">*</span></label>
+                    <select id="category_id" name="category_id" required aria-required="true" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
+                        <option value="">Select a category...</option>
                         {% for cat in categories %}
                         <option value="{{ cat.id }}"
                                 {{ 'selected' if (item and item.category_id == cat.id) or (form and form.category_id == cat.id|string) }}>
@@ -47,39 +47,39 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Price ({{ restaurant.currency }}) *</label>
-                    <input type="number" name="price" step="0.001" min="0" required
+                    <label for="price" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Price ({{ restaurant.currency }}) <span style="color:var(--color-red);">*</span></label>
+                    <input type="number" id="price" name="price" step="0.001" min="0" required aria-required="true"
                            value="{{ (form.price if form else None) or (item.price if item else '') }}"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
                 </div>
             </div>
 
             <!-- Descriptions -->
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Description (FR)</label>
-                <textarea name="description_fr" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">{{ (form.description_fr if form else None) or (item.description_fr if item else '') }}</textarea>
+                <label for="description_fr" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Description (FR)</label>
+                <textarea id="description_fr" name="description_fr" rows="3" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">{{ (form.description_fr if form else None) or (item.description_fr if item else '') }}</textarea>
             </div>
 
             <!-- Extra fields -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Prep Time (min)</label>
-                    <input type="number" name="prep_time" min="0"
+                    <label for="prep_time" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Prep Time (minutes)</label>
+                    <input type="number" id="prep_time" name="prep_time" min="0"
                            value="{{ (form.prep_time if form else None) or (item.prep_time if item else '') }}"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Calories</label>
-                    <input type="number" name="calories" min="0"
+                    <label for="calories" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Calories per serving</label>
+                    <input type="number" id="calories" name="calories" min="0"
                            value="{{ (form.calories if form else None) or (item.calories if item else '') }}"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Allergens</label>
-                    <input type="text" name="allergens"
+                    <label for="allergens" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Allergens (comma-separated)</label>
+                    <input type="text" id="allergens" name="allergens"
                            value="{{ (form.allergens if form else None) or (item.allergens if item else '') }}"
-                           placeholder="e.g. nuts, dairy"
-                           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                           placeholder="nuts, dairy, gluten"
+                           class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
                 </div>
             </div>
 
@@ -106,17 +106,17 @@
             </div>
 
             <!-- Popular checkbox -->
-            <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="is_popular" class="accent-orange-500"
+            <label class="flex items-center gap-2 text-sm" style="color:var(--text-primary);">
+                <input type="checkbox" name="is_popular" 
                        {{ 'checked' if item and item.is_popular }}>
-                <span>Mark as Popular ⭐</span>
+                <span>Featured item ◆ (appears in top suggestions)</span>
             </label>
 
-            <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">
-                    {{ 'Save Changes' if mode == 'edit' else 'Create Item' }}
+            <div class="flex gap-3 pt-4">
+                <button type="submit" id="item-submit-btn" class="text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors" style="background-color:var(--color-amber); min-height:44px; display:flex; align-items:center;" onsubmit="this.disabled=true;">
+                    <span id="item-btn-text">{{ 'Save Changes' if mode == 'edit' else 'Create Item' }}</span>
                 </button>
-                <a href="{{ url_for('dashboard.menu_items') }}" class="border border-gray-200 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</a>
+                <a href="{{ url_for('dashboard.menu_items') }}" class="px-6 py-3 rounded-lg text-sm font-medium transition-colors" style="border:1px solid var(--border-primary); color:var(--text-primary); min-height:44px; display:flex; align-items:center;">Cancel</a>
             </div>
         </form>
     </div>
@@ -127,13 +127,25 @@
 <script src="{{ url_for('static', filename='js/menu_builder.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    initImagePreview('image-input', 'image-preview');
+    initImagePreview('image', 'image-preview');
     
-    // Show container when file is selected
-    document.getElementById('image-input').addEventListener('change', function() {
+    const form = document.getElementById('item-form');
+    const submitBtn = document.getElementById('item-submit-btn');
+    const btnText = document.getElementById('item-btn-text');
+    const originalText = btnText.textContent;
+    
+    // Show preview when file is selected
+    document.getElementById('image').addEventListener('change', function() {
         if (this.files && this.files[0]) {
             document.getElementById('preview-container').classList.remove('hidden');
         }
+    });
+    
+    // Form submission loading state
+    form.addEventListener('submit', () => {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        btnText.textContent = 'Saving...';
     });
 });
 </script>

@@ -1,77 +1,87 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% block title %}Customizations — {{ item.name_fr }}{% endblock %}
-{% block page_title %}Customizations — {{ item.name_fr }}{% endblock %}
+{% block page_title %}Item Options — {{ item.name_fr }}{% endblock %}
 
 {% block dashboard_content %}
-<a href="{{ url_for('dashboard.menu_items') }}" class="text-sm text-gray-500 hover:text-orange-500 mb-4 inline-block">← Back to Items</a>
+<a href="{{ url_for('dashboard.menu_items') }}" class="text-sm mb-6 inline-block transition-colors" style="color:var(--text-muted);">← Back to Items</a>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
     <!-- Existing customizations -->
-    <div class="xl:col-span-2 space-y-4">
+    <div class="xl:col-span-2 space-y-4" id="customization-list">
         {% for cust in customizations %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <div class="flex items-center justify-between mb-3">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5" style="border-color:var(--border-primary);">
+            <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h3 class="font-semibold text-gray-800">{{ cust.group_name_fr }}</h3>
-                    <span class="text-xs text-gray-400">{{ cust.selection_type|title }} • {{ 'Required' if cust.is_required else 'Optional' }}</span>
+                    <h3 class="font-semibold" style="color:var(--text-primary);">{{ cust.group_name_fr }}</h3>
+                    <span class="text-xs" style="color:var(--text-secondary);">{{ '○ Single' if cust.selection_type == 'single' else '◆ Multiple' }} • {{ 'Required' if cust.is_required else 'Optional' }}</span>
                 </div>
-                <form method="POST" action="{{ url_for('dashboard.customization_delete', id=cust.id) }}" onsubmit="return confirm('Delete this group and all its options?')">
+                <form method="POST" action="{{ url_for('dashboard.customization_delete', id=cust.id) }}" onsubmit="return confirm('Delete this option group and all choices? This cannot be undone.')" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete Group</button>
+                    <button type="submit" aria-label="Delete option group" class="text-xs font-medium px-3 py-1.5 rounded transition-colors" style="color:var(--color-red); background:none; border:none; cursor:pointer;">Delete</button>
                 </form>
             </div>
 
             <!-- Options list -->
-            <div class="space-y-1 mb-4">
+            <div class="space-y-2 mb-4">
                 {% for opt in cust.opts %}
-                <div class="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
-                    <span>{{ opt.name_fr }}</span>
-                    <span class="text-gray-400">+{{ '%.3f'|format(opt.extra_price) }} {{ restaurant.currency }}</span>
+                <div class="flex items-center justify-between text-sm rounded-lg px-3 py-2" style="background-color:var(--bg-secondary); border:1px solid var(--border-primary);">
+                    <span style="color:var(--text-primary);">{{ opt.name_fr }}</span>
+                    <span style="color:var(--text-secondary);">+{{ '%.3f'|format(opt.extra_price) }} {{ restaurant.currency }}</span>
                 </div>
                 {% else %}
-                <p class="text-sm text-gray-400 italic">No options yet.</p>
+                <p class="text-sm" style="color:var(--text-muted);">No options added yet.</p>
                 {% endfor %}
             </div>
 
             <!-- Add option form -->
-            <details class="text-sm">
-                <summary class="cursor-pointer text-orange-500 font-medium hover:text-orange-600">+ Add Option</summary>
-                <form method="POST" action="{{ url_for('dashboard.custom_option_add', id=cust.id) }}" class="mt-3 grid grid-cols-2 gap-2">
+            <details class="text-sm" open>
+                <summary class="cursor-pointer font-medium transition-colors px-3 py-2" style="color:var(--color-amber); margin:-8px -3px 0 -3px; border-radius:4px;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">+ Add Choice</summary>
+                <form method="POST" action="{{ url_for('dashboard.custom_option_add', id=cust.id) }}" class="mt-3 grid grid-cols-2 gap-2 pt-3 border-t" style="border-color:var(--border-primary);">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="text" name="name_fr" placeholder="Name (FR) *" required class="col-span-2 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
-                    <input type="text" name="name_ar" placeholder="Name (AR)" dir="rtl" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
-                    <input type="number" name="extra_price" placeholder="Extra price" value="0" step="0.001" min="0" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
-                    <label class="flex items-center gap-2 col-span-2">
-                        <input type="checkbox" name="is_default"> <span>Default option</span>
+                    <input type="text" name="name_fr" placeholder="Option name (FR)" required class="col-span-2 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);" aria-required="true">
+                    <input type="text" name="name_ar" placeholder="Option name (AR)" dir="rtl" class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary); font-family: 'Noto Sans Arabic', sans-serif;">
+                    <input type="number" name="extra_price" placeholder="Price" value="0" step="0.001" min="0" class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
+                    <label class="flex items-center gap-2 col-span-2" style="color:var(--text-primary);">
+                        <input type="checkbox" name="is_default"> <span>Default choice</span>
                     </label>
-                    <button type="submit" class="col-span-2 bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Add Option</button>
+                    <button type="submit" class="col-span-2 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px]" style="background-color:var(--color-amber); color:var(--color-white);">Add Choice</button>
                 </form>
             </details>
         </div>
         {% else %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
-            No customization groups yet.
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center" style="border-color:var(--border-primary); color:var(--text-muted);">
+            <p class="mb-2">No option groups yet.</p>
+            <p class="text-xs">Add a group on the right to let customers customize this item (e.g., size, toppings, preparation).</p>
         </div>
         {% endfor %}
     </div>
 
     <!-- Add group form -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 h-fit">
-        <h3 class="font-semibold text-gray-800 mb-4">Add Group</h3>
-        <form method="POST" action="{{ url_for('dashboard.customization_add', item_id=item.id) }}" class="space-y-3">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-fit" style="border-color:var(--border-primary);">
+        <h3 class="font-semibold mb-6" style="color:var(--text-primary);">Add New Group</h3>
+        <form method="POST" action="{{ url_for('dashboard.customization_add', item_id=item.id) }}" class="space-y-4" id="add-customization-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="text" name="group_name_fr" placeholder="Group Name (FR) *" required
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
-            <input type="text" name="group_name_ar" placeholder="Group Name (AR)" dir="rtl"
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
-            <select name="selection_type" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
-                <option value="single">Single choice</option>
-                <option value="multiple">Multiple choice</option>
-            </select>
-            <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="is_required" class="accent-orange-500"> Required
+            <div>
+                <label for="group_name_fr" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Group Name (FR) <span style="color:var(--color-red);">*</span></label>
+                <input type="text" id="group_name_fr" name="group_name_fr" placeholder="e.g., Size, Toppings" required aria-required="true"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
+            </div>
+            <div>
+                <label for="group_name_ar" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Group Name (AR)</label>
+                <input type="text" id="group_name_ar" name="group_name_ar" placeholder="الحجم" dir="rtl"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary); font-family: 'Noto Sans Arabic', sans-serif;">
+            </div>
+            <div>
+                <label for="selection_type" class="block text-xs font-medium mb-1" style="color:var(--text-secondary);">Customers can select</label>
+                <select id="selection_type" name="selection_type" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary);">
+                    <option value="single">○ One choice only</option>
+                    <option value="multiple">◆ Multiple choices</option>
+                </select>
+            </div>
+            <label class="flex items-center gap-2 text-sm" style="color:var(--text-primary); padding:8px 0;">
+                <input type="checkbox" name="is_required"> <span>Customers must select an option</span>
             </label>
-            <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Add Group</button>
+            <button type="submit" class="w-full py-3 rounded-lg text-sm font-medium transition-colors min-h-[44px]" style="background-color:var(--color-amber); color:var(--color-white);">Add Group</button>
         </form>
     </div>
 </div>
