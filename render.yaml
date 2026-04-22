@@ -6,7 +6,7 @@ services:
       pip install -r requirements.txt
       npm install
       npm run build:css
-      TABLII_AUTO_SEED=false flask db upgrade
+      TABLII_SKIP_BOOTSTRAP=true flask db upgrade
       python seed.py
     startCommand: gunicorn --worker-class gthread --threads 4 -w 1 --bind 0.0.0.0:$PORT run:app
     envVars:

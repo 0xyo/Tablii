@@ -27,6 +27,11 @@ def _truthy_env(name):
     return (os.environ.get(name, '').strip().lower() in {'1', 'true', 'yes', 'on'})
 
 
+def _bootstrap_disabled():
+    """Return True when startup bootstrap work should be skipped entirely."""
+    return _truthy_env('TABLII_SKIP_BOOTSTRAP')
+
+
 def _demo_bootstrap_requested():
     """Return True when deploy-time demo account bootstrapping should run."""
     return (
@@ -40,7 +45,7 @@ def _demo_bootstrap_requested():
 
 def _ensure_super_admin_from_env(app):
     """Create/update super admin from env vars when provided."""
-    if app.config.get('TESTING'):
+    if app.config.get('TESTING') or _bootstrap_disabled():
         return
 
     email = (os.environ.get('TABLII_SUPERADMIN_EMAIL') or '').strip().lower()
@@ -73,7 +78,7 @@ def _ensure_super_admin_from_env(app):
 
 def _ensure_owner_from_env(app):
     """Create/update owner demo account and its restaurant when enabled."""
-    if app.config.get('TESTING') or not _demo_bootstrap_requested():
+    if app.config.get('TESTING') or _bootstrap_disabled() or not _demo_bootstrap_requested():
         return
 
     email = (os.environ.get('TABLII_OWNER_EMAIL') or 'owner@tablii.com').strip().lower()
@@ -152,7 +157,7 @@ def _ensure_owner_from_env(app):
 
 def _maybe_seed_demo_data(app):
     """Seed demo data when explicitly enabled for hosted demo environments."""
-    if app.config.get('TESTING'):
+    if app.config.get('TESTING') or _bootstrap_disabled():
         return
 
     if not _demo_bootstrap_requested():
