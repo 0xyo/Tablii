@@ -87,3 +87,28 @@ class TestLogin:
 
         location = response.headers.get('Location', '')
         assert 'login' in location, 'After logout, should redirect to login page'
+
+
+def test_owner_bootstrap_is_available_when_demo_bootstrap_requested(monkeypatch):
+    """Startup should ensure the demo owner account exists on hosted bootstraps."""
+    monkeypatch.setenv('FLASK_ENV', 'development')
+    monkeypatch.setenv('DATABASE_URL', 'sqlite://')
+    monkeypatch.setenv('SOCKETIO_CORS_ORIGINS', '*')
+    monkeypatch.setenv('TABLII_SUPERADMIN_EMAIL', 'superadmin@tablii.com')
+    monkeypatch.setenv('TABLII_SUPERADMIN_PASSWORD', 'admin1234')
+    monkeypatch.delenv('TABLII_OWNER_EMAIL', raising=False)
+    monkeypatch.delenv('TABLII_OWNER_PASSWORD', raising=False)
+    monkeypatch.delenv('TABLII_AUTO_SEED', raising=False)
+
+    from app import create_app, db, _ensure_owner_from_env
+    from app.models.user import User
+
+    app = create_app('development')
+    with app.app_context():
+        db.create_all()
+        _ensure_owner_from_env(app)
+        owner = User.query.filter_by(email='owner@tablii.com').first()
+        assert owner is not None
+        assert owner.role == 'owner'
+        assert owner.check_password('owner1234')
+        db.drop_all()

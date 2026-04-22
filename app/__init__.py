@@ -22,6 +22,22 @@ socketio = SocketIO()
 csrf = CSRFProtect()
 
 
+def _truthy_env(name):
+    """Return True when an environment variable is set to a truthy value."""
+    return (os.environ.get(name, '').strip().lower() in {'1', 'true', 'yes', 'on'})
+
+
+def _demo_bootstrap_requested():
+    """Return True when deploy-time demo account bootstrapping should run."""
+    return (
+        _truthy_env('TABLII_AUTO_SEED')
+        or bool((os.environ.get('TABLII_SUPERADMIN_EMAIL') or '').strip())
+        or bool((os.environ.get('TABLII_SUPERADMIN_PASSWORD') or '').strip())
+        or bool((os.environ.get('TABLII_OWNER_EMAIL') or '').strip())
+        or bool((os.environ.get('TABLII_OWNER_PASSWORD') or '').strip())
+    )
+
+
 def _ensure_super_admin_from_env(app):
     """Create/update super admin from env vars when provided."""
     if app.config.get('TESTING'):
@@ -55,16 +71,47 @@ def _ensure_super_admin_from_env(app):
         app.logger.exception('Failed to bootstrap super admin from environment.')
 
 
+def _ensure_owner_from_env(app):
+    """Create/update owner demo account when deploy bootstrap is enabled."""
+    if app.config.get('TESTING') or not _demo_bootstrap_requested():
+        return
+
+    email = (os.environ.get('TABLII_OWNER_EMAIL') or 'owner@tablii.com').strip().lower()
+    password = (os.environ.get('TABLII_OWNER_PASSWORD') or 'owner1234').strip()
+    name = (os.environ.get('TABLII_OWNER_NAME') or 'Ahmed Ben Ali').strip()
+
+    if not email or not password:
+        return
+
+    from app.models.user import User
+
+    try:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(
+                name=name,
+                email=email,
+                role='owner',
+                is_active=True,
+            )
+            db.session.add(user)
+
+        user.name = name
+        user.role = 'owner'
+        user.is_active = True
+        user.set_password(password)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('Failed to bootstrap owner from environment.')
+
+
 def _maybe_seed_demo_data(app):
     """Seed demo data when explicitly enabled for hosted demo environments."""
     if app.config.get('TESTING'):
         return
 
-    auto_seed_enabled = (
-        os.environ.get('TABLII_AUTO_SEED', '').strip().lower()
-        in {'1', 'true', 'yes', 'on'}
-    )
-    if not auto_seed_enabled:
+    if not _truthy_env('TABLII_AUTO_SEED'):
         return
 
     try:
@@ -124,6 +171,7 @@ def create_app(config_name=None):
 
     with app.app_context():
         _maybe_seed_demo_data(app)
+        _ensure_owner_from_env(app)
         _ensure_super_admin_from_env(app)
 
     # Dual user loader (User and StaffUser share session via prefixed IDs)
