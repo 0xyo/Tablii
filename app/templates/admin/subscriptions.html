@@ -13,8 +13,8 @@
   </span>
 </div>
 
-<div style="background:#1a1814; border:1px solid #2a2826; border-radius:10px; overflow:hidden;">
-  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+<div style="background:#1a1814; border:1px solid #2a2826; border-radius:10px; overflow-x:auto;">
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem; min-width:900px;" role="table">
     <thead>
       <tr style="background:#0F0D0B; border-bottom:1px solid #2a2826;">
         <th style="padding:12px 16px; text-align:left; color:#8a7f70; font-weight:600;">Restaurant</th>
@@ -41,26 +41,31 @@
         </td>
         <td style="padding:12px 16px; text-align:center; color:#c9b99a;">{{ sub.max_tables }}</td>
         <td style="padding:12px 16px; text-align:center; color:#c9b99a;">{{ sub.max_items }}</td>
-        <td style="padding:12px 16px; color:{% if sub.expires_at %}#c9b99a{% else %}#6b6057{% endif %}; font-size:0.85rem;">
+        <td style="padding:12px 16px; color:{% if sub.expires_at %}#d4c5a9{% else %}#9a8e7e{% endif %}; font-size:0.85rem;">
           {{ sub.expires_at.strftime('%d %b %Y') if sub.expires_at else 'Never' }}
         </td>
         <td style="padding:12px 16px; text-align:center;">
-          <span style="padding:3px 10px; border-radius:12px; font-size:0.8rem;
+          <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600;
             background:{% if sub.is_active %}#0f2e1a{% else %}#3b1515{% endif %};
             color:{% if sub.is_active %}#66bb6a{% else %}#e57373{% endif %};">
-            {{ 'Active' if sub.is_active else 'Inactive' }}
+            <span style="display:inline-block;">{% if sub.is_active %}●{% else %}○{% endif %}</span>{{ 'Active' if sub.is_active else 'Inactive' }}
           </span>
         </td>
         <td style="padding:12px 16px; text-align:center;">
           <button onclick="openEditModal({{ sub.id }}, '{{ sub.plan }}', {{ sub.max_tables }}, {{ sub.max_items }}, '{{ sub.expires_at.strftime('%Y-%m-%d') if sub.expires_at else '' }}')"
-                  style="padding:4px 12px; background:#1e2a38; color:#64b5f6; border:1px solid #2a3a4a; border-radius:6px; cursor:pointer; font-size:0.8rem;">
+                  style="padding:6px 14px; background:#1e2a38; color:#64b5f6; border:1px solid #2a3a4a; border-radius:6px; cursor:pointer; font-size:0.8rem; font-weight:600; transition:all 0.2s; min-height:32px;" 
+                  onmouseover="this.style.background='#1e3a48'" 
+                  onmouseout="this.style.background='#1e2a38'">
             Edit
           </button>
         </td>
       </tr>
       {% else %}
       <tr>
-        <td colspan="7" style="padding:32px; text-align:center; color:#6b6057;">No subscriptions found.</td>
+        <td colspan="7" style="padding:40px 32px; text-align:center;">
+          <div style="color:#d4c5a9; font-size:0.95rem; font-weight:600; margin-bottom:8px;">No subscriptions configured</div>
+          <div style="color:#9a8e7e; font-size:0.85rem;">Create your first subscription plan to enable restaurants to subscribe.</div>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -68,15 +73,21 @@
 </div>
 
 <!-- Edit Modal -->
-<div id="edit-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
-  <div style="background:#1a1814; border:1px solid #2a2826; border-radius:12px; padding:32px; width:420px; max-width:90%;">
+<dialog id="edit-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; max-width:min(90vw, 480px); margin:auto; animation:modalFadeIn 0.2s ease-out;">
+  <style>
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+  <div style="background:#1a1814; border:1px solid #2a2826; border-radius:12px; padding:32px; width:100%;">
     <h2 style="margin:0 0 20px; color:#f5c56a; font-size:1.2rem;">Edit Subscription</h2>
     <form id="edit-form" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
       <div style="margin-bottom:16px;">
-        <label style="display:block; color:#8a7f70; font-size:0.85rem; margin-bottom:6px;">Plan</label>
-        <select id="edit-plan" name="plan" style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px;">
+        <label for="edit-plan" style="display:block; color:#d4c5a9; font-size:0.85rem; margin-bottom:6px; font-weight:600;">Plan</label>
+        <select id="edit-plan" name="plan" style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px; outline-color:#f5c56a;">
           <option value="free">Free</option>
           <option value="starter">Starter</option>
           <option value="pro">Pro</option>
@@ -86,32 +97,38 @@
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
         <div>
-          <label style="display:block; color:#8a7f70; font-size:0.85rem; margin-bottom:6px;">Max Tables</label>
+          <label for="edit-max-tables" style="display:block; color:#d4c5a9; font-size:0.85rem; margin-bottom:6px; font-weight:600;">Max Tables</label>
           <input id="edit-max-tables" type="number" name="max_tables" min="1"
-                 style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px; box-sizing:border-box;" />
+                 style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px; box-sizing:border-box; outline-color:#f5c56a;" />
         </div>
         <div>
-          <label style="display:block; color:#8a7f70; font-size:0.85rem; margin-bottom:6px;">Max Items</label>
+          <label for="edit-max-items" style="display:block; color:#d4c5a9; font-size:0.85rem; margin-bottom:6px; font-weight:600;">Max Items</label>
           <input id="edit-max-items" type="number" name="max_items" min="1"
-                 style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px; box-sizing:border-box;" />
+                 style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px; box-sizing:border-box; outline-color:#f5c56a;" />
         </div>
       </div>
 
       <div style="margin-bottom:24px;">
-        <label style="display:block; color:#8a7f70; font-size:0.85rem; margin-bottom:6px;">Expires At</label>
+        <label for="edit-expires" style="display:block; color:#d4c5a9; font-size:0.85rem; margin-bottom:6px; font-weight:600;">Expires At</label>
         <input id="edit-expires" type="date" name="expires_at"
-               style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px; box-sizing:border-box;" />
+               style="width:100%; padding:8px 12px; background:#0F0D0B; border:1px solid #2a2826; color:#f5e6c8; border-radius:6px; box-sizing:border-box; outline-color:#f5c56a;" />
       </div>
 
       <div style="display:flex; gap:12px; justify-content:flex-end;">
         <button type="button" onclick="closeEditModal()"
-                style="padding:8px 20px; background:#1e1c1a; color:#c9b99a; border:1px solid #2a2826; border-radius:6px; cursor:pointer;">Cancel</button>
+                style="padding:10px 20px; background:#1e1c1a; color:#c9b99a; border:1px solid #2a2826; border-radius:6px; cursor:pointer; min-height:44px; transition:all 0.2s;">
+          Cancel
+        </button>
         <button type="submit"
-                style="padding:8px 20px; background:#f5c56a; color:#0F0D0B; border:none; border-radius:6px; cursor:pointer; font-weight:600;">Save</button>
+                style="padding:10px 20px; background:#f5c56a; color:#0F0D0B; border:none; border-radius:6px; cursor:pointer; font-weight:600; min-height:44px; transition:all 0.2s;" 
+                onmouseover="this.style.opacity='0.9'" 
+                onmouseout="this.style.opacity='1'">
+          <span id="save-btn-text">Save</span>
+        </button>
       </div>
     </form>
   </div>
-</div>
+</dialog>
 {% endblock %}
 
 {% block scripts %}
@@ -122,13 +139,45 @@ function openEditModal(subId, plan, maxTables, maxItems, expiresAt) {
   document.getElementById('edit-max-tables').value = maxTables;
   document.getElementById('edit-max-items').value = maxItems;
   document.getElementById('edit-expires').value = expiresAt;
-  document.getElementById('edit-modal').style.display = 'flex';
+  const modal = document.getElementById('edit-modal');
+  modal.style.display = 'flex';
+  modal.showModal?.();
+  document.getElementById('edit-plan').focus();
 }
 function closeEditModal() {
-  document.getElementById('edit-modal').style.display = 'none';
+  const modal = document.getElementById('edit-modal');
+  modal.style.display = 'none';
+  modal.close?.();
 }
 document.getElementById('edit-modal').addEventListener('click', function(e) {
   if (e.target === this) closeEditModal();
 });
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeEditModal();
+});
+var form = document.getElementById('edit-form');
+form.onsubmit = async function(e) {
+  e.preventDefault();
+  var submitBtn = form.querySelector('button[type="submit"]');
+  var originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.style.opacity = '0.6';
+  document.getElementById('save-btn-text').textContent = 'Saving...';
+  
+  var data = new FormData(form);
+  var response = await fetch(form.action, {
+    method: 'POST',
+    body: data
+  });
+  if (response.ok) {
+    document.getElementById('save-btn-text').textContent = 'Saved ✓';
+    setTimeout(() => { window.location.reload(); }, 500);
+  } else {
+    document.getElementById('save-btn-text').textContent = originalText;
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    alert('Error saving subscription');
+  }
+};
 </script>
 {% endblock %}
