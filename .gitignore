@@ -35,6 +35,7 @@ Thumbs.db
 
 # Test / local tooling
 .pytest_cache/
+tablii/
 
 # Local planning notes
 phase-*
