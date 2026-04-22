@@ -55,6 +55,25 @@ def _ensure_super_admin_from_env(app):
         app.logger.exception('Failed to bootstrap super admin from environment.')
 
 
+def _maybe_seed_demo_data(app):
+    """Seed demo data when explicitly enabled for hosted demo environments."""
+    if app.config.get('TESTING'):
+        return
+
+    auto_seed_enabled = (
+        os.environ.get('TABLII_AUTO_SEED', '').strip().lower()
+        in {'1', 'true', 'yes', 'on'}
+    )
+    if not auto_seed_enabled:
+        return
+
+    try:
+        from seed import seed_current_app
+        seed_current_app(os.environ.get('FLASK_ENV', 'development'))
+    except Exception:
+        app.logger.exception('Failed to auto-seed demo data.')
+
+
 def create_app(config_name=None):
     """
     Application factory.
@@ -104,6 +123,7 @@ def create_app(config_name=None):
     importlib.import_module('app.models')
 
     with app.app_context():
+        _maybe_seed_demo_data(app)
         _ensure_super_admin_from_env(app)
 
     # Dual user loader (User and StaffUser share session via prefixed IDs)

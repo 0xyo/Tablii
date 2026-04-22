@@ -44,7 +44,9 @@ class ProductionConfig(Config):
         raise ValueError(
             'SOCKETIO_CORS_ORIGINS must contain at least one origin in production.'
         )
-    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    if not SQLALCHEMY_DATABASE_URI:
+        raise ValueError('DATABASE_URL is required in production.')
     # Fix Render's postgres:// scheme and ensure psycopg (v3) driver is used.
     if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
         SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace(

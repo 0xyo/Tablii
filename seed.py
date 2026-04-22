@@ -30,232 +30,234 @@ def _env(name, default):
     return value or default
 
 
+def seed_current_app(config_label=None):
+    """Seed the active Flask app context with demo data."""
+    label = config_label or os.environ.get('FLASK_ENV', 'development')
+    db.create_all()
+
+    super_admin_email = _env('TABLII_SUPERADMIN_EMAIL', 'superadmin@tablii.com')
+    super_admin_password = _env('TABLII_SUPERADMIN_PASSWORD', 'admin1234')
+    owner_email = _env('TABLII_OWNER_EMAIL', 'owner@tablii.com')
+    owner_password = _env('TABLII_OWNER_PASSWORD', 'owner1234')
+    restaurant_name = _env('TABLII_RESTAURANT_NAME', 'Chez Ahmed')
+    restaurant_slug = _env('TABLII_RESTAURANT_SLUG', 'chez-ahmed')
+    restaurant_city = _env('TABLII_RESTAURANT_CITY', 'Tunis')
+    restaurant_address = _env('TABLII_RESTAURANT_ADDRESS', '15 Rue de la Kasbah, Tunis')
+    restaurant_phone = _env('TABLII_RESTAURANT_PHONE', '+21671000001')
+    staff_password = _env('TABLII_STAFF_PASSWORD', 'staff1234')
+
+    # ── Super Admin ──────────────────────────────────────────────────────
+    super_admin = User.query.filter_by(email=super_admin_email).first()
+    if not super_admin:
+        sa = User(
+            name='Super Admin',
+            email=super_admin_email,
+            role='super_admin',
+            is_active=True,
+        )
+        sa.set_password(super_admin_password)
+        db.session.add(sa)
+        db.session.flush()
+        print('  [+] Super admin created')
+    else:
+        super_admin.role = 'super_admin'
+        super_admin.is_active = True
+        super_admin.set_password(super_admin_password)
+        print('  [~] Super admin password refreshed')
+
+    # ── Owner ────────────────────────────────────────────────────────────
+    owner = User.query.filter_by(email=owner_email).first()
+    if not owner:
+        owner = User(
+            name='Ahmed Ben Ali',
+            email=owner_email,
+            role='owner',
+            is_active=True,
+        )
+        owner.set_password(owner_password)
+        db.session.add(owner)
+        db.session.flush()
+        print('  [+] Owner created')
+    else:
+        owner.role = 'owner'
+        owner.is_active = True
+        owner.set_password(owner_password)
+        print('  [~] Owner password refreshed')
+
+    # ── Restaurant ───────────────────────────────────────────────────────
+    restaurant = Restaurant.query.filter_by(slug=restaurant_slug).first()
+    if not restaurant:
+        restaurant = Restaurant(
+            owner_id=owner.id,
+            name=restaurant_name,
+            slug=restaurant_slug,
+            description='Cuisine tunisienne authentique -- saveurs du terroir',
+            city=restaurant_city,
+            address=restaurant_address,
+            phone=restaurant_phone,
+            currency='TND',
+            tax_rate=7.0,
+            auto_accept=False,
+            is_active=True,
+            is_open=True,
+        )
+        db.session.add(restaurant)
+        db.session.flush()
+        print('  [+] Restaurant created')
+    else:
+        print('  [-] Restaurant already exists, skipped')
+
+    # ── Subscription ─────────────────────────────────────────────────────
+    if not restaurant.subscription:
+        sub = Subscription(
+            restaurant_id=restaurant.id,
+            plan='pro',
+            max_tables=20,
+            max_items=100,
+            is_active=True,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=365),
+        )
+        db.session.add(sub)
+        print('  [+] Subscription (pro) created')
+
+    # ── Operating Hours ──────────────────────────────────────────────────
+    existing_hours = restaurant.operating_hours.count()
+    if existing_hours == 0:
+        for day in range(7):
+            db.session.add(OperatingHours(
+                restaurant_id=restaurant.id,
+                day_of_week=day,
+                open_time=time(10, 0),
+                close_time=time(23, 0),
+                is_closed=False,
+            ))
+        print('  [+] Operating hours created (10:00-23:00 daily)')
+
+    # ── Staff ────────────────────────────────────────────────────────────
+    staff_data = [
+        {'username': 'caisse1',   'name': 'Sami Caissier',  'role': 'cashier',  'password': staff_password},
+        {'username': 'serveur1',  'name': 'Rim Serveuse',   'role': 'waiter',   'password': staff_password},
+        {'username': 'cuisine1',  'name': 'Omar Cuisine',   'role': 'kitchen',  'password': staff_password},
+    ]
+    for s in staff_data:
+        exists = StaffUser.query.filter_by(
+            restaurant_id=restaurant.id, username=s['username']
+        ).first()
+        if not exists:
+            staff = StaffUser(
+                restaurant_id=restaurant.id,
+                username=s['username'],
+                name=s['name'],
+                role=s['role'],
+                is_active=True,
+            )
+            staff.set_password(s['password'])
+            db.session.add(staff)
+        else:
+            exists.role = s['role']
+            exists.is_active = True
+            exists.set_password(s['password'])
+    db.session.flush()
+    print('  [~] Staff accounts ensured (cashier, waiter, kitchen)')
+
+    # ── Categories ───────────────────────────────────────────────────────
+    existing_cats = restaurant.categories.count()
+    cats = {}
+    if existing_cats == 0:
+        categories_data = [
+            {'name_fr': 'Entrees',   'name_ar': None, 'name_en': 'Starters', 'icon': None, 'sort_order': 1},
+            {'name_fr': 'Plats',     'name_ar': None, 'name_en': 'Mains',    'icon': None, 'sort_order': 2},
+            {'name_fr': 'Desserts',  'name_ar': None, 'name_en': 'Desserts', 'icon': None, 'sort_order': 3},
+            {'name_fr': 'Boissons',  'name_ar': None, 'name_en': 'Drinks',   'icon': None, 'sort_order': 4},
+        ]
+        for c in categories_data:
+            cat = Category(
+                restaurant_id=restaurant.id,
+                name_fr=c['name_fr'],
+                name_ar=c['name_ar'],
+                name_en=c['name_en'],
+                icon=c['icon'],
+                sort_order=c['sort_order'],
+                is_active=True,
+            )
+            db.session.add(cat)
+            db.session.flush()
+            cats[c['name_fr']] = cat
+        print('  [+] 4 categories created')
+    else:
+        for cat in restaurant.categories.all():
+            cats[cat.name_fr] = cat
+        print('  [-] Categories already exist, skipped')
+
+    # ── Menu Items ───────────────────────────────────────────────────────
+    existing_items = MenuItem.query.filter_by(restaurant_id=restaurant.id).count()
+    if existing_items == 0 and cats:
+        items_data = [
+            {'name_fr': 'Salade Mechouia',         'price': 7.500,  'cat': 'Entrees',  'is_popular': True},
+            {'name_fr': "Brik a l'oeuf",           'price': 5.000,  'cat': 'Entrees'},
+            {'name_fr': 'Chorba Frik',             'price': 6.000,  'cat': 'Entrees'},
+            {'name_fr': 'Salade Tunisienne',       'price': 5.500,  'cat': 'Entrees'},
+            {'name_fr': 'Couscous Agneau',         'price': 22.000, 'cat': 'Plats',    'is_popular': True},
+            {'name_fr': 'Tajine Poulet Olives',    'price': 18.500, 'cat': 'Plats'},
+            {'name_fr': 'Merguez Grillees',        'price': 16.000, 'cat': 'Plats'},
+            {'name_fr': 'Makloub de la Mer',       'price': 24.000, 'cat': 'Plats',    'is_popular': True},
+            {'name_fr': 'Lablabi',                 'price': 9.000,  'cat': 'Plats'},
+            {'name_fr': 'Kafteji',                 'price': 11.000, 'cat': 'Plats'},
+            {'name_fr': 'Baklawa Maison',          'price': 8.000,  'cat': 'Desserts'},
+            {'name_fr': 'Creme Caramel',           'price': 6.000,  'cat': 'Desserts'},
+            {'name_fr': 'Assida Zgougou',          'price': 7.500,  'cat': 'Desserts', 'is_popular': True},
+            {'name_fr': 'Jus de Grenade Frais',    'price': 5.500,  'cat': 'Boissons'},
+            {'name_fr': 'Eau Minerale',            'price': 1.500,  'cat': 'Boissons'},
+        ]
+        for i in items_data:
+            db.session.add(MenuItem(
+                restaurant_id=restaurant.id,
+                category_id=cats[i['cat']].id,
+                name_fr=i['name_fr'],
+                price=i['price'],
+                is_available=True,
+                is_popular=i.get('is_popular', False),
+            ))
+        print('  [+] 15 menu items created')
+    else:
+        print('  [-] Menu items already exist, skipped')
+
+    # ── Tables ───────────────────────────────────────────────────────────
+    existing_tables = restaurant.tables.count()
+    if existing_tables == 0:
+        for n in range(1, 9):
+            db.session.add(Table(
+                restaurant_id=restaurant.id,
+                table_number=n,
+                capacity=4,
+                status='free',
+            ))
+        print('  [+] 8 tables created')
+    else:
+        print('  [-] Tables already exist, skipped')
+
+    db.session.commit()
+
+    print()
+    print('[OK] Seed complete!')
+    print()
+    print(f'  Config Used : {label}')
+    print(f'  Super Admin : {super_admin_email} / {super_admin_password}')
+    print(f'  Owner Login : {owner_email} / {owner_password}')
+    print(f'  Restaurant  : {restaurant_name} (slug: {restaurant_slug})')
+    print(f'  Staff       : caisse1 / serveur1 / cuisine1 (password: {staff_password})')
+    print()
+    print(f'  Menu API    : http://127.0.0.1:5000/api/restaurant/{restaurant_slug}/menu')
+    print('  Login URL   : http://127.0.0.1:5000/login')
+    print('  Admin URL   : http://127.0.0.1:5000/admin/restaurants')
+
+
 def seed(config_name=None):
     """Seed the database with demo data. Idempotent — skips existing records."""
     resolved_config = config_name or os.environ.get('FLASK_ENV', 'development')
     app = create_app(resolved_config)
     with app.app_context():
-        db.create_all()
-
-        super_admin_email = _env('TABLII_SUPERADMIN_EMAIL', 'superadmin@tablii.com')
-        super_admin_password = _env('TABLII_SUPERADMIN_PASSWORD', 'admin1234')
-        owner_email = _env('TABLII_OWNER_EMAIL', 'owner@tablii.com')
-        owner_password = _env('TABLII_OWNER_PASSWORD', 'owner1234')
-        restaurant_name = _env('TABLII_RESTAURANT_NAME', 'Chez Ahmed')
-        restaurant_slug = _env('TABLII_RESTAURANT_SLUG', 'chez-ahmed')
-        restaurant_city = _env('TABLII_RESTAURANT_CITY', 'Tunis')
-        restaurant_address = _env('TABLII_RESTAURANT_ADDRESS', '15 Rue de la Kasbah, Tunis')
-        restaurant_phone = _env('TABLII_RESTAURANT_PHONE', '+21671000001')
-        staff_password = _env('TABLII_STAFF_PASSWORD', 'staff1234')
-
-        # ── Super Admin ──────────────────────────────────────────────────────
-        super_admin = User.query.filter_by(email=super_admin_email).first()
-        if not super_admin:
-            sa = User(
-                name='Super Admin',
-                email=super_admin_email,
-                role='super_admin',
-                is_active=True,
-            )
-            sa.set_password(super_admin_password)
-            db.session.add(sa)
-            db.session.flush()
-            print('  [+] Super admin created')
-        else:
-            super_admin.role = 'super_admin'
-            super_admin.is_active = True
-            super_admin.set_password(super_admin_password)
-            print('  [~] Super admin password refreshed')
-
-        # ── Owner ────────────────────────────────────────────────────────────
-        owner = User.query.filter_by(email=owner_email).first()
-        if not owner:
-            owner = User(
-                name='Ahmed Ben Ali',
-                email=owner_email,
-                role='owner',
-                is_active=True,
-            )
-            owner.set_password(owner_password)
-            db.session.add(owner)
-            db.session.flush()
-            print('  [+] Owner created')
-        else:
-            owner.role = 'owner'
-            owner.is_active = True
-            owner.set_password(owner_password)
-            print('  [~] Owner password refreshed')
-
-        # ── Restaurant ───────────────────────────────────────────────────────
-        restaurant = Restaurant.query.filter_by(slug=restaurant_slug).first()
-        if not restaurant:
-            restaurant = Restaurant(
-                owner_id=owner.id,
-                name=restaurant_name,
-                slug=restaurant_slug,
-                description='Cuisine tunisienne authentique -- saveurs du terroir',
-                city=restaurant_city,
-                address=restaurant_address,
-                phone=restaurant_phone,
-                currency='TND',
-                tax_rate=7.0,
-                auto_accept=False,
-                is_active=True,
-                is_open=True,
-            )
-            db.session.add(restaurant)
-            db.session.flush()
-            print('  [+] Restaurant created')
-        else:
-            print('  [-] Restaurant already exists, skipped')
-
-        # ── Subscription ─────────────────────────────────────────────────────
-        if not restaurant.subscription:
-            sub = Subscription(
-                restaurant_id=restaurant.id,
-                plan='pro',
-                max_tables=20,
-                max_items=100,
-                is_active=True,
-                expires_at=datetime.now(timezone.utc) + timedelta(days=365),
-            )
-            db.session.add(sub)
-            print('  [+] Subscription (pro) created')
-
-        # ── Operating Hours ──────────────────────────────────────────────────
-        existing_hours = restaurant.operating_hours.count()
-        if existing_hours == 0:
-            for day in range(7):
-                db.session.add(OperatingHours(
-                    restaurant_id=restaurant.id,
-                    day_of_week=day,
-                    open_time=time(10, 0),
-                    close_time=time(23, 0),
-                    is_closed=False,
-                ))
-            print('  [+] Operating hours created (10:00-23:00 daily)')
-
-        # ── Staff ────────────────────────────────────────────────────────────
-        staff_data = [
-            {'username': 'caisse1',   'name': 'Sami Caissier',  'role': 'cashier',  'password': staff_password},
-            {'username': 'serveur1',  'name': 'Rim Serveuse',   'role': 'waiter',   'password': staff_password},
-            {'username': 'cuisine1',  'name': 'Omar Cuisine',   'role': 'kitchen',  'password': staff_password},
-        ]
-        for s in staff_data:
-            exists = StaffUser.query.filter_by(
-                restaurant_id=restaurant.id, username=s['username']
-            ).first()
-            if not exists:
-                staff = StaffUser(
-                    restaurant_id=restaurant.id,
-                    username=s['username'],
-                    name=s['name'],
-                    role=s['role'],
-                    is_active=True,
-                )
-                staff.set_password(s['password'])
-                db.session.add(staff)
-            else:
-                exists.role = s['role']
-                exists.is_active = True
-                exists.set_password(s['password'])
-        db.session.flush()
-        print('  [~] Staff accounts ensured (cashier, waiter, kitchen)')
-
-        # ── Categories ───────────────────────────────────────────────────────
-        existing_cats = restaurant.categories.count()
-        cats = {}
-        if existing_cats == 0:
-            categories_data = [
-                {'name_fr': 'Entrees',   'name_ar': None, 'name_en': 'Starters', 'icon': None, 'sort_order': 1},
-                {'name_fr': 'Plats',     'name_ar': None, 'name_en': 'Mains',    'icon': None, 'sort_order': 2},
-                {'name_fr': 'Desserts',  'name_ar': None, 'name_en': 'Desserts', 'icon': None, 'sort_order': 3},
-                {'name_fr': 'Boissons',  'name_ar': None, 'name_en': 'Drinks',   'icon': None, 'sort_order': 4},
-            ]
-            for c in categories_data:
-                cat = Category(
-                    restaurant_id=restaurant.id,
-                    name_fr=c['name_fr'],
-                    name_ar=c['name_ar'],
-                    name_en=c['name_en'],
-                    icon=c['icon'],
-                    sort_order=c['sort_order'],
-                    is_active=True,
-                )
-                db.session.add(cat)
-                db.session.flush()
-                cats[c['name_fr']] = cat
-            print('  [+] 4 categories created')
-        else:
-            for cat in restaurant.categories.all():
-                cats[cat.name_fr] = cat
-            print('  [-] Categories already exist, skipped')
-
-        # ── Menu Items ───────────────────────────────────────────────────────
-        existing_items = MenuItem.query.filter_by(restaurant_id=restaurant.id).count()
-        if existing_items == 0 and cats:
-            items_data = [
-                # Entrees
-                {'name_fr': 'Salade Mechouia',         'price': 7.500,  'cat': 'Entrees',  'is_popular': True},
-                {'name_fr': "Brik a l'oeuf",           'price': 5.000,  'cat': 'Entrees'},
-                {'name_fr': 'Chorba Frik',              'price': 6.000,  'cat': 'Entrees'},
-                {'name_fr': 'Salade Tunisienne',        'price': 5.500,  'cat': 'Entrees'},
-                # Plats
-                {'name_fr': 'Couscous Agneau',          'price': 22.000, 'cat': 'Plats',    'is_popular': True},
-                {'name_fr': 'Tajine Poulet Olives',     'price': 18.500, 'cat': 'Plats'},
-                {'name_fr': 'Merguez Grillees',         'price': 16.000, 'cat': 'Plats'},
-                {'name_fr': 'Makloub de la Mer',        'price': 24.000, 'cat': 'Plats',    'is_popular': True},
-                {'name_fr': 'Lablabi',                  'price': 9.000,  'cat': 'Plats'},
-                {'name_fr': 'Kafteji',                  'price': 11.000, 'cat': 'Plats'},
-                # Desserts
-                {'name_fr': 'Baklawa Maison',           'price': 8.000,  'cat': 'Desserts'},
-                {'name_fr': 'Creme Caramel',            'price': 6.000,  'cat': 'Desserts'},
-                {'name_fr': 'Assida Zgougou',           'price': 7.500,  'cat': 'Desserts', 'is_popular': True},
-                # Boissons
-                {'name_fr': 'Jus de Grenade Frais',    'price': 5.500,  'cat': 'Boissons'},
-                {'name_fr': 'Eau Minerale',             'price': 1.500,  'cat': 'Boissons'},
-            ]
-            for i in items_data:
-                db.session.add(MenuItem(
-                    restaurant_id=restaurant.id,
-                    category_id=cats[i['cat']].id,
-                    name_fr=i['name_fr'],
-                    price=i['price'],
-                    is_available=True,
-                    is_popular=i.get('is_popular', False),
-                ))
-            print('  [+] 15 menu items created')
-        else:
-            print('  [-] Menu items already exist, skipped')
-
-        # ── Tables ───────────────────────────────────────────────────────────
-        existing_tables = restaurant.tables.count()
-        if existing_tables == 0:
-            for n in range(1, 9):
-                db.session.add(Table(
-                    restaurant_id=restaurant.id,
-                    table_number=n,
-                    capacity=4,
-                    status='free',
-                ))
-            print('  [+] 8 tables created')
-        else:
-            print('  [-] Tables already exist, skipped')
-
-        db.session.commit()
-
-        print()
-        print('[OK] Seed complete!')
-        print()
-        print(f'  Config Used : {resolved_config}')
-        print(f'  Super Admin : {super_admin_email} / {super_admin_password}')
-        print(f'  Owner Login : {owner_email} / {owner_password}')
-        print(f'  Restaurant  : {restaurant_name} (slug: {restaurant_slug})')
-        print(f'  Staff       : caisse1 / serveur1 / cuisine1 (password: {staff_password})')
-        print()
-        print(f'  Menu API    : http://127.0.0.1:5000/api/restaurant/{restaurant_slug}/menu')
-        print('  Login URL   : http://127.0.0.1:5000/login')
-        print('  Admin URL   : http://127.0.0.1:5000/admin/restaurants')
+        seed_current_app(resolved_config)
 
 
 if __name__ == '__main__':
