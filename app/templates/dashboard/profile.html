@@ -14,8 +14,9 @@
             <div class="flex items-center gap-4 pb-2">
                 <img
                     src="{{ user.avatar_url if user.avatar_url else url_for('static', filename='icons/icon-192.png') }}"
-                    alt="Profile avatar"
+                    alt="Profile avatar for {{ user.name }}"
                     class="w-16 h-16 rounded-full object-cover border border-gray-200"
+                    loading="lazy" decoding="async"
                 >
                 <div class="flex-1">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Avatar</label>
@@ -61,10 +62,10 @@
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600">
+                <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 min-h-[44px]">
                     Save Changes
                 </button>
-                <a href="{{ url_for('dashboard.overview') }}" class="border border-gray-200 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</a>
+                <a href="{{ url_for('dashboard.overview') }}" class="border border-gray-200 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 min-h-[44px] inline-flex items-center">Cancel</a>
             </div>
         </form>
     </div>

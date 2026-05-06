@@ -73,8 +73,15 @@ html.dark-mode {
 .border-primary { border-color: var(--border-primary); }
 .border-secondary { border-color: var(--border-secondary); }
 
-/* Smooth transitions for theme switching */
-body, body * {
+/* Smooth transitions for theme switching - only on theme-aware elements */
+.admin-nav-link,
+.admin-nav-link:hover,
+.admin-nav-link.active,
+button,
+input,
+select,
+textarea,
+a {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 

@@ -5,7 +5,7 @@
 {% block dashboard_content %}
 <div class="flex items-center justify-between mb-4">
     <p class="text-sm text-gray-500">{{ staff|length }} member{{ 's' if staff|length != 1 }}</p>
-    <a href="{{ url_for('dashboard.staff_add') }}" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600">+ Add Staff</a>
+    <a href="{{ url_for('dashboard.staff_add') }}" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 min-h-[44px] inline-flex items-center">+ Add Staff</a>
 </div>
 
 {# Staff login credentials info — so owners can share the slug with staff #}
@@ -54,10 +54,10 @@
                     </span>
                 </td>
                 <td class="px-6 py-4 flex gap-3">
-                    <a href="{{ url_for('dashboard.staff_edit', id=member.id) }}" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Edit</a>
-                    <form method="POST" action="{{ url_for('dashboard.staff_delete', id=member.id) }}" onsubmit="return confirm('Delete this staff member?')">
+                    <a href="{{ url_for('dashboard.staff_edit', id=member.id) }}" class="text-xs text-blue-600 hover:text-blue-800 font-medium px-3 py-2 rounded min-h-[44px] inline-flex items-center" aria-label="Edit staff member">Edit</a>
+                    <form method="POST" action="{{ url_for('dashboard.staff_delete', id=member.id) }}" onsubmit="return confirm('Delete this staff member?')" style="display:inline;">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                        <button type="submit" class="text-xs text-red-500 hover:text-red-700 font-medium px-3 py-2 rounded min-h-[44px]" aria-label="Delete staff member">Delete</button>
                     </form>
                 </td>
             </tr>

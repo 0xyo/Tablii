@@ -5,12 +5,12 @@
 
 {% block dashboard_content %}
 {# ── Period selector ─────────────────────────────────────────────────── #}
-<div class="flex items-center gap-3 mb-6">
+<div class="flex items-center gap-3 mb-6 flex-wrap">
     {% for p, label in [('7d', 'Last 7 days'), ('30d', 'Last 30 days'), ('90d', 'Last 90 days')] %}
     <a href="{{ url_for('dashboard.analytics', period=p) }}"
-       class="px-4 py-2 rounded-lg text-sm font-medium transition-colors
-              {{ 'bg-orange-500 text-white shadow' if period == p
-                 else 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-600' }}">
+       class="px-4 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] inline-flex items-center"
+       role="button" aria-current="{{ 'page' if period == p else 'false' }}"
+       {{ 'style="background-color:var(--color-orange); color:white; box-shadow:0 1px 3px rgba(0,0,0,0.1);"' if period == p else 'style="background-color:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border-primary);"' }}>
         {{ label }}
     </a>
     {% endfor %}
@@ -82,19 +82,19 @@
     <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">Top Menu Items</h2>
         {% if popular_items %}
-        <div class="h-64">
-            <canvas id="topItemsChart"></canvas>
+        <div class="w-full" style="min-height:300px;">
+            <canvas id="topItemsChart" role="img" aria-label="Top menu items by sales"></canvas>
         </div>
         {% else %}
-        <div class="h-32 flex items-center justify-center text-gray-400 text-sm">No item data.</div>
+        <div class="w-full h-32 flex items-center justify-center text-gray-400 text-sm">No item data.</div>
         {% endif %}
     </div>
 
-    {# Peak Hours #}
+    {# Peak Hours --}
     <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">Peak Order Hours</h2>
-        <div class="h-64">
-            <canvas id="peakHoursChart"></canvas>
+        <div class="w-full" style="min-height:300px;">
+            <canvas id="peakHoursChart" role="img" aria-label="Peak order hours chart"></canvas>
         </div>
     </div>
 </div>

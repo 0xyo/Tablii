@@ -23,7 +23,7 @@
     <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
         <div class="flex justify-between items-start">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Orders Today</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">📋</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Orders icon">▤</div>
         </div>
         <p class="text-4xl font-display text-cream-50 mt-4">{{ orders_today }}</p>
     </div>
@@ -33,7 +33,7 @@
         <div class="absolute inset-0 bg-gradient-to-br from-amber-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div class="flex justify-between items-start relative z-10">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Revenue Today</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">💰</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Revenue icon">◆</div>
         </div>
         <p class="text-3xl font-display text-amber-400 mt-4 relative z-10">
             {{ '%.3f'|format(revenue_today) }}
@@ -45,7 +45,7 @@
     <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
         <div class="flex justify-between items-start">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Active Tables</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">🪑</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Tables icon">▢</div>
         </div>
         <p class="text-4xl font-display text-cream-50 mt-4">{{ tables_occupied }}</p>
     </div>
@@ -54,7 +54,7 @@
     <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
         <div class="flex justify-between items-start">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Staff on Duty</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">👥</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Staff icon">◉</div>
         </div>
         <p class="text-4xl font-display text-cream-50 mt-4">{{ active_staff }}</p>
     </div>

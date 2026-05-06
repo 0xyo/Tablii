@@ -6,8 +6,8 @@
 <!-- Filters -->
 <form method="GET" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-3 items-end">
     <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
-        <select name="status" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <label for="status-filter" class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+        <select id="status-filter" name="status" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300" aria-label="Filter orders by status">
             <option value="" {{ 'selected' if not status }}>All Statuses</option>
             {% for s in ['new', 'accepted', 'preparing', 'ready', 'served', 'completed', 'cancelled'] %}
             <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s|title }}</option>
@@ -15,15 +15,15 @@
         </select>
     </div>
     <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1">From</label>
-        <input type="date" name="date_from" value="{{ date_from }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <label for="date-from" class="block text-xs font-medium text-gray-600 mb-1">From</label>
+        <input id="date-from" type="date" name="date_from" value="{{ date_from }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300" aria-label="Filter from date">
     </div>
     <div>
-        <label class="block text-xs font-medium text-gray-600 mb-1">To</label>
-        <input type="date" name="date_to" value="{{ date_to }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+        <label for="date-to" class="block text-xs font-medium text-gray-600 mb-1">To</label>
+        <input id="date-to" type="date" name="date_to" value="{{ date_to }}" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300" aria-label="Filter to date">
     </div>
-    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600">Filter</button>
-    <a href="{{ url_for('dashboard.order_history') }}" class="border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-600">Clear</a>
+    <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 min-h-[44px]">Filter</button>
+    <a href="{{ url_for('dashboard.order_history') }}" class="border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-600 min-h-[44px] inline-flex items-center">Clear</a>
 </form>
 
 <!-- Orders table -->
@@ -69,7 +69,7 @@
                 <td class="px-6 py-3 text-gray-500">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400">No orders found.</td></tr>
+            <tr><td colspan="7" class="px-6 py-8 text-center text-gray-400">No orders found for the selected filters. <a href="{{ url_for('dashboard.order_history') }}" class="text-orange-500 hover:text-orange-600 font-medium">Reset filters or view all orders →</a></td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -80,12 +80,12 @@
 <div class="flex items-center justify-center gap-2 mt-4">
     {% if pagination.has_prev %}
     <a href="{{ url_for('dashboard.order_history', page=pagination.prev_num, status=status, date_from=date_from, date_to=date_to) }}"
-       class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">← Prev</a>
+       class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 min-h-[44px] inline-flex items-center">← Prev</a>
     {% endif %}
     <span class="text-sm text-gray-500">Page {{ pagination.page }} of {{ pagination.pages }}</span>
     {% if pagination.has_next %}
     <a href="{{ url_for('dashboard.order_history', page=pagination.next_num, status=status, date_from=date_from, date_to=date_to) }}"
-       class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Next →</a>
+       class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 min-h-[44px] inline-flex items-center">Next →</a>
     {% endif %}
 </div>
 {% endif %}

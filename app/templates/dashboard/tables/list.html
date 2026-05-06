@@ -5,8 +5,8 @@
 {% block dashboard_content %}
 <!-- View tabs -->
 <div class="flex items-center gap-2 mb-6">
-    <button id="tab-grid" onclick="switchTab('grid')" class="px-4 py-2 text-sm font-medium rounded-lg bg-orange-500 text-white transition-colors">Grid View</button>
-    <button id="tab-floor" onclick="switchTab('floor')" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Floor Plan</button>
+    <button id="tab-grid" onclick="switchTab('grid')" class="px-4 py-2 text-sm font-medium rounded-lg bg-orange-500 text-white transition-colors min-h-[44px]">Grid View</button>
+    <button id="tab-floor" onclick="switchTab('floor')" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors min-h-[44px]">Floor Plan</button>
 </div>
 
 <div class="flex gap-6 flex-col xl:flex-row">
@@ -50,12 +50,12 @@
                 <!-- Delete -->
                 <form method="POST" action="{{ url_for('dashboard.table_delete', id=table.id) }}" onsubmit="return confirm('Delete table?')">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="w-full text-xs text-red-400 hover:text-red-600 text-left">Delete</button>
+                    <button type="submit" class="w-full text-xs text-red-400 hover:text-red-600 text-left px-3 py-2 rounded min-h-[44px]" aria-label="Delete table">Delete</button>
                 </form>
             </div>
             {% else %}
             <div class="col-span-full bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
-                No tables yet.
+                No tables yet. <a href="{{ url_for('dashboard.table_add') }}" class="text-orange-500 hover:text-orange-600 font-medium">Create your first table to enable QR code ordering →</a>
             </div>
             {% endfor %}
         </div>
@@ -92,7 +92,7 @@
                     <input type="number" name="capacity" min="1" value="4"
                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
                 </div>
-                <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors">Add Table</button>
+                <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors min-h-[44px]">Add Table</button>
             </form>
         </div>
     </div>

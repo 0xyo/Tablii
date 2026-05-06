@@ -10,7 +10,7 @@
     <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
         <div class="flex justify-between items-start">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Total Reviews</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">⭐</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Reviews icon">★</div>
         </div>
         <p class="text-4xl font-display text-cream-50 mt-4">{{ total_reviews }}</p>
     </div>
@@ -19,7 +19,7 @@
         <div class="absolute inset-0 bg-gradient-to-br from-amber-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
         <div class="flex justify-between items-start relative z-10">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Overall Rating</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">🏆</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Rating icon">◆</div>
         </div>
         <p class="text-4xl font-display text-amber-400 mt-4 relative z-10">{{ avg_rating }} <span class="text-lg text-charcoal-500">/ 5</span></p>
     </div>
@@ -27,7 +27,7 @@
     <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
         <div class="flex justify-between items-start">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Food Rating</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">🍽️</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Food icon">▨</div>
         </div>
         <p class="text-4xl font-display text-cream-50 mt-4">{{ avg_food }} <span class="text-lg text-charcoal-500">/ 5</span></p>
     </div>
@@ -35,7 +35,7 @@
     <div class="card group !p-6 flex flex-col justify-between h-36 border-amber-900/20">
         <div class="flex justify-between items-start">
             <p class="text-[10px] font-bold text-charcoal-400 uppercase tracking-widest">Service Rating</p>
-            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all">👥</div>
+            <div class="w-8 h-8 rounded-none border border-amber-500/30 flex items-center justify-center text-amber-500 text-sm group-hover:scale-110 group-hover:bg-amber-500/10 transition-all" role="img" aria-label="Service icon">◉</div>
         </div>
         <p class="text-4xl font-display text-cream-50 mt-4">{{ avg_service }} <span class="text-lg text-charcoal-500">/ 5</span></p>
     </div>
@@ -82,7 +82,7 @@
 
                     {% if review.photo_url %}
                     <div class="mt-3">
-                        <img src="{{ review.photo_url }}" alt="Review photo" class="h-24 w-24 object-cover border border-charcoal-700/50">
+                        <img src="{{ review.photo_url }}" alt="Review photo from order {{ review.order_id }}" class="h-24 w-24 object-cover border border-charcoal-700/50" loading="lazy" decoding="async">
                     </div>
                     {% endif %}
                 </div>

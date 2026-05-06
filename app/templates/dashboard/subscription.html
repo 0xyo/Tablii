@@ -61,10 +61,10 @@
             {% for plan in plans %}
             {% set is_current = (subscription and subscription.plan == plan['key']) or (not subscription and plan['key'] == 'free') %}
             {% set is_upgrade = (plan['key'] in safe_plan_order and current_plan_key in safe_plan_order and safe_plan_order.index(plan['key']) > safe_plan_order.index(current_plan_key)) %}
-            <div class="bg-charcoal-900/60 border {{ 'border-amber-500/40 shadow-[0_0_30px_rgba(196,149,106,0.06)]' if is_current else 'border-charcoal-700/50' }} p-6 flex flex-col relative transition-all hover:border-charcoal-600/60">
+            <div class="bg-charcoal-900/60 border p-6 flex flex-col relative transition-all hover:border-charcoal-600/60" role="region" aria-label="{{ plan['name'] }} plan" style="{{ 'border:2px solid var(--color-amber); box-shadow:0 0 30px var(--color-amber, rgba(196,149,106,0.06));' if is_current else 'border:1px solid rgba(45,41,38,.5);' }}">
                 {% if is_current %}
                 <div class="absolute -top-3 left-6">
-                    <span class="text-[9px] uppercase tracking-[0.15em] font-bold bg-amber-500 text-charcoal-950 px-3 py-1">Current</span>
+                    <span class="text-[9px] uppercase tracking-[0.15em] font-bold px-3 py-1" style="background-color:var(--color-amber); color:var(--bg-primary);">Current</span>
                 </div>
                 {% endif %}
 
@@ -96,7 +96,7 @@
                 </ul>
 
                 {% if is_current %}
-                <button disabled class="w-full text-center text-xs font-bold uppercase tracking-widest border border-charcoal-600 text-charcoal-400 px-4 py-3 cursor-default">Current Plan</button>
+                <button disabled class="w-full text-center text-xs font-bold uppercase tracking-widest border text-charcoal-400 px-4 py-3 cursor-default min-h-[44px]" style="border-color:var(--border-primary);">Current Plan</button>
                 {% elif is_upgrade %}
                 <button type="button" disabled class="w-full text-center text-xs font-bold uppercase tracking-widest border border-charcoal-700 text-charcoal-500 px-4 py-3 cursor-not-allowed">
                     Upgrade Requires Billing

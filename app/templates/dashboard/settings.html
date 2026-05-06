@@ -41,7 +41,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 class="font-semibold text-gray-800 mb-4">Logo</h2>
         {% if restaurant.logo_url %}
-        <img src="{{ restaurant.logo_url }}" alt="{{ restaurant.name }} logo" class="w-20 h-20 rounded-full object-cover mb-3">
+        <img src="{{ restaurant.logo_url }}" alt="{{ restaurant.name }} logo" class="w-20 h-20 rounded-full object-cover mb-3" loading="lazy" decoding="async">
         {% endif %}
         <input type="file" name="logo" accept="image/*" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 w-full">
     </div>
@@ -51,7 +51,7 @@
         <h2 class="font-semibold text-gray-800 mb-4">Cover Image</h2>
         <p class="text-xs text-gray-500 mb-3">Displayed as a banner on your customer menu page. Recommended size: 1200×400.</p>
         {% if restaurant.cover_url %}
-        <img src="{{ restaurant.cover_url }}" alt="Cover" class="w-full h-32 object-cover rounded-lg mb-3 border border-gray-200">
+        <img src="{{ restaurant.cover_url }}" alt="{{ restaurant.name }} cover banner (1200x400)" class="w-full h-32 object-cover rounded-lg mb-3 border border-gray-200" loading="lazy" decoding="async">
         {% endif %}
         <input type="file" name="cover" accept="image/*" class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 w-full">
     </div>
@@ -191,7 +191,7 @@
         </div>
     </div>
 
-    <button type="submit" class="bg-orange-500 text-white px-8 py-2.5 rounded-lg font-medium hover:bg-orange-600 transition-colors">Save Settings</button>
+    <button type="submit" class="bg-orange-500 text-white px-8 py-2.5 rounded-lg font-medium hover:bg-orange-600 transition-colors min-h-[44px]" aria-label="Save restaurant settings">Save Settings</button>
 </form>
 {% endblock %}
 
