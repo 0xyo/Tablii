@@ -5,8 +5,8 @@
 {% block dashboard_content %}
 <!-- View tabs -->
 <div class="flex items-center gap-2 mb-6">
-    <button id="tab-grid" onclick="switchTab('grid')" class="px-4 py-2 text-sm font-medium rounded-lg bg-orange-500 text-white transition-colors min-h-[44px]">Grid View</button>
-    <button id="tab-floor" onclick="switchTab('floor')" class="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors min-h-[44px]">Floor Plan</button>
+    <button id="tab-grid" onclick="switchTab('grid')" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors min-h-[44px]" style="background-color: var(--color-amber);">Grid View</button>
+    <button id="tab-floor" onclick="switchTab('floor')" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors min-h-[44px]" style="background-color: rgba(0, 0, 0, 0.05); color: var(--text-secondary);">Floor Plan</button>
 </div>
 
 <div class="flex gap-6 flex-col xl:flex-row">
@@ -14,38 +14,29 @@
     <div id="view-grid" class="flex-1">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
             {% for table in tables %}
-            {% set status_colors = {
-                'free': 'border-green-300 bg-green-50',
-                'occupied': 'border-orange-300 bg-orange-50',
-                'reserved': 'border-blue-300 bg-blue-50',
-            } %}
-            <div class="bg-white rounded-xl shadow-sm border-2 {{ status_colors.get(table.status, 'border-gray-200 bg-white') }} p-4 flex flex-col gap-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-2xl font-bold text-gray-800">T{{ table.table_number }}</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full font-medium
-                          {{ 'bg-green-100 text-green-700' if table.status == 'free'
-                          else 'bg-orange-100 text-orange-700' if table.status == 'occupied'
-                          else 'bg-blue-100 text-blue-700' }}">
+            <div class="rounded-xl shadow-sm p-4 flex flex-col gap-3" style="background-color: var(--bg-primary); border: 2px solid {{ 'rgb(102, 187, 106)' if table.status == 'free' else 'rgb(245, 197, 106)' if table.status == 'occupied' else 'rgb(100, 181, 246)' }};"><div class="flex items-center justify-between">
+                    <span class="text-2xl font-bold" style="color: var(--text-primary);">T{{ table.table_number }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background-color: {{ 'rgba(102, 187, 106, 0.2)' if table.status == 'free' else 'rgba(245, 197, 106, 0.2)' if table.status == 'occupied' else 'rgba(100, 181, 246, 0.2)' }}; color: {{ 'rgb(102, 187, 106)' if table.status == 'free' else 'rgb(245, 197, 106)' if table.status == 'occupied' else 'rgb(100, 181, 246)' }};">
                         {{ table.status|title }}
                     </span>
                 </div>
-                <div class="text-xs text-gray-500">
+                <div class="text-xs" style="color: var(--text-secondary);">
                     <div>Capacity: {{ table.capacity }}</div>
                     {% if table.assigned_waiter %}
                     <div>Waiter: {{ table.assigned_waiter.name }}</div>
                     {% endif %}
-                    <a href="{{ url_for('dashboard.table_qr', id=table.id) }}" class="text-orange-500 hover:text-orange-600">📥 Download QR</a>
+                    <a href="{{ url_for('dashboard.table_qr', id=table.id) }}" style="color: var(--color-amber);">📥 Download QR</a>
                 </div>
                 <!-- Assign waiter -->
                 <form method="POST" action="{{ url_for('dashboard.table_assign_waiter', id=table.id) }}" class="flex gap-1">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <select name="waiter_id" class="flex-1 border border-gray-200 rounded text-xs px-1 py-1 text-gray-900">
+                    <select name="waiter_id" class="flex-1 border rounded text-xs px-1 py-1" style="border-color: var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary);">
                         <option value="">No waiter</option>
                         {% for w in waiters %}
                         <option value="{{ w.id }}" {{ 'selected' if table.assigned_waiter_id == w.id }}>{{ w.name }}</option>
                         {% endfor %}
                     </select>
-                    <button type="submit" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 rounded">✓</button>
+                    <button type="submit" class="text-xs px-2 rounded" style="background-color: rgba(0, 0, 0, 0.05); color: var(--text-secondary);">✓</button>
                 </form>
                 <!-- Delete -->
                 <form method="POST" action="{{ url_for('dashboard.table_delete', id=table.id) }}" onsubmit="return confirm('Delete table?')">
@@ -54,8 +45,8 @@
                 </form>
             </div>
             {% else %}
-            <div class="col-span-full bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
-                No tables yet. <a href="{{ url_for('dashboard.table_add') }}" class="text-orange-500 hover:text-orange-600 font-medium">Create your first table to enable QR code ordering →</a>
+            <div class="col-span-full rounded-xl p-8 text-center" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary); color: var(--text-secondary);">
+                No tables yet. <a href="{{ url_for('dashboard.table_add') }}" style="color: var(--color-amber);" class="font-medium">Create your first table to enable QR code ordering →</a>
             </div>
             {% endfor %}
         </div>
@@ -63,16 +54,16 @@
 
     <!-- Floor plan view -->
     <div id="view-floor" class="flex-1 hidden">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div class="rounded-xl shadow-sm p-4" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
             <div class="flex items-center justify-between mb-3">
-                <p class="text-xs text-gray-400">Drag tables to arrange your floor layout. Positions save automatically.</p>
+                <p class="text-xs" style="color: var(--text-secondary);">Drag tables to arrange your floor layout. Positions save automatically.</p>
                 <div class="flex items-center gap-3 text-[10px] font-medium">
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span> Free</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Occupied</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Reserved</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background-color: rgb(102, 187, 106);"></span> Free</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background-color: rgb(245, 197, 106);"></span> Occupied</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full" style="background-color: rgb(239, 83, 80);"></span> Reserved</span>
                 </div>
             </div>
-            <canvas id="floor-canvas" width="800" height="500" class="border border-gray-200 rounded-lg w-full" style="max-height:500px;"></canvas>
+            <canvas id="floor-canvas" width="800" height="500" class="rounded-lg w-full" style="max-height:500px; border: 1px solid var(--border-primary);"></canvas>
         </div>
     </div>
 

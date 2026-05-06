@@ -3,51 +3,51 @@
 {% block page_title %}{{ 'Edit' if mode == 'edit' else 'Add' }} Staff Member{% endblock %}
 
 {% block dashboard_content %}
-<a href="{{ url_for('dashboard.staff') }}" class="text-sm text-gray-500 hover:text-orange-500 mb-4 inline-block">← Back to Staff</a>
-<div class="max-w-lg bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+<a href="{{ url_for('dashboard.staff') }}" class="text-sm mb-4 inline-block" style="color: var(--text-secondary);">← Back to Staff</a>
+<div class="max-w-lg rounded-xl shadow-sm p-6" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
     <form method="POST" class="space-y-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Full Name *</label>
+            <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">Full Name *</label>
             <input type="text" name="name" required
                    value="{{ (form.name if form else None) or (member.name if member else '') }}"
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                   class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);">
         </div>
         {% if mode == 'create' %}
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Username *</label>
+            <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">Username *</label>
             <input type="text" name="username" required
                    value="{{ form.username if form else '' }}"
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                   class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);">
         </div>
         {% endif %}
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">
+            <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">
                 {{ 'New Password (leave blank to keep)' if mode == 'edit' else 'Password *' }}
             </label>
             <input type="password" name="password" {{ 'required' if mode == 'create' }}
                    minlength="6"
-                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                   class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);">
         </div>
         <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">Role *</label>
-            <select name="role" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300">
+            <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">Role *</label>
+            <select name="role" required class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);">
                 <option value="cashier" {{ 'selected' if member and member.role == 'cashier' }}>Cashier</option>
                 <option value="kitchen" {{ 'selected' if member and member.role == 'kitchen' }}>Kitchen</option>
                 <option value="waiter" {{ 'selected' if member and member.role == 'waiter' }}>Waiter</option>
             </select>
         </div>
         {% if mode == 'edit' %}
-        <label class="flex items-center gap-2 text-sm">
+        <label class="flex items-center gap-2 text-sm" style="color: var(--text-primary);">
             <input type="checkbox" name="is_active" class="accent-orange-500" {{ 'checked' if member and member.is_active }}>
             <span>Active</span>
         </label>
         {% endif %}
         <div class="flex gap-3 pt-2">
-            <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 min-h-[44px]">
+            <button type="submit" class="text-white px-6 py-2 rounded-lg text-sm font-medium min-h-[44px]" style="background-color: var(--color-amber); color: var(--bg-primary);">
                 {{ 'Save Changes' if mode == 'edit' else 'Add Staff Member' }}
             </button>
-            <a href="{{ url_for('dashboard.staff') }}" class="border border-gray-200 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 min-h-[44px] inline-flex items-center">Cancel</a>
+            <a href="{{ url_for('dashboard.staff') }}" class="px-6 py-2 rounded-lg text-sm font-medium min-h-[44px] inline-flex items-center" style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary);">Cancel</a>
         </div>
     </form>
 </div>
