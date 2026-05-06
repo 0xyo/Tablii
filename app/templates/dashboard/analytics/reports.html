@@ -1,121 +1,121 @@
 {% extends 'dashboard/base_dashboard.html' %}
 
 {% block title %}Analytics{% endblock %}
-{% block page_title %}📈 Analytics & Reports{% endblock %}
+{% block page_title %}▦ Analytics & Reports{% endblock %}
 
 {% block dashboard_content %}
-{# ── Period selector ─────────────────────────────────────────────────── #}
+{# ── Period selector ────────────────────────────────────────────────── #}
 <div class="flex items-center gap-3 mb-6 flex-wrap">
     {% for p, label in [('7d', 'Last 7 days'), ('30d', 'Last 30 days'), ('90d', 'Last 90 days')] %}
     <a href="{{ url_for('dashboard.analytics', period=p) }}"
        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] inline-flex items-center"
        role="button" aria-current="{{ 'page' if period == p else 'false' }}"
-       {{ 'style="background-color:var(--color-orange); color:white; box-shadow:0 1px 3px rgba(0,0,0,0.1);"' if period == p else 'style="background-color:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border-primary);"' }}>
+       {{ 'style=\"background-color:var(--color-amber); color:white; box-shadow:0 1px 3px rgba(0,0,0,0.1);\"' if period == p else 'style=\"background-color:var(--bg-primary); color:var(--text-primary); border:1px solid var(--border-primary);\"' }}>
         {{ label }}
     </a>
     {% endfor %}
 </div>
 
-{# ── Stat cards ──────────────────────────────────────────────────────── #}
+{# ── Stat cards ────────────────────────────────────────────────────── #}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
     {# Revenue #}
-    <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Today's Revenue</p>
-        <p class="text-2xl font-bold text-gray-900">
+    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-secondary);">Today's Revenue</p>
+        <p class="text-2xl font-bold" style="color: var(--text-primary);">
             {{ '%.3f'|format(daily_stats.total_revenue) }}
-            <span class="text-sm font-medium text-gray-400">TND</span>
+            <span class="text-sm font-medium" style="color: var(--text-secondary);">TND</span>
         </p>
-        <p class="text-xs text-gray-400 mt-1">Paid orders only</p>
+        <p class="text-xs mt-1" style="color: var(--text-secondary);">Paid orders only</p>
     </div>
 
     {# Orders #}
-    <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Today's Orders</p>
-        <p class="text-2xl font-bold text-gray-900">{{ daily_stats.total_orders }}</p>
-        <p class="text-xs text-gray-400 mt-1">{{ daily_stats.tables_used }} table(s) active</p>
+    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-secondary);">Today's Orders</p>
+        <p class="text-2xl font-bold" style="color: var(--text-primary);">{{ daily_stats.total_orders }}</p>
+        <p class="text-xs mt-1" style="color: var(--text-secondary);">{{ daily_stats.tables_used }} table(s) active</p>
     </div>
 
     {# Avg order value #}
-    <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Avg Order Value</p>
-        <p class="text-2xl font-bold text-gray-900">
+    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-secondary);">Avg Order Value</p>
+        <p class="text-2xl font-bold" style="color: var(--text-primary);">
             {{ '%.3f'|format(daily_stats.average_order_value) }}
-            <span class="text-sm font-medium text-gray-400">TND</span>
+            <span class="text-sm font-medium" style="color: var(--text-secondary);">TND</span>
         </p>
-        <p class="text-xs text-gray-400 mt-1">Per order today</p>
+        <p class="text-xs mt-1" style="color: var(--text-secondary);">Per order today</p>
     </div>
 
     {# Avg service time #}
-    <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Avg Service Time</p>
+    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-secondary);">Avg Service Time</p>
         {% if service_time.avg_total_time %}
-        <p class="text-2xl font-bold text-gray-900">
+        <p class="text-2xl font-bold" style="color: var(--text-primary);">
             {{ (service_time.avg_total_time / 60)|int }}
-            <span class="text-sm font-medium text-gray-400">min</span>
+            <span class="text-sm font-medium" style="color: var(--text-secondary);">min</span>
         </p>
         {% else %}
-        <p class="text-2xl font-bold text-gray-400">—</p>
+        <p class="text-2xl font-bold" style="color: var(--text-secondary);">—</p>
         {% endif %}
-        <p class="text-xs text-gray-400 mt-1">Order to served</p>
+        <p class="text-xs mt-1" style="color: var(--text-secondary);">Order to served</p>
     </div>
 </div>
 
-{# ── Revenue chart (full width) ──────────────────────────────────────── #}
-<div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm mb-6">
-    <h2 class="text-sm font-semibold text-gray-700 mb-4">Revenue Over Period</h2>
+{# ── Revenue chart (full width) ──────────────────────────────────── #}
+<div class="rounded-xl p-6 shadow-sm mb-6" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+    <h2 class="text-sm font-semibold mb-4" style="color: var(--text-primary);">Revenue Over Period</h2>
     {% if revenue_data %}
-    <div class="h-64">
-        <canvas id="revenueChart"></canvas>
+    <div class="w-full" style="min-height:300px;">
+        <canvas id="revenueChart" role="img" aria-label="Revenue chart over selected period"></canvas>
     </div>
     {% else %}
-    <div class="h-32 flex items-center justify-center text-gray-400 text-sm">
+    <div class="w-full h-32 flex items-center justify-center text-sm" style="color: var(--text-secondary);">
         No revenue data for this period.
     </div>
     {% endif %}
 </div>
 
-{# ── Bottom row: Top Items + Peak Hours ─────────────────────────────── #}
+{# ── Bottom row: Top Items + Peak Hours ──────────────────────────── #}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
     {# Top Items #}
-    <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Top Menu Items</h2>
+    <div class="rounded-xl p-6 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <h2 class="text-sm font-semibold mb-4" style="color: var(--text-primary);">Top Menu Items</h2>
         {% if popular_items %}
         <div class="w-full" style="min-height:300px;">
             <canvas id="topItemsChart" role="img" aria-label="Top menu items by sales"></canvas>
         </div>
         {% else %}
-        <div class="w-full h-32 flex items-center justify-center text-gray-400 text-sm">No item data.</div>
+        <div class="w-full h-32 flex items-center justify-center text-sm" style="color: var(--text-secondary);">No item data.</div>
         {% endif %}
     </div>
 
-    {# Peak Hours --}
-    <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Peak Order Hours</h2>
+    {# Peak Hours #}
+    <div class="rounded-xl p-6 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <h2 class="text-sm font-semibold mb-4" style="color: var(--text-primary);">Peak Order Hours</h2>
         <div class="w-full" style="min-height:300px;">
             <canvas id="peakHoursChart" role="img" aria-label="Peak order hours chart"></canvas>
         </div>
     </div>
 </div>
 
-{# ── Order status distribution ───────────────────────────────────────── #}
+{# ── Order status distribution ─────────────────────────────────── #}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-    <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Today's Order Status</h2>
+    <div class="rounded-xl p-6 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <h2 class="text-sm font-semibold mb-4" style="color: var(--text-primary);">Today's Order Status</h2>
         {% if daily_stats.orders_by_status %}
         <div class="h-56">
             <canvas id="statusChart"></canvas>
         </div>
         {% else %}
-        <div class="h-32 flex items-center justify-center text-gray-400 text-sm">No orders today.</div>
+        <div class="h-32 flex items-center justify-center text-sm" style="color: var(--text-secondary);">No orders today.</div>
         {% endif %}
     </div>
 
     {# Service time breakdown #}
-    <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Avg Service Breakdown</h2>
+    <div class="rounded-xl p-6 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <h2 class="text-sm font-semibold mb-4" style="color: var(--text-primary);">Avg Service Breakdown</h2>
         <div class="space-y-4 mt-2">
             {% set stages = [
                 ('⏱ Accept time',  service_time.avg_accept_time,  'Time from order placed to accepted'),
@@ -124,21 +124,20 @@
             ] %}
             {% for label, secs, hint in stages %}
             <div>
-                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                <div class="flex justify-between text-xs mb-1" style="color: var(--text-secondary);">
                     <span>{{ label }}</span>
                     {% if secs %}
-                    <span class="font-semibold text-gray-700">{{ (secs / 60)|int }} min {{ (secs % 60)|int }} sec</span>
+                    <span class="font-semibold" style="color: var(--text-primary);">{{ (secs / 60)|int }} min {{ (secs % 60)|int }} sec</span>
                     {% else %}
-                    <span class="text-gray-300">—</span>
+                    <span style="color: var(--text-secondary);">—</span>
                     {% endif %}
                 </div>
                 {% if secs %}
-                <div class="w-full bg-gray-100 rounded-full h-1.5">
-                    <div class="bg-orange-400 h-1.5 rounded-full"
-                         style="width: {{ [((secs / 60) / 30 * 100)|int, 100]|min }}%"></div>
+                <div class="w-full rounded-full h-1.5" style="background-color: rgba(0, 0, 0, 0.1);">
+                    <div class="h-1.5 rounded-full" style="background-color: var(--color-amber); width: {{ [((secs / 60) / 30 * 100)|int, 100]|min }}%;"></div>
                 </div>
                 {% endif %}
-                <p class="text-xs text-gray-400 mt-0.5">{{ hint }}</p>
+                <p class="text-xs mt-0.5" style="color: var(--text-secondary);">{{ hint }}</p>
             </div>
             {% endfor %}
         </div>
@@ -146,15 +145,15 @@
 
     {# Waiter Call Stats #}
     {% if call_stats and call_stats.total_calls > 0 %}
-    <div class="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-        <h2 class="text-sm font-semibold text-gray-700 mb-4">Waiter Calls</h2>
-        <p class="text-3xl font-bold text-gray-800 mb-3">{{ call_stats.total_calls }}</p>
-        <p class="text-xs text-gray-400 mb-4">calls in selected period</p>
+    <div class="rounded-xl p-6 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+        <h2 class="text-sm font-semibold mb-4" style="color: var(--text-primary);">Waiter Calls</h2>
+        <p class="text-3xl font-bold mb-3" style="color: var(--text-primary);">{{ call_stats.total_calls }}</p>
+        <p class="text-xs mb-4" style="color: var(--text-secondary);">calls in selected period</p>
         <div class="space-y-2">
             {% for ctype, count in call_stats.calls_by_type.items() %}
-            <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-600 capitalize">{{ ctype }}</span>
-                <span class="font-semibold text-gray-800">{{ count }}</span>
+            <div class="flex justify-between items-center text-sm" style="color: var(--text-primary);">
+                <span style="color: var(--text-secondary);" class="capitalize">{{ ctype }}</span>
+                <span class="font-semibold" style="color: var(--text-primary);">{{ count }}</span>
             </div>
             {% endfor %}
         </div>
