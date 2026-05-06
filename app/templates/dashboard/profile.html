@@ -4,9 +4,9 @@
 
 {% block dashboard_content %}
 <div class="max-w-2xl">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 class="text-lg font-semibold text-gray-900">Owner Profile</h2>
-        <p class="text-sm text-gray-500 mt-1">Update your account details and avatar.</p>
+    <div class="rounded-xl shadow-sm border p-6" style="background-color: var(--bg-primary); border-color: var(--border-primary);">
+        <h2 class="text-lg font-semibold" style="color: var(--text-primary);">Owner Profile</h2>
+        <p class="text-sm mt-1" style="color: var(--text-secondary);">Update your account details and avatar.</p>
 
         <form method="POST" enctype="multipart/form-data" class="space-y-4 mt-6">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -15,57 +15,62 @@
                 <img
                     src="{{ user.avatar_url if user.avatar_url else url_for('static', filename='icons/icon-192.png') }}"
                     alt="Profile avatar for {{ user.name }}"
-                    class="w-16 h-16 rounded-full object-cover border border-gray-200"
+                    class="w-16 h-16 rounded-full object-cover"
                     loading="lazy" decoding="async"
+                    style="border: 1px solid var(--border-primary);"
                 >
                 <div class="flex-1">
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Avatar</label>
+                    <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">Avatar</label>
                     <input
                         type="file"
                         name="avatar"
                         accept="image/png,image/jpeg,image/jpg,image/webp"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                        class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                        style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);"
                     >
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Full Name *</label>
+                <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">Full Name *</label>
                 <input
                     type="text"
                     name="name"
                     required
                     value="{{ (form.name if form else None) or user.name }}"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                    style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);"
                 >
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">Email *</label>
+                <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">Email *</label>
                 <input
                     type="email"
                     name="email"
                     required
                     value="{{ (form.email if form else None) or user.email }}"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                    style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);"
                 >
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">New Password (leave blank to keep current)</label>
+                <label class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">New Password (leave blank to keep current)</label>
                 <input
                     type="password"
                     name="password"
                     minlength="8"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    class="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                    style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);"
                 >
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button type="submit" class="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 min-h-[44px]">
+                <button type="submit" class="text-white px-6 py-2 rounded-lg text-sm font-medium min-h-[44px]" style="background-color: var(--color-amber); color: var(--bg-primary);">
                     Save Changes
                 </button>
-                <a href="{{ url_for('dashboard.overview') }}" class="border border-gray-200 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 min-h-[44px] inline-flex items-center">Cancel</a>
+                <a href="{{ url_for('dashboard.overview') }}" class="px-6 py-2 rounded-lg text-sm font-medium min-h-[44px] inline-flex items-center" style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary);">Cancel</a>
             </div>
         </form>
     </div>
