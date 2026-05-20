@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose Your Plan - Tablii{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4 bg-charcoal-900">
+  <div class="w-full max-w-6xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-display font-bold text-amber-100 mb-4">Choose Your Plan</h1>
+      <p class="text-xl text-cream-200">Select the perfect plan to get your restaurant up and running.</p>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="grid md:grid-cols-3 gap-8 mb-12">
+      <!-- Free Plan -->
+      <div class="bg-charcoal-800 border-2 border-charcoal-700 rounded-lg p-8 hover:border-amber-500/50 transition-all duration-300">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-amber-100">Free</h3>
+          <span class="text-3xl font-bold text-amber-400">$0</span>
+        </div>
+        
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Up to 5 tables</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Up to 20 menu items</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Basic dashboard</span>
+          </li>
+          <li class="flex items-start opacity-50">
+            <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-gray-400">Priority support</span>
+          </li>
+        </ul>
+
+        <form method="POST" action="{{ url_for('onboarding.select_plan') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="plan" value="free">
+          <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-charcoal-900 font-bold py-3 rounded-lg transition-colors duration-300">
+            Start Free
+          </button>
+        </form>
+      </div>
+
+      <!-- Pro Plan -->
+      <div class="bg-charcoal-800 border-2 border-amber-500/50 rounded-lg p-8 transform md:scale-105 shadow-xl hover:border-amber-400 transition-all duration-300 relative">
+        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <span class="bg-amber-500 text-charcoal-900 px-4 py-1 rounded-full text-sm font-bold">Most Popular</span>
+        </div>
+
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-amber-100">Pro</h3>
+          <span class="text-3xl font-bold text-amber-400">$29.99<span class="text-sm font-normal text-cream-300">/mo</span></span>
+        </div>
+        
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Up to 25 tables</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Up to 100 menu items</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Advanced analytics</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Priority support</span>
+          </li>
+        </ul>
+
+        <form method="POST" action="{{ url_for('onboarding.select_plan') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="plan" value="pro">
+          <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-charcoal-900 font-bold py-3 rounded-lg transition-all duration-300 transform hover:scale-105">
+            Upgrade to Pro
+          </button>
+        </form>
+      </div>
+
+      <!-- Enterprise Plan -->
+      <div class="bg-charcoal-800 border-2 border-charcoal-700 rounded-lg p-8 hover:border-amber-500/50 transition-all duration-300">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold text-amber-100">Enterprise</h3>
+          <span class="text-3xl font-bold text-amber-400">$99.99<span class="text-sm font-normal text-cream-300">/mo</span></span>
+        </div>
+        
+        <ul class="space-y-4 mb-8">
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Unlimited tables</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Unlimited menu items</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">Custom integrations</span>
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-cream-100">24/7 dedicated support</span>
+          </li>
+        </ul>
+
+        <form method="POST" action="{{ url_for('onboarding.select_plan') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="plan" value="enterprise">
+          <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-charcoal-900 font-bold py-3 rounded-lg transition-colors duration-300">
+            Go Enterprise
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Skip Button -->
+    <div class="text-center mt-8">
+      <form method="POST" action="{{ url_for('onboarding.skip_upgrade') }}" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="text-cream-400 hover:text-cream-100 underline transition-colors duration-300">
+          Start with free plan →
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

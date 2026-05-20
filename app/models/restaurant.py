@@ -138,6 +138,7 @@ class Subscription(db.Model):
     )
     expires_at = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+    payment_completed = db.Column(db.Boolean, default=False)
     restaurant = db.relationship('Restaurant', back_populates='subscription')
 
 

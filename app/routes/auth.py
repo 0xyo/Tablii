@@ -221,7 +221,7 @@ def register_post():
         db.session.add(restaurant)
         db.session.flush()  # Get restaurant.id
 
-        subscription = Subscription(restaurant_id=restaurant.id, plan='free')
+        subscription = Subscription(restaurant_id=restaurant.id, plan='free', payment_completed=False)
         db.session.add(subscription)
 
         # Default operating hours: Mon–Sun, 09:00–23:00
@@ -238,8 +238,8 @@ def register_post():
         db.session.commit()
 
         login_user(user)
-        flash('Account created successfully!', 'success')
-        return redirect('/dashboard')
+        flash('Account created successfully! Now let\'s set up your plan.', 'success')
+        return redirect(url_for('onboarding.plans'))
 
     except Exception:
         db.session.rollback()

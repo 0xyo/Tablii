@@ -3,72 +3,72 @@
 {% block page_title %}Menu — Items{% endblock %}
 
 {% block dashboard_content %}
-<div class="flex items-center justify-between mb-6 flex-col sm:flex-row gap-3">
+<div class="flex items-center justify-between mb-6 gap-3 flex-col sm:flex-row">
     <!-- Category filter -->
     <form method="GET" class="flex items-center gap-2 w-full sm:w-auto">
-        <label for="category-filter" class="text-xs font-medium" style="color:var(--text-secondary);">Filter:</label>
-        <select id="category-filter" name="category_id" onchange="this.form.submit()" class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--border-primary); color:var(--text-primary); background-color:var(--bg-primary); min-height:44px;">
+        <label for="category-filter" class="text-xs font-medium" style="color:var(--soft-text-light);">Filter:</label>
+        <select id="category-filter" name="category_id" onchange="this.form.submit()" class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border-color:var(--soft-border); color:var(--bold-dark); background-color: white; min-height:44px;">
             <option value="">All Categories</option>
             {% for cat in categories %}
             <option value="{{ cat.id }}" {{ 'selected' if selected_category == cat.id }}>{{ cat.name_fr }}</option>
             {% endfor %}
         </select>
     </form>
-    <a href="{{ url_for('dashboard.menu_item_new') }}" class="text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] inline-flex items-center" style="background-color:var(--color-amber);">+ Add Item</a>
+    <a href="{{ url_for('dashboard.menu_item_new') }}" class="text-white px-6 py-2 rounded-lg text-sm font-semibold transition-all" style="background-color: var(--bold-accent);">+ Add Menu Item</a>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto" style="border-color:var(--border-primary);">
-    <table class="w-full text-sm" role="table">
-        <thead style="background-color:var(--bg-secondary);">
+<div class="dashboard-card !p-0 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead style="background: var(--soft-cream); border-bottom: 1px solid var(--soft-border);">
             <tr>
-                <th class="px-6 py-3 text-left text-xs font-semibold" style="color:var(--text-secondary);">Item</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold" style="color:var(--text-secondary);">Category</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold" style="color:var(--text-secondary);">Price</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold" style="color:var(--text-secondary);">Availability</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold" style="color:var(--text-secondary);">Featured</th>
-                <th class="px-6 py-3 text-left text-xs font-semibold" style="color:var(--text-secondary);">Actions</th>
+                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color:var(--soft-text-light);">Item</th>
+                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color:var(--soft-text-light);">Category</th>
+                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color:var(--soft-text-light);">Price</th>
+                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color:var(--soft-text-light);">Available</th>
+                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color:var(--soft-text-light);">Featured</th>
+                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color:var(--soft-text-light);">Actions</th>
             </tr>
         </thead>
-        <tbody class="divide-y" id="item-list" style="border-color:var(--border-primary); color:var(--text-primary);">
+        <tbody id="item-list">
             {% for item in items %}
-            <tr data-item-id="{{ item.id }}" class="cursor-move hover:opacity-75 transition-opacity">
-                <td class="px-6 py-3 flex items-center gap-3">
-                    <div style="color:var(--text-muted);">
+            <tr data-item-id="{{ item.id }}" class="cursor-move" style="border-bottom: 1px solid var(--soft-border); color: var(--bold-dark);">
+                <td class="px-6 py-4 flex items-center gap-3">
+                    <div style="color:var(--soft-text-light);">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label="Drag handle"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path></svg>
                     </div>
                     {% if item.image_url %}
                     <img src="{{ item.image_url }}" alt="{{ item.name_fr }} item image" loading="lazy" decoding="async" class="w-10 h-10 rounded-lg object-cover">
                     {% else %}
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg" style="background-color:var(--bg-secondary);">▨</div>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-semibold" style="background-color:var(--soft-peach); color: var(--bold-accent);">🍽️</div>
                     {% endif %}
-                    <span class="font-medium" style="color:var(--text-primary);">{{ item.name_fr }}</span>
+                    <span class="font-medium">{{ item.name_fr }}</span>
                 </td>
-                <td class="px-6 py-3" style="color:var(--text-secondary);">{{ item.category.name_fr if item.category else '—' }}</td>
-                <td class="px-6 py-3 font-medium" style="color:var(--text-primary);">{{ '%.3f'|format(item.price) }} {{ restaurant.currency }}</td>
-                <td class="px-6 py-3">
+                <td class="px-6 py-4 text-sm" style="color:var(--soft-text);">{{ item.category.name_fr if item.category else '—' }}</td>
+                <td class="px-6 py-4 font-medium">{{ '%.2f'|format(item.price) }} {{ restaurant.currency }}</td>
+                <td class="px-6 py-4">
                     <button onclick="toggleItem(this.dataset.itemId, this)" aria-label="Toggle item availability"
-        class="px-3 py-1 text-xs rounded-full font-medium transition-colors min-h-[44px] min-w-[80px]"
-        data-item-id="{{ item.id }}"
-        style="{% if item.is_available %}background-color:var(--color-green-light); color:var(--color-green);{% else %}background-color:var(--bg-secondary); color:var(--text-muted);{% endif %}">
-    {{ '●' if item.is_available else '○' }} {{ 'Available' if item.is_available else 'Unavailable' }}
-</button>
+                        class="px-3 py-1 text-xs rounded-full font-semibold transition-all min-h-[44px]"
+                        data-item-id="{{ item.id }}"
+                        style="{% if item.is_available %}background-color: rgba(197,212,200,0.2); color: var(--soft-sage-dark);{% else %}background-color: rgba(201,113,75,0.2); color: var(--bold-accent);{% endif %}">
+                        {{ '●' if item.is_available else '○' }} {{ 'Available' if item.is_available else 'Unavailable' }}
+                    </button>
                 </td>
-                <td class="px-6 py-3">
-                    {% if item.is_popular %}<span role="img" aria-label="Featured item">◆</span>{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+                <td class="px-6 py-4">
+                    {% if item.is_popular %}<span role="img" aria-label="Featured item" style="color: var(--bold-accent); font-weight: 700;">★</span>{% else %}<span style="color:var(--soft-text-light);">—</span>{% endif %}
                 </td>
-                <td class="px-6 py-3">
+                <td class="px-6 py-4">
                     <div class="flex gap-2 flex-wrap">
-                        <a href="{{ url_for('dashboard.menu_item_edit', id=item.id) }}" aria-label="Edit item" class="text-xs font-medium px-3 py-2 rounded min-h-[44px] transition-colors inline-flex items-center" style="color:var(--color-blue);">Edit</a>
-                        <a href="{{ url_for('dashboard.customizations', item_id=item.id) }}" aria-label="Manage item options" class="text-xs font-medium px-3 py-2 rounded min-h-[44px] transition-colors inline-flex items-center" style="color:var(--color-purple);">Options</a>
+                        <a href="{{ url_for('dashboard.menu_item_edit', id=item.id) }}" aria-label="Edit item" class="text-xs font-medium px-3 py-2 rounded transition-all" style="color:var(--bold-accent); background: rgba(201,113,75,0.1);">Edit</a>
+                        <a href="{{ url_for('dashboard.customizations', item_id=item.id) }}" aria-label="Manage item options" class="text-xs font-medium px-3 py-2 rounded transition-all" style="color:var(--soft-sage-dark); background: rgba(197,212,200,0.1);">Options</a>
                         <form method="POST" action="{{ url_for('dashboard.menu_item_delete', id=item.id) }}" onsubmit="return confirm('Are you sure? This will delete the item permanently.')" style="display:inline;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" aria-label="Delete item" class="text-xs font-medium px-3 py-2 rounded min-h-[44px] transition-colors" style="color:var(--color-red); background:none; border:none; cursor:pointer;">Delete</button>
+                            <button type="submit" aria-label="Delete item" class="text-xs font-medium px-3 py-2 rounded transition-all" style="color:var(--bold-accent); background:none; border:none; cursor:pointer; text-decoration: underline;">Delete</button>
                         </form>
                     </div>
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="px-6 py-12 text-center" style="color:var(--text-muted);">No menu items yet. <a href="{{ url_for('dashboard.menu_item_new') }}" style="color:var(--color-amber); text-decoration:none;">Create your first item →</a></td></tr>
+            <tr><td colspan="6" class="px-6 py-12 text-center" style="color:var(--soft-text-light);">No menu items yet. <a href="{{ url_for('dashboard.menu_item_new') }}" style="color:var(--bold-accent); font-weight: 600;">Create your first item →</a></td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -93,8 +93,16 @@ async function toggleItem(id, btn) {
     });
     const data = await res.json();
     if (data.success) {
-        btn.textContent = data.is_available ? 'Yes' : 'No';
-        btn.className = `px-2 py-1 text-xs rounded-full font-medium transition-colors ${data.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`;
+        const label = data.is_available ? 'Available' : 'Unavailable';
+        const icon = data.is_available ? '●' : '○';
+        btn.textContent = icon + ' ' + label;
+        if (data.is_available) {
+            btn.style.backgroundColor = 'rgba(197,212,200,0.2)';
+            btn.style.color = 'var(--soft-sage-dark)';
+        } else {
+            btn.style.backgroundColor = 'rgba(201,113,75,0.2)';
+            btn.style.color = 'var(--bold-accent)';
+        }
     }
 }
 </script>

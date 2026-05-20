@@ -45,7 +45,7 @@
                 </form>
             </div>
             {% else %}
-            <div class="col-span-full rounded-xl p-8 text-center" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary); color: var(--text-secondary);">
+            <div class="col-span-full rounded-xl p-8 text-center" style="background-color: var(--bg-primary); border: 2px solid var(--border-primary); color: var(--text-secondary);">
                 No tables yet. <a href="{{ url_for('dashboard.table_add') }}" style="color: var(--color-amber);" class="font-medium">Create your first table to enable QR code ordering →</a>
             </div>
             {% endfor %}

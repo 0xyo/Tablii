@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Confirmed - Tablii{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-4 bg-charcoal-900">
+  <div class="w-full max-w-2xl">
+    <!-- Success Header -->
+    <div class="text-center mb-12">
+      <div class="inline-block mb-6">
+        <div class="w-20 h-20 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center">
+          <svg class="w-10 h-10 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </div>
+      
+      <h1 class="text-4xl md:text-5xl font-display font-bold text-green-400 mb-4">Payment Confirmed!</h1>
+      <p class="text-xl text-cream-200">Your {{ subscription.plan|upper }} plan is now active.</p>
+    </div>
+
+    <!-- Confirmation Details -->
+    <div class="bg-charcoal-800 border-2 border-charcoal-700 rounded-lg p-8 mb-8">
+      <h2 class="text-2xl font-bold text-amber-100 mb-6">Subscription Details</h2>
+      
+      <div class="space-y-4">
+        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
+          <span class="text-cream-300">Plan</span>
+          <span class="text-cream-100 font-semibold capitalize">{{ subscription.plan }}</span>
+        </div>
+        
+        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
+          <span class="text-cream-300">Restaurant</span>
+          <span class="text-cream-100 font-semibold">{{ restaurant.name }}</span>
+        </div>
+        
+        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
+          <span class="text-cream-300">Max Tables</span>
+          <span class="text-cream-100 font-semibold">
+            {% if subscription.max_tables == 999 %}
+              Unlimited
+            {% else %}
+              {{ subscription.max_tables }}
+            {% endif %}
+          </span>
+        </div>
+        
+        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
+          <span class="text-cream-300">Max Menu Items</span>
+          <span class="text-cream-100 font-semibold">
+            {% if subscription.max_items == 999 %}
+              Unlimited
+            {% else %}
+              {{ subscription.max_items }}
+            {% endif %}
+          </span>
+        </div>
+        
+        <div class="flex justify-between items-center">
+          <span class="text-cream-300">Active Until</span>
+          <span class="text-cream-100 font-semibold">
+            {% if subscription.expires_at %}
+              {{ subscription.expires_at.strftime('%B %d, %Y') }}
+            {% else %}
+              Forever
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="bg-amber-500/10 border-2 border-amber-500/30 rounded-lg p-8 mb-8">
+      <h3 class="text-xl font-bold text-amber-100 mb-4">What's Next?</h3>
+      
+      <ul class="space-y-3">
+        <li class="flex items-start">
+          <svg class="w-6 h-6 text-amber-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-cream-100">
+            <strong>Set up your restaurant</strong> - Add your menu items, tables, and staff
+          </span>
+        </li>
+        
+        <li class="flex items-start">
+          <svg class="w-6 h-6 text-amber-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-cream-100">
+            <strong>Configure operations</strong> - Set hours, manage staff, and customize settings
+          </span>
+        </li>
+        
+        <li class="flex items-start">
+          <svg class="w-6 h-6 text-amber-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-cream-100">
+            <strong>Start taking orders</strong> - Share QR codes with customers and begin!
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- CTA Button -->
+    <div class="text-center">
+      <a href="{{ url_for('dashboard.overview') }}" class="inline-block bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-charcoal-900 font-bold py-4 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
+        Go to Dashboard →
+      </a>
+    </div>
+
+    <!-- Support -->
+    <div class="text-center mt-8">
+      <p class="text-cream-400">
+        Questions? <a href="mailto:support@tablii.com" class="text-amber-400 hover:text-amber-300 underline transition-colors">Contact support</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

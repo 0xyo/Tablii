@@ -2,7 +2,7 @@
 import functools
 from datetime import datetime, timezone
 
-from flask import abort, flash, g, redirect, url_for
+from flask import abort, flash, g, redirect, request, url_for
 from flask_login import current_user
 
 from app.models.user import User, StaffUser
@@ -84,6 +84,31 @@ def restaurant_required(f):
         else:
             g.subscription_expired = False
 
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def payment_required(f):
+    """Ensure the restaurant has completed initial payment/plan setup.
+    
+    Redirects to onboarding if payment hasn't been completed.
+    """
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not isinstance(current_user, User):
+            abort(401)
+        
+        if current_user.role == 'super_admin':
+            return f(*args, **kwargs)
+        
+        restaurant = current_user.restaurants[0] if current_user.restaurants else None
+        if not restaurant:
+            abort(404, description='No restaurant found')
+        
+        sub = restaurant.subscription
+        if not sub or not sub.payment_completed:
+            return redirect(url_for('onboarding.plans', next=request.url))
+        
         return f(*args, **kwargs)
     return decorated_function
 

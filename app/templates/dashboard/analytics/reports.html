@@ -20,7 +20,7 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
     {# Revenue #}
-    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 2px solid var(--border-primary);">
         <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-secondary);">Today's Revenue</p>
         <p class="text-2xl font-bold" style="color: var(--text-primary);">
             {{ '%.3f'|format(daily_stats.total_revenue) }}
@@ -30,14 +30,14 @@
     </div>
 
     {# Orders #}
-    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 2px solid var(--border-primary);">
         <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-secondary);">Today's Orders</p>
         <p class="text-2xl font-bold" style="color: var(--text-primary);">{{ daily_stats.total_orders }}</p>
         <p class="text-xs mt-1" style="color: var(--text-secondary);">{{ daily_stats.tables_used }} table(s) active</p>
     </div>
 
     {# Avg order value #}
-    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+    <div class="rounded-xl p-5 shadow-sm" style="background-color: var(--bg-primary); border: 2px solid var(--border-primary);">
         <p class="text-xs font-medium uppercase tracking-wide mb-1" style="color: var(--text-secondary);">Avg Order Value</p>
         <p class="text-2xl font-bold" style="color: var(--text-primary);">
             {{ '%.3f'|format(daily_stats.average_order_value) }}

@@ -26,7 +26,7 @@ from app.services.notification_service import (
 )
 from app.services.qr_service import generate_table_qr as _generate_table_qr
 from app.services.upload_service import delete_file, save_uploaded_file, validate_image
-from app.utils.decorators import restaurant_required, role_required
+from app.utils.decorators import restaurant_required, role_required, payment_required
 from app.utils.validators import validate_email, validate_price
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -38,6 +38,7 @@ dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
 @dashboard_bp.route('')
 @login_required
+@payment_required
 @restaurant_required
 def overview():
     """Dashboard home — today's stats and recent orders."""

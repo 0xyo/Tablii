@@ -4,7 +4,7 @@
 
 {% block dashboard_content %}
 <!-- Filters -->
-<form method="GET" class="rounded-xl shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+<form method="GET" class="rounded-xl shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end" style="background-color: var(--bg-primary); border: 2px solid var(--border-primary);">
     <div>
         <label for="status-filter" class="block text-xs font-medium mb-1" style="color: var(--text-secondary);">Status</label>
         <select id="status-filter" name="status" class="rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2" style="border: 1px solid var(--border-primary); color: var(--text-primary); background-color: var(--bg-primary); --tw-ring-color: var(--color-amber);" aria-label="Filter orders by status">
@@ -27,7 +27,7 @@
 </form>
 
 <!-- Orders table -->
-<div class="rounded-xl shadow-sm overflow-x-auto" style="background-color: var(--bg-primary); border: 1px solid var(--border-primary);">
+<div class="rounded-xl shadow-sm overflow-x-auto" style="background-color: var(--bg-primary); border: 2px solid var(--border-primary);">
     <table class="w-full text-sm">
         <thead class="uppercase text-xs" style="background-color: rgba(0, 0, 0, 0.05); color: var(--text-secondary);">
             <tr>
