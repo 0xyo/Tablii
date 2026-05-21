@@ -1,121 +1,166 @@
 {% extends 'base.html' %}
 
-{% block title %}Payment Confirmed - Tablii{% endblock %}
+{% block title %}Subscription Active - Tablii{% endblock %}
+
+{% block head %}
+<style>
+  :root {
+    --done-cream: #faf8f6;
+    --done-peach: #f5ede7;
+    --done-sage: #c5d4c8;
+    --done-sage-dark: #7f987f;
+    --done-border: #e8dfd8;
+    --done-text: #514b46;
+    --done-muted: #766f68;
+    --done-dark: #29231e;
+    --done-accent: #b85f3b;
+    --done-white: #fffdfa;
+  }
+
+  .done-page {
+    min-height: 100vh;
+    background:
+      linear-gradient(90deg, rgba(232, 223, 216, 0.5) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(232, 223, 216, 0.38) 1px, transparent 1px),
+      var(--done-cream);
+    background-size: 72px 72px;
+    color: var(--done-text);
+  }
+
+  .done-mark {
+    border: 1px solid var(--done-sage-dark);
+    border-radius: 8px;
+    background: linear-gradient(145deg, var(--done-peach), rgba(197, 212, 200, 0.55));
+    color: var(--done-accent);
+  }
+
+  .done-panel,
+  .done-card {
+    border: 1px solid var(--done-border);
+    border-radius: 8px;
+    background: rgba(255, 253, 250, 0.9);
+  }
+
+  .done-panel {
+    box-shadow: 0 24px 70px rgba(76, 57, 45, 0.1);
+  }
+
+  .done-action {
+    min-height: 48px;
+    border-radius: 8px;
+    background: var(--done-accent);
+    color: #fff8f2;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 14px 30px rgba(184, 95, 59, 0.2);
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease;
+  }
+
+  .done-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 38px rgba(184, 95, 59, 0.26);
+  }
+
+  .done-check {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(127, 152, 127, 0.35);
+    background: rgba(197, 212, 200, 0.2);
+    color: var(--done-sage-dark);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .done-rise { animation: fadeUp 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .done-rise-2 { animation-delay: 110ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .done-rise,
+    .done-rise-2 {
+      animation: none;
+    }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4 bg-charcoal-900">
-  <div class="w-full max-w-2xl">
-    <!-- Success Header -->
-    <div class="text-center mb-12">
-      <div class="inline-block mb-6">
-        <div class="w-20 h-20 bg-green-500/20 border-2 border-green-500 rounded-full flex items-center justify-center">
-          <svg class="w-10 h-10 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-          </svg>
-        </div>
-      </div>
-      
-      <h1 class="text-4xl md:text-5xl font-display font-bold text-green-400 mb-4">Payment Confirmed!</h1>
-      <p class="text-xl text-cream-200">Your {{ subscription.plan|upper }} plan is now active.</p>
-    </div>
-
-    <!-- Confirmation Details -->
-    <div class="bg-charcoal-800 border-2 border-charcoal-700 rounded-lg p-8 mb-8">
-      <h2 class="text-2xl font-bold text-amber-100 mb-6">Subscription Details</h2>
-      
-      <div class="space-y-4">
-        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
-          <span class="text-cream-300">Plan</span>
-          <span class="text-cream-100 font-semibold capitalize">{{ subscription.plan }}</span>
-        </div>
-        
-        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
-          <span class="text-cream-300">Restaurant</span>
-          <span class="text-cream-100 font-semibold">{{ restaurant.name }}</span>
-        </div>
-        
-        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
-          <span class="text-cream-300">Max Tables</span>
-          <span class="text-cream-100 font-semibold">
-            {% if subscription.max_tables == 999 %}
-              Unlimited
-            {% else %}
-              {{ subscription.max_tables }}
-            {% endif %}
-          </span>
-        </div>
-        
-        <div class="flex justify-between items-center pb-4 border-b border-charcoal-700">
-          <span class="text-cream-300">Max Menu Items</span>
-          <span class="text-cream-100 font-semibold">
-            {% if subscription.max_items == 999 %}
-              Unlimited
-            {% else %}
-              {{ subscription.max_items }}
-            {% endif %}
-          </span>
-        </div>
-        
-        <div class="flex justify-between items-center">
-          <span class="text-cream-300">Active Until</span>
-          <span class="text-cream-100 font-semibold">
-            {% if subscription.expires_at %}
-              {{ subscription.expires_at.strftime('%B %d, %Y') }}
-            {% else %}
-              Forever
-            {% endif %}
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Next Steps -->
-    <div class="bg-amber-500/10 border-2 border-amber-500/30 rounded-lg p-8 mb-8">
-      <h3 class="text-xl font-bold text-amber-100 mb-4">What's Next?</h3>
-      
-      <ul class="space-y-3">
-        <li class="flex items-start">
-          <svg class="w-6 h-6 text-amber-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          <span class="text-cream-100">
-            <strong>Set up your restaurant</strong> - Add your menu items, tables, and staff
-          </span>
-        </li>
-        
-        <li class="flex items-start">
-          <svg class="w-6 h-6 text-amber-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          <span class="text-cream-100">
-            <strong>Configure operations</strong> - Set hours, manage staff, and customize settings
-          </span>
-        </li>
-        
-        <li class="flex items-start">
-          <svg class="w-6 h-6 text-amber-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          <span class="text-cream-100">
-            <strong>Start taking orders</strong> - Share QR codes with customers and begin!
-          </span>
-        </li>
-      </ul>
-    </div>
-
-    <!-- CTA Button -->
-    <div class="text-center">
-      <a href="{{ url_for('dashboard.overview') }}" class="inline-block bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-charcoal-900 font-bold py-4 px-8 rounded-lg transition-all duration-300 transform hover:scale-105">
-        Go to Dashboard →
+<div class="done-page">
+  <main class="max-w-5xl mx-auto px-5 sm:px-8 py-10 lg:py-16">
+    <section class="done-panel done-rise p-6 sm:p-8 lg:p-10">
+      <a href="{{ url_for('landing.index') }}" class="inline-flex items-center gap-3 mb-10" aria-label="Tablii homepage">
+        <span class="done-mark w-10 h-10 flex items-center justify-center font-display italic">T</span>
+        <span class="font-display italic text-xl" style="color: var(--done-dark);">Tablii</span>
       </a>
-    </div>
 
-    <!-- Support -->
-    <div class="text-center mt-8">
-      <p class="text-cream-400">
-        Questions? <a href="mailto:support@tablii.com" class="text-amber-400 hover:text-amber-300 underline transition-colors">Contact support</a>
-      </p>
-    </div>
-  </div>
+      <div class="grid lg:grid-cols-[0.88fr_1.12fr] gap-8 lg:gap-12 items-start">
+        <div>
+          <div class="done-check flex items-center justify-center mb-7" aria-hidden="true">
+            <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="m5 13 4 4L19 7"/>
+            </svg>
+          </div>
+          <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-4" style="color: var(--done-sage-dark);">Subscription Active</p>
+          <h1 class="text-5xl lg:text-7xl font-display italic leading-[1.02] tracking-normal mb-6" style="color: var(--done-dark);">
+            Your room is ready.
+          </h1>
+          <p class="text-lg leading-8 max-w-xl" style="color: var(--done-muted);">
+            {{ restaurant.name }} is now on the {{ subscription.plan|title }} plan.
+          </p>
+        </div>
+
+        <div class="space-y-5 done-rise done-rise-2">
+          <div class="done-card p-6">
+            <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-5" style="color: var(--done-muted);">Subscription Details</p>
+            <dl class="space-y-4 text-sm">
+              <div class="flex justify-between gap-4">
+                <dt style="color: var(--done-muted);">Plan</dt>
+                <dd class="font-bold capitalize" style="color: var(--done-dark);">{{ subscription.plan }}</dd>
+              </div>
+              <div class="flex justify-between gap-4">
+                <dt style="color: var(--done-muted);">Restaurant</dt>
+                <dd class="font-bold text-right" style="color: var(--done-dark);">{{ restaurant.name }}</dd>
+              </div>
+              <div class="flex justify-between gap-4">
+                <dt style="color: var(--done-muted);">Tables</dt>
+                <dd class="font-bold" style="color: var(--done-dark);">{{ 'Unlimited' if subscription.max_tables == 999 else subscription.max_tables }}</dd>
+              </div>
+              <div class="flex justify-between gap-4">
+                <dt style="color: var(--done-muted);">Menu Items</dt>
+                <dd class="font-bold" style="color: var(--done-dark);">{{ 'Unlimited' if subscription.max_items == 999 else subscription.max_items }}</dd>
+              </div>
+              <div class="pt-4 flex justify-between gap-4" style="border-top: 1px solid var(--done-border);">
+                <dt style="color: var(--done-muted);">Active Until</dt>
+                <dd class="font-bold text-right" style="color: var(--done-dark);">
+                  {% if subscription.expires_at %}
+                    {{ subscription.expires_at.strftime('%B %d, %Y') }}
+                  {% else %}
+                    No expiration
+                  {% endif %}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="done-card p-6">
+            <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-5" style="color: var(--done-muted);">Next Steps</p>
+            <ul class="space-y-3 text-sm leading-6" style="color: var(--done-text);">
+              <li class="flex gap-3"><span style="color: var(--done-sage-dark); font-weight: 900;">✓</span><span>Add categories, menu items, tables, and staff.</span></li>
+              <li class="flex gap-3"><span style="color: var(--done-sage-dark); font-weight: 900;">✓</span><span>Print table QR codes from the manager dashboard.</span></li>
+              <li class="flex gap-3"><span style="color: var(--done-sage-dark); font-weight: 900;">✓</span><span>Open service when your team is ready to receive orders.</span></li>
+            </ul>
+          </div>
+
+          <a href="{{ url_for('dashboard.overview') }}" class="done-action inline-flex items-center justify-center w-full text-xs">
+            Go to Dashboard
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
 {% endblock %}

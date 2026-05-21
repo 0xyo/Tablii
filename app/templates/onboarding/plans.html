@@ -2,160 +2,240 @@
 
 {% block title %}Choose Your Plan - Tablii{% endblock %}
 
+{% block head %}
+<style>
+  :root {
+    --plan-cream: #faf8f6;
+    --plan-peach: #f5ede7;
+    --plan-sage: #c5d4c8;
+    --plan-sage-dark: #7f987f;
+    --plan-border: #e8dfd8;
+    --plan-text: #514b46;
+    --plan-muted: #766f68;
+    --plan-dark: #29231e;
+    --plan-accent: #b85f3b;
+    --plan-white: #fffdfa;
+  }
+
+  .plan-page {
+    min-height: 100vh;
+    background:
+      linear-gradient(90deg, rgba(232, 223, 216, 0.5) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(232, 223, 216, 0.38) 1px, transparent 1px),
+      var(--plan-cream);
+    background-size: 72px 72px;
+    color: var(--plan-text);
+  }
+
+  .plan-mark {
+    border: 1px solid var(--plan-sage-dark);
+    border-radius: 8px;
+    background: linear-gradient(145deg, var(--plan-peach), rgba(197, 212, 200, 0.55));
+    color: var(--plan-accent);
+  }
+
+  .plan-card,
+  .plan-note {
+    border: 1px solid var(--plan-border);
+    border-radius: 8px;
+    background: rgba(255, 253, 250, 0.9);
+  }
+
+  .plan-card {
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  .plan-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(127, 152, 127, 0.52);
+    box-shadow: 0 18px 52px rgba(76, 57, 45, 0.09);
+  }
+
+  .plan-card.featured {
+    border-color: rgba(184, 95, 59, 0.46);
+    box-shadow: 0 20px 58px rgba(184, 95, 59, 0.12);
+  }
+
+  .plan-action {
+    min-height: 48px;
+    border-radius: 8px;
+    border: 1px solid var(--plan-accent);
+    color: var(--plan-accent);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), background-color 180ms ease;
+  }
+
+  .plan-action.primary {
+    background: var(--plan-accent);
+    color: #fff8f2;
+    box-shadow: 0 14px 30px rgba(184, 95, 59, 0.2);
+  }
+
+  .plan-action:hover {
+    transform: translateY(-1px);
+    background: rgba(184, 95, 59, 0.08);
+  }
+
+  .plan-action.primary:hover {
+    background: var(--plan-accent);
+    box-shadow: 0 18px 38px rgba(184, 95, 59, 0.26);
+  }
+
+  .plan-check {
+    color: var(--plan-sage-dark);
+    font-weight: 900;
+  }
+
+  .setup-line {
+    border: 1px solid var(--plan-border);
+    border-radius: 8px;
+    background: rgba(245, 237, 231, 0.66);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .plan-rise { animation: fadeUp 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .plan-rise-2 { animation-delay: 110ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plan-rise,
+    .plan-rise-2 {
+      animation: none;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4 bg-charcoal-900">
-  <div class="w-full max-w-6xl">
-    <!-- Header -->
-    <div class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-display font-bold text-amber-100 mb-4">Choose Your Plan</h1>
-      <p class="text-xl text-cream-200">Select the perfect plan to get your restaurant up and running.</p>
-    </div>
+<div class="plan-page">
+  <main class="max-w-7xl mx-auto px-5 sm:px-8 py-10 lg:py-14">
+    <header class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10 lg:mb-12 plan-rise">
+      <div class="max-w-3xl">
+        <a href="{{ url_for('landing.index') }}" class="inline-flex items-center gap-3 mb-8" aria-label="Tablii homepage">
+          <span class="plan-mark w-10 h-10 flex items-center justify-center font-display italic">T</span>
+          <span class="font-display italic text-xl" style="color: var(--plan-dark);">Tablii</span>
+        </a>
+        <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-4" style="color: var(--plan-sage-dark);">Step 2 of 3</p>
+        <h1 class="text-5xl lg:text-7xl font-display italic leading-[1.02] tracking-normal mb-6" style="color: var(--plan-dark);">
+          Choose the room size.
+        </h1>
+        <p class="text-lg leading-8 max-w-2xl" style="color: var(--plan-muted);">
+          Start small, or unlock the operating tools your team will need as volume grows.
+        </p>
+      </div>
 
-    <!-- Plans Grid -->
-    <div class="grid md:grid-cols-3 gap-8 mb-12">
-      <!-- Free Plan -->
-      <div class="bg-charcoal-800 border-2 border-charcoal-700 rounded-lg p-8 hover:border-amber-500/50 transition-all duration-300">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-2xl font-bold text-amber-100">Free</h3>
-          <span class="text-3xl font-bold text-amber-400">$0</span>
+      <div class="setup-line p-4 sm:p-5 w-full lg:w-[25rem]">
+        <div class="flex items-center justify-between text-[10px] uppercase tracking-[0.12em] font-bold" style="color: var(--plan-muted);">
+          <span>Account</span>
+          <span>Plan</span>
+          <span>Launch</span>
         </div>
-        
-        <ul class="space-y-4 mb-8">
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Up to 5 tables</span>
+        <div class="mt-4 grid grid-cols-3 gap-2">
+          <span class="h-1.5 rounded-full" style="background: var(--plan-sage-dark);"></span>
+          <span class="h-1.5 rounded-full" style="background: var(--plan-accent);"></span>
+          <span class="h-1.5 rounded-full" style="background: var(--plan-border);"></span>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid lg:grid-cols-3 gap-5 lg:gap-6 plan-rise plan-rise-2">
+      {% set plans = [
+        {
+          'key': 'free',
+          'name': 'Free',
+          'label': 'For first QR tests',
+          'price': plan_limits['free']['price'],
+          'tables': plan_limits['free']['max_tables'],
+          'items': plan_limits['free']['max_items'],
+          'features': ['QR code menus', 'Real-time orders', 'Basic analytics', 'Core staff workflow'],
+          'cta': 'Start Free',
+          'featured': False
+        },
+        {
+          'key': 'pro',
+          'name': 'Pro',
+          'label': 'For daily service',
+          'price': plan_limits['pro']['price'],
+          'tables': plan_limits['pro']['max_tables'],
+          'items': plan_limits['pro']['max_items'],
+          'features': ['Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode', 'Unlimited staff'],
+          'cta': 'Choose Pro',
+          'featured': True
+        },
+        {
+          'key': 'enterprise',
+          'name': 'Enterprise',
+          'label': 'For high-volume teams',
+          'price': plan_limits['enterprise']['price'],
+          'tables': plan_limits['enterprise']['max_tables'],
+          'items': plan_limits['enterprise']['max_items'],
+          'features': ['Everything in Pro', 'Unlimited tables', 'Unlimited items', 'Multi-branch support', 'Priority support', 'Custom integrations'],
+          'cta': 'Choose Enterprise',
+          'featured': False
+        }
+      ] %}
+
+      {% for plan in plans %}
+      <article class="plan-card {% if plan['featured'] %}featured{% endif %} p-6 sm:p-7 flex flex-col relative" aria-label="{{ plan['name'] }} plan">
+        {% if plan['featured'] %}
+        <div class="absolute -top-3 left-6">
+          <span class="text-[10px] uppercase tracking-[0.14em] font-bold px-4 py-1.5 rounded-lg" style="background: var(--plan-accent); color: #fff8f2;">Most Popular</span>
+        </div>
+        {% endif %}
+
+        <div class="mb-7">
+          <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--plan-muted);">{{ plan['label'] }}</p>
+          <h2 class="font-display italic text-4xl mb-4" style="color: {% if plan['featured'] %}var(--plan-accent){% else %}var(--plan-dark){% endif %};">{{ plan['name'] }}</h2>
+          <div class="flex items-baseline gap-2">
+            <span class="font-display italic text-5xl" style="color: var(--plan-dark);">{{ '%g'|format(plan['price']) }}</span>
+            <span class="text-sm" style="color: var(--plan-muted);">TND / month</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div class="plan-note p-4">
+            <p class="font-display italic text-2xl" style="color: var(--plan-dark);">{{ 'Unlimited' if plan['tables'] >= 999 else plan['tables'] }}</p>
+            <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--plan-muted);">Tables</p>
+          </div>
+          <div class="plan-note p-4">
+            <p class="font-display italic text-2xl" style="color: var(--plan-dark);">{{ 'Unlimited' if plan['items'] >= 999 else plan['items'] }}</p>
+            <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--plan-muted);">Items</p>
+          </div>
+        </div>
+
+        <ul class="space-y-3 mb-7 flex-1">
+          {% for feature in plan['features'] %}
+          <li class="flex items-start gap-3 text-sm leading-6" style="color: var(--plan-text);">
+            <span class="plan-check" aria-hidden="true">✓</span>
+            <span>{{ feature }}</span>
           </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Up to 20 menu items</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Basic dashboard</span>
-          </li>
-          <li class="flex items-start opacity-50">
-            <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-gray-400">Priority support</span>
-          </li>
+          {% endfor %}
         </ul>
 
         <form method="POST" action="{{ url_for('onboarding.select_plan') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="plan" value="free">
-          <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-charcoal-900 font-bold py-3 rounded-lg transition-colors duration-300">
-            Start Free
+          <input type="hidden" name="plan" value="{{ plan['key'] }}">
+          <button type="submit" class="plan-action {% if plan['featured'] %}primary{% endif %} w-full text-xs">
+            {{ plan['cta'] }}
           </button>
         </form>
-      </div>
+      </article>
+      {% endfor %}
+    </section>
 
-      <!-- Pro Plan -->
-      <div class="bg-charcoal-800 border-2 border-amber-500/50 rounded-lg p-8 transform md:scale-105 shadow-xl hover:border-amber-400 transition-all duration-300 relative">
-        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <span class="bg-amber-500 text-charcoal-900 px-4 py-1 rounded-full text-sm font-bold">Most Popular</span>
-        </div>
-
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-2xl font-bold text-amber-100">Pro</h3>
-          <span class="text-3xl font-bold text-amber-400">$29.99<span class="text-sm font-normal text-cream-300">/mo</span></span>
-        </div>
-        
-        <ul class="space-y-4 mb-8">
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Up to 25 tables</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Up to 100 menu items</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Advanced analytics</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Priority support</span>
-          </li>
-        </ul>
-
-        <form method="POST" action="{{ url_for('onboarding.select_plan') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="plan" value="pro">
-          <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-charcoal-900 font-bold py-3 rounded-lg transition-all duration-300 transform hover:scale-105">
-            Upgrade to Pro
-          </button>
-        </form>
-      </div>
-
-      <!-- Enterprise Plan -->
-      <div class="bg-charcoal-800 border-2 border-charcoal-700 rounded-lg p-8 hover:border-amber-500/50 transition-all duration-300">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-2xl font-bold text-amber-100">Enterprise</h3>
-          <span class="text-3xl font-bold text-amber-400">$99.99<span class="text-sm font-normal text-cream-300">/mo</span></span>
-        </div>
-        
-        <ul class="space-y-4 mb-8">
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Unlimited tables</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Unlimited menu items</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">Custom integrations</span>
-          </li>
-          <li class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-cream-100">24/7 dedicated support</span>
-          </li>
-        </ul>
-
-        <form method="POST" action="{{ url_for('onboarding.select_plan') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="plan" value="enterprise">
-          <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-charcoal-900 font-bold py-3 rounded-lg transition-colors duration-300">
-            Go Enterprise
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Skip Button -->
     <div class="text-center mt-8">
       <form method="POST" action="{{ url_for('onboarding.skip_upgrade') }}" class="inline">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="text-cream-400 hover:text-cream-100 underline transition-colors duration-300">
-          Start with free plan →
+        <button type="submit" class="plan-action px-6 text-xs" style="background: rgba(255,253,250,0.76);">
+          Continue with Free
         </button>
       </form>
     </div>
-  </div>
+  </main>
 </div>
 {% endblock %}

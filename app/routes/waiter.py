@@ -1,7 +1,7 @@
-"""Waiter blueprint — table overview, waiter calls, serve orders."""
+"""Waiter blueprint - table overview, waiter calls, serve orders."""
 from datetime import datetime, timezone
 
-from flask import Blueprint, g, jsonify, render_template
+from flask import Blueprint, flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from app import db

@@ -2,97 +2,198 @@
 
 {% block title %}Complete Payment - Tablii{% endblock %}
 
-{% block content %}
-<div class="min-h-screen flex items-center justify-center p-4 bg-charcoal-900">
-  <div class="w-full max-w-2xl">
-    <!-- Header -->
-    <div class="text-center mb-12">
-      <h1 class="text-4xl md:text-5xl font-display font-bold text-amber-100 mb-4">Complete Payment</h1>
-      <p class="text-xl text-cream-200">Activate your {{ subscription.plan|upper }} plan</p>
-    </div>
+{% block head %}
+<style>
+  :root {
+    --pay-cream: #faf8f6;
+    --pay-peach: #f5ede7;
+    --pay-sage: #c5d4c8;
+    --pay-sage-dark: #7f987f;
+    --pay-border: #e8dfd8;
+    --pay-text: #514b46;
+    --pay-muted: #766f68;
+    --pay-dark: #29231e;
+    --pay-accent: #b85f3b;
+    --pay-white: #fffdfa;
+  }
 
-    <!-- Payment Card -->
-    <div class="bg-charcoal-800 border-2 border-charcoal-700 rounded-lg p-8 mb-8">
-      <!-- Plan Summary -->
-      <div class="mb-8 pb-8 border-b border-charcoal-700">
-        <h2 class="text-2xl font-bold text-amber-100 mb-4">Order Summary</h2>
-        
-        <div class="space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-cream-300">{{ subscription.plan|capitalize }} Plan</span>
-            <span class="text-cream-100 font-semibold">${{ plan_price }}</span>
+  .pay-page {
+    min-height: 100vh;
+    background:
+      linear-gradient(90deg, rgba(232, 223, 216, 0.5) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(232, 223, 216, 0.38) 1px, transparent 1px),
+      var(--pay-cream);
+    background-size: 72px 72px;
+    color: var(--pay-text);
+  }
+
+  .pay-mark {
+    border: 1px solid var(--pay-sage-dark);
+    border-radius: 8px;
+    background: linear-gradient(145deg, var(--pay-peach), rgba(197, 212, 200, 0.55));
+    color: var(--pay-accent);
+  }
+
+  .pay-panel,
+  .pay-summary,
+  .pay-method {
+    border: 1px solid var(--pay-border);
+    border-radius: 8px;
+    background: rgba(255, 253, 250, 0.9);
+  }
+
+  .pay-panel {
+    box-shadow: 0 24px 70px rgba(76, 57, 45, 0.1);
+  }
+
+  .pay-method {
+    min-height: 74px;
+    cursor: pointer;
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pay-method:hover {
+    border-color: rgba(127, 152, 127, 0.5);
+    background: rgba(245, 237, 231, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .pay-method input {
+    accent-color: var(--pay-accent);
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .pay-action {
+    min-height: 48px;
+    border-radius: 8px;
+    border: 1px solid var(--pay-accent);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease, background-color 180ms ease;
+  }
+
+  .pay-action.primary {
+    background: var(--pay-accent);
+    color: #fff8f2;
+    box-shadow: 0 14px 30px rgba(184, 95, 59, 0.2);
+  }
+
+  .pay-action.secondary {
+    background: rgba(255, 253, 250, 0.76);
+    color: var(--pay-accent);
+  }
+
+  .pay-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .pay-action.primary:hover {
+    box-shadow: 0 18px 38px rgba(184, 95, 59, 0.26);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pay-rise { animation: fadeUp 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .pay-rise-2 { animation-delay: 100ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pay-rise,
+    .pay-rise-2 {
+      animation: none;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pay-page">
+  <main class="max-w-6xl mx-auto px-5 sm:px-8 py-10 lg:py-14 grid lg:grid-cols-[0.9fr_1.1fr] gap-8 lg:gap-12 items-start">
+    <section class="pay-rise">
+      <a href="{{ url_for('landing.index') }}" class="inline-flex items-center gap-3 mb-8" aria-label="Tablii homepage">
+        <span class="pay-mark w-10 h-10 flex items-center justify-center font-display italic">T</span>
+        <span class="font-display italic text-xl" style="color: var(--pay-dark);">Tablii</span>
+      </a>
+
+      <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-4" style="color: var(--pay-sage-dark);">Step 3 of 3</p>
+      <h1 class="text-5xl lg:text-7xl font-display italic leading-[1.02] tracking-normal mb-6" style="color: var(--pay-dark);">
+        Activate {{ subscription.plan|title }}.
+      </h1>
+      <p class="text-lg leading-8 max-w-xl mb-8" style="color: var(--pay-muted);">
+        Complete payment to unlock your selected subscription for {{ restaurant.name }}.
+      </p>
+
+      <div class="pay-summary p-6 max-w-md">
+        <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-5" style="color: var(--pay-muted);">Order Summary</p>
+        <div class="space-y-4 text-sm">
+          <div class="flex justify-between gap-4">
+            <span style="color: var(--pay-muted);">{{ subscription.plan|title }} plan</span>
+            <span class="font-bold" style="color: var(--pay-dark);">{{ '%g'|format(plan_price) }} TND</span>
           </div>
-          <div class="flex justify-between items-center">
-            <span class="text-cream-300">Duration</span>
-            <span class="text-cream-100 font-semibold">1 Month</span>
+          <div class="flex justify-between gap-4">
+            <span style="color: var(--pay-muted);">Billing period</span>
+            <span class="font-bold" style="color: var(--pay-dark);">1 month</span>
           </div>
-          <div class="flex justify-between items-center pt-3 border-t border-charcoal-700">
-            <span class="text-amber-100 font-bold text-lg">Total</span>
-            <span class="text-amber-400 font-bold text-2xl">${{ plan_price }}</span>
+          <div class="pt-4 flex justify-between gap-4" style="border-top: 1px solid var(--pay-border);">
+            <span class="font-bold" style="color: var(--pay-dark);">Total</span>
+            <span class="font-display italic text-4xl" style="color: var(--pay-accent);">{{ '%g'|format(plan_price) }} <span class="text-sm not-italic font-bold">TND</span></span>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Payment Form -->
-      <form method="POST" action="{{ url_for('onboarding.process_payment') }}" id="paymentForm">
+    <section class="pay-panel pay-rise pay-rise-2 p-6 sm:p-8">
+      <div class="mb-8">
+        <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-3" style="color: var(--pay-sage-dark);">Payment Method</p>
+        <h2 class="text-3xl sm:text-4xl font-display italic tracking-normal mb-3" style="color: var(--pay-dark);">Choose how to pay.</h2>
+        <p class="text-sm leading-6" style="color: var(--pay-muted);">This demo flow records the selected method and activates the subscription.</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('onboarding.process_payment') }}" id="paymentForm" class="space-y-5">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <h2 class="text-2xl font-bold text-amber-100 mb-6">Payment Method</h2>
 
-        <!-- Payment Method Selection -->
-        <div class="space-y-4 mb-8">
-          <label class="flex items-center p-4 border-2 border-amber-500 rounded-lg cursor-pointer bg-charcoal-700/50 hover:bg-charcoal-700 transition-colors">
-            <input type="radio" name="payment_method" value="card" checked class="w-5 h-5 text-amber-500">
-            <span class="ml-4">
-              <span class="block font-bold text-cream-100">Credit/Debit Card</span>
-              <span class="block text-sm text-cream-400">Visa, Mastercard, American Express</span>
-            </span>
-          </label>
+        <label class="pay-method flex items-center gap-4 p-4">
+          <input type="radio" name="payment_method" value="card" checked>
+          <span>
+            <span class="block font-bold" style="color: var(--pay-dark);">Credit or debit card</span>
+            <span class="block text-sm mt-1" style="color: var(--pay-muted);">Visa, Mastercard, or local bank card</span>
+          </span>
+        </label>
 
-          <label class="flex items-center p-4 border-2 border-charcoal-600 rounded-lg cursor-pointer bg-charcoal-700/50 hover:bg-charcoal-700 transition-colors">
-            <input type="radio" name="payment_method" value="bank_transfer" class="w-5 h-5 text-amber-500">
-            <span class="ml-4">
-              <span class="block font-bold text-cream-100">Bank Transfer</span>
-              <span class="block text-sm text-cream-400">Direct transfer to our account</span>
-            </span>
-          </label>
+        <label class="pay-method flex items-center gap-4 p-4">
+          <input type="radio" name="payment_method" value="bank_transfer">
+          <span>
+            <span class="block font-bold" style="color: var(--pay-dark);">Bank transfer</span>
+            <span class="block text-sm mt-1" style="color: var(--pay-muted);">Transfer first, then activate after confirmation</span>
+          </span>
+        </label>
 
-          <label class="flex items-center p-4 border-2 border-charcoal-600 rounded-lg cursor-pointer bg-charcoal-700/50 hover:bg-charcoal-700 transition-colors">
-            <input type="radio" name="payment_method" value="cash" class="w-5 h-5 text-amber-500">
-            <span class="ml-4">
-              <span class="block font-bold text-cream-100">Cash Payment</span>
-              <span class="block text-sm text-cream-400">Pay in person at our office</span>
-            </span>
-          </label>
-        </div>
+        <label class="pay-method flex items-center gap-4 p-4">
+          <input type="radio" name="payment_method" value="cash">
+          <span>
+            <span class="block font-bold" style="color: var(--pay-dark);">Cash payment</span>
+            <span class="block text-sm mt-1" style="color: var(--pay-muted);">Pay in person and keep the setup moving</span>
+          </span>
+        </label>
 
-        <!-- Actions -->
-        <div class="flex gap-4">
-          <a href="{{ url_for('onboarding.plans') }}" class="flex-1 bg-charcoal-700 hover:bg-charcoal-600 text-cream-100 font-bold py-3 rounded-lg transition-colors duration-300 text-center">
-            ← Back
+        <div class="flex flex-col sm:flex-row gap-3 pt-3">
+          <a href="{{ url_for('onboarding.plans') }}" class="pay-action secondary flex-1 inline-flex items-center justify-center text-xs">
+            Back to Plans
           </a>
-          <button type="submit" class="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-charcoal-900 font-bold py-3 rounded-lg transition-all duration-300">
+          <button type="submit" class="pay-action primary flex-1 text-xs">
             Complete Payment
           </button>
         </div>
       </form>
 
-      <!-- Security Info -->
-      <div class="mt-8 pt-8 border-t border-charcoal-700">
-        <p class="text-sm text-cream-400 text-center flex items-center justify-center gap-2">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-          </svg>
-          Your payment information is secure and encrypted.
-        </p>
-      </div>
-    </div>
-
-    <!-- Help -->
-    <div class="text-center">
-      <p class="text-cream-400">
-        Need help? <a href="mailto:support@tablii.com" class="text-amber-400 hover:text-amber-300 underline transition-colors">Contact support</a>
+      <p class="mt-6 pt-5 text-xs text-center" style="border-top: 1px solid var(--pay-border); color: var(--pay-muted);">
+        Need help? <a href="mailto:support@tablii.com" class="font-bold underline" style="color: var(--pay-accent); text-underline-offset: 4px;">Contact support</a>
       </p>
-    </div>
-  </div>
+    </section>
+  </main>
 </div>
 {% endblock %}

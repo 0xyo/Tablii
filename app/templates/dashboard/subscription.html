@@ -1,134 +1,153 @@
 {% extends 'dashboard/base_dashboard.html' %}
 {% block title %}Subscription{% endblock %}
-{% block page_title %}Subscription & Billing{% endblock %}
+{% block page_title %}Subscription{% endblock %}
 
 {% block dashboard_content %}
-<div class="max-w-5xl space-y-8">
-    {% set current_plan_key = current_plan if current_plan is defined else (subscription.plan if subscription else 'free') %}
-    {% set safe_plan_order = plan_order if plan_order is defined else ['free', 'pro', 'enterprise'] %}
-    {% set current_plan_key = current_plan_key if current_plan_key in safe_plan_order else 'free' %}
+{% set current_plan_key = current_plan if current_plan is defined else (subscription.plan if subscription else 'free') %}
+{% set safe_plan_order = plan_order if plan_order is defined else ['free', 'pro', 'enterprise'] %}
+{% set current_plan_key = current_plan_key if current_plan_key in safe_plan_order else 'free' %}
+{% set tables_pct = ((tables_used if tables_used <= max_tables else max_tables) / max_tables * 100) | int if max_tables > 0 else 0 %}
+{% set items_pct = ((items_used if items_used <= max_items else max_items) / max_items * 100) | int if max_items > 0 else 0 %}
 
-    <!-- Current Plan Banner -->
-    <div class="bg-charcoal-800/40 border border-charcoal-700/40 p-8 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+<div class="max-w-7xl space-y-8">
+    <section class="dashboard-card-static p-5 sm:p-7 lg:p-8">
+        <div class="grid lg:grid-cols-[1.15fr_0.85fr] gap-8 items-center">
             <div>
-                <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-600 block mb-2">Current Plan</span>
-                <h2 class="text-3xl font-display italic text-cream-50 tracking-wide mb-1">
+                <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-3" style="color: var(--soft-sage-dark);">Current Plan</p>
+                <h2 class="font-display italic text-4xl lg:text-5xl tracking-normal mb-4" style="color: var(--bold-dark);">
                     {{ subscription.plan|title if subscription else 'Free' }}
                 </h2>
                 {% if subscription and subscription.expires_at %}
-                <p class="text-sm text-charcoal-400">
+                <p class="text-sm leading-6" style="color: var(--soft-text);">
                     {% if subscription.is_active %}
-                        Renews on <strong class="text-cream-100">{{ subscription.expires_at.strftime('%B %d, %Y') }}</strong>
+                        Renews on <strong>{{ subscription.expires_at.strftime('%B %d, %Y') }}</strong>.
                     {% else %}
-                        <span class="text-ruby-400 font-semibold">Expired on {{ subscription.expires_at.strftime('%B %d, %Y') }}</span>
+                        <strong style="color: var(--bold-accent);">Expired on {{ subscription.expires_at.strftime('%B %d, %Y') }}.</strong>
                     {% endif %}
                 </p>
                 {% else %}
-                <p class="text-sm text-charcoal-400">No expiration — free tier</p>
+                <p class="text-sm leading-6" style="color: var(--soft-text);">No expiration on the free tier. Upgrade when your menu or dining room needs more capacity.</p>
                 {% endif %}
             </div>
-            <div class="flex gap-4">
-                <div class="bg-charcoal-900/60 border border-charcoal-700/50 px-6 py-4 text-center min-w-[120px]">
-                    <div class="text-2xl font-display italic text-amber-500">{{ tables_used }}</div>
-                    <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">of {{ max_tables }} Tables</div>
-                    <div class="mt-2 h-1 bg-charcoal-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ ((tables_used if tables_used <= max_tables else max_tables) / max_tables * 100) | int if max_tables > 0 else 0 }}%"></div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="dashboard-card-static p-5" style="background: rgba(245,237,231,0.62);">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <p class="font-display italic text-4xl" style="color: var(--bold-accent);">{{ tables_used }}</p>
+                        <p class="text-[10px] uppercase tracking-[0.12em] font-bold text-right" style="color: var(--soft-text-light);">of {{ 'Unlimited' if max_tables >= 999 else max_tables }} tables</p>
+                    </div>
+                    <div class="mt-4 h-1.5 rounded-full overflow-hidden" style="background: var(--soft-border);">
+                        <div class="h-full rounded-full" style="width: {{ tables_pct }}%; background: var(--soft-sage-dark);"></div>
                     </div>
                 </div>
-                <div class="bg-charcoal-900/60 border border-charcoal-700/50 px-6 py-4 text-center min-w-[120px]">
-                    <div class="text-2xl font-display italic text-amber-500">{{ items_used }}</div>
-                    <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">of {{ max_items }} Items</div>
-                    <div class="mt-2 h-1 bg-charcoal-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ ((items_used if items_used <= max_items else max_items) / max_items * 100) | int if max_items > 0 else 0 }}%"></div>
+                <div class="dashboard-card-static p-5" style="background: rgba(245,237,231,0.62);">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <p class="font-display italic text-4xl" style="color: var(--bold-accent);">{{ items_used }}</p>
+                        <p class="text-[10px] uppercase tracking-[0.12em] font-bold text-right" style="color: var(--soft-text-light);">of {{ 'Unlimited' if max_items >= 999 else max_items }} items</p>
+                    </div>
+                    <div class="mt-4 h-1.5 rounded-full overflow-hidden" style="background: var(--soft-border);">
+                        <div class="h-full rounded-full" style="width: {{ items_pct }}%; background: var(--soft-sage-dark);"></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Plan Cards -->
-    <div>
-        <h3 class="text-lg font-display italic text-cream-50 tracking-wide mb-6">Available Plans</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section>
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
+            <div>
+                <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--soft-sage-dark);">Available Plans</p>
+                <h3 class="font-display italic text-3xl tracking-normal" style="color: var(--bold-dark);">Scale without changing tools.</h3>
+            </div>
+            <p class="text-sm max-w-md" style="color: var(--soft-text-light);">Paid upgrades stay blocked until billing approval is connected; downgrades are available from this screen.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {% set plans = [
-                {'key': 'free', 'name': 'Free', 'price': '0', 'tables': 5, 'items': 20, 'features': ['QR code menus', 'Real-time orders', 'Basic analytics', 'Up to 3 staff']},
-                {'key': 'pro', 'name': 'Pro', 'price': '49', 'tables': 25, 'items': 100, 'features': ['Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode', 'Unlimited staff']},
-                {'key': 'enterprise', 'name': 'Enterprise', 'price': '129', 'tables': 999, 'items': 999, 'features': ['Everything in Pro', 'Unlimited tables', 'Unlimited items', 'Multi-branch support', 'Priority support', 'Custom integrations']}
+                {'key': 'free', 'name': 'Free', 'price': '0', 'label': 'First QR launch', 'tables': 5, 'items': 20, 'features': ['QR code menus', 'Real-time orders', 'Basic analytics', 'Core staff workflow']},
+                {'key': 'pro', 'name': 'Pro', 'price': '49', 'label': 'Daily service', 'tables': 25, 'items': 100, 'features': ['Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode', 'Unlimited staff']},
+                {'key': 'enterprise', 'name': 'Enterprise', 'price': '129', 'label': 'High-volume teams', 'tables': 999, 'items': 999, 'features': ['Everything in Pro', 'Unlimited tables', 'Unlimited items', 'Multi-branch support', 'Priority support', 'Custom integrations']}
             ] %}
 
             {% for plan in plans %}
             {% set is_current = (subscription and subscription.plan == plan['key']) or (not subscription and plan['key'] == 'free') %}
             {% set is_upgrade = (plan['key'] in safe_plan_order and current_plan_key in safe_plan_order and safe_plan_order.index(plan['key']) > safe_plan_order.index(current_plan_key)) %}
-            <div class="bg-charcoal-900/60 border p-6 flex flex-col relative transition-all hover:border-charcoal-600/60" role="region" aria-label="{{ plan['name'] }} plan" style="{{ 'border:2px solid var(--color-amber); box-shadow:0 0 30px var(--color-amber, rgba(196,149,106,0.06));' if is_current else 'border:1px solid rgba(45,41,38,.5);' }}">
-                {% if is_current %}
-                <div class="absolute -top-3 left-6">
-                    <span class="text-[9px] uppercase tracking-[0.15em] font-bold px-3 py-1" style="background-color:var(--color-amber); color:var(--bg-primary);">Current</span>
+            {% set is_downgrade = (plan['key'] in safe_plan_order and current_plan_key in safe_plan_order and safe_plan_order.index(plan['key']) < safe_plan_order.index(current_plan_key)) %}
+            <article class="dashboard-card !p-6 sm:!p-7 flex flex-col {% if is_current %}ring-1{% endif %}" role="region" aria-label="{{ plan['name'] }} plan" style="{% if is_current %}border-color: rgba(184,95,59,0.42); --tw-ring-color: rgba(184,95,59,0.22);{% endif %}">
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--soft-text-light);">{{ plan['label'] }}</p>
+                        <h4 class="font-display italic text-3xl tracking-normal" style="color: {% if is_current %}var(--bold-accent){% else %}var(--bold-dark){% endif %};">{{ plan['name'] }}</h4>
+                    </div>
+                    {% if is_current %}
+                    <span class="status-pill" style="background: rgba(197,212,200,0.22); color: var(--soft-sage-dark);">
+                        <span class="status-dot" style="background: currentColor;"></span>
+                        Current
+                    </span>
+                    {% endif %}
                 </div>
-                {% endif %}
 
-                <div class="mb-4">
-                    <h4 class="font-display italic text-xl {{ 'text-amber-400' if is_current else 'text-cream-50' }} mb-1">{{ plan['name'] }}</h4>
-                    <div class="flex items-baseline gap-1 mt-2">
-                        <span class="text-3xl font-display italic text-cream-50">{{ plan['price'] }}</span>
-                        <span class="text-sm text-charcoal-400">TND / month</span>
+                <div class="mb-6">
+                    <span class="font-display italic text-5xl" style="color: var(--bold-dark);">{{ plan['price'] }}</span>
+                    <span class="text-sm" style="color: var(--soft-text-light);">TND / month</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="dashboard-card-static p-4" style="background: rgba(245,237,231,0.62);">
+                        <p class="font-display italic text-2xl" style="color: var(--bold-dark);">{{ 'Unlimited' if plan['tables'] >= 999 else plan['tables'] }}</p>
+                        <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--soft-text-light);">Tables</p>
+                    </div>
+                    <div class="dashboard-card-static p-4" style="background: rgba(245,237,231,0.62);">
+                        <p class="font-display italic text-2xl" style="color: var(--bold-dark);">{{ 'Unlimited' if plan['items'] >= 999 else plan['items'] }}</p>
+                        <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--soft-text-light);">Items</p>
                     </div>
                 </div>
 
-                <div class="mb-2 text-xs text-charcoal-300 space-y-1 border-t border-charcoal-700/40 pt-4">
-                    <div class="flex items-center justify-between">
-                        <span>Tables</span>
-                        <span class="font-bold text-cream-100">{{ 'Unlimited' if plan['tables'] >= 999 else plan['tables'] }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span>Menu Items</span>
-                        <span class="font-bold text-cream-100">{{ 'Unlimited' if plan['items'] >= 999 else plan['items'] }}</span>
-                    </div>
-                </div>
-
-                <ul class="space-y-2 mt-4 mb-6 flex-1">
+                <ul class="space-y-3 mb-7 flex-1">
                     {% for feature in plan['features'] %}
-                    <li class="flex items-start gap-2 text-sm text-charcoal-300">
-                        <span class="text-amber-500 mt-0.5 text-xs">✓</span> {{ feature }}
+                    <li class="flex items-start gap-3 text-sm leading-6" style="color: var(--soft-text);">
+                        <span aria-hidden="true" style="color: var(--soft-sage-dark); font-weight: 900;">✓</span>
+                        {{ feature }}
                     </li>
                     {% endfor %}
                 </ul>
 
                 {% if is_current %}
-                <button disabled class="w-full text-center text-xs font-bold uppercase tracking-widest border text-charcoal-400 px-4 py-3 cursor-default min-h-[44px]" style="border-color:var(--border-primary);">Current Plan</button>
-                {% elif is_upgrade %}
-                <button type="button" disabled class="w-full text-center text-xs font-bold uppercase tracking-widest border border-charcoal-700 text-charcoal-500 px-4 py-3 cursor-not-allowed">
-                    Upgrade Requires Billing
+                <button disabled class="dashboard-action w-full cursor-default" style="border-color: var(--soft-border); color: var(--soft-text-light); background: rgba(245,237,231,0.5);">
+                    Current Plan
                 </button>
-                <p class="mt-3 text-[11px] leading-relaxed text-charcoal-400">
-                    Higher-tier plans need manual billing approval until the subscription checkout flow is connected.
+                {% elif is_upgrade %}
+                <button type="button" disabled class="dashboard-action w-full cursor-not-allowed" style="border-color: var(--soft-border); color: var(--soft-text-light); background: rgba(245,237,231,0.5);">
+                    Billing Required
+                </button>
+                <p class="mt-3 text-xs leading-5" style="color: var(--soft-text-light);">
+                    Contact support to approve the {{ plan['name'] }} plan before switching.
                 </p>
                 {% else %}
                 <form method="POST" action="{{ url_for('dashboard.subscription_change') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="plan" value="{{ plan['key'] }}">
-                    <button type="submit" class="w-full text-center text-xs font-bold uppercase tracking-widest border border-amber-600/40 text-amber-400 px-4 py-3 hover:bg-amber-500/10 hover:border-amber-500/60 transition-all">
-                        {% if plan['key'] in safe_plan_order and current_plan_key in safe_plan_order and safe_plan_order.index(plan['key']) < safe_plan_order.index(current_plan_key) %}Downgrade{% else %}Switch{% endif %} to {{ plan['name'] }}
+                    <button type="submit" class="dashboard-action w-full">
+                        {{ 'Downgrade' if is_downgrade else 'Switch' }} to {{ plan['name'] }}
                     </button>
                 </form>
                 {% endif %}
-            </div>
+            </article>
             {% endfor %}
         </div>
-    </div>
+    </section>
 
-    <!-- Billing Note -->
-    <div class="bg-charcoal-800/30 border border-charcoal-700/30 p-6">
-        <div class="flex items-start gap-4">
-            <div class="w-10 h-10 border border-charcoal-600 bg-charcoal-800 flex items-center justify-center text-charcoal-400 shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
+    <section class="dashboard-card-static p-5 sm:p-6">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
             <div>
-                <p class="text-sm text-cream-100 font-medium mb-1">Billing Information</p>
-                <p class="text-xs text-charcoal-400 leading-relaxed">Downgrades take effect immediately. Paid upgrades stay blocked until billing is approved, and downgrading does not remove existing data, but you won't be able to add new tables or items above the lower limit until you upgrade again.</p>
+                <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--soft-sage-dark);">Billing Note</p>
+                <h3 class="font-display italic text-2xl tracking-normal mb-2" style="color: var(--bold-dark);">Your data stays in place.</h3>
+                <p class="text-sm leading-6 max-w-3xl" style="color: var(--soft-text);">Downgrades take effect immediately and never delete existing tables or menu items. If usage is above the lower plan limit, new additions are blocked until you upgrade again.</p>
             </div>
+            <a href="mailto:support@tablii.com" class="dashboard-action">
+                Contact Support
+            </a>
         </div>
-    </div>
+    </section>
 </div>
 {% endblock %}

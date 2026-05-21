@@ -13,8 +13,8 @@ onboarding_bp = Blueprint('onboarding', __name__, url_prefix='/onboarding')
 
 PLAN_LIMITS = {
     'free': {'max_tables': 5, 'max_items': 20, 'price': 0},
-    'pro': {'max_tables': 25, 'max_items': 100, 'price': 29.99},
-    'enterprise': {'max_tables': 999, 'max_items': 999, 'price': 99.99},
+    'pro': {'max_tables': 25, 'max_items': 100, 'price': 49},
+    'enterprise': {'max_tables': 999, 'max_items': 999, 'price': 129},
 }
 PLAN_ORDER = ('free', 'pro', 'enterprise')
 

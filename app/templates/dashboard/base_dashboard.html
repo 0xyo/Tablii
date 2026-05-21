@@ -4,9 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>{% block title %}Dashboard{% endblock %} — Tablii</title>
+    <title>{% block title %}Dashboard{% endblock %} - Tablii</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,159 +17,268 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/output.css') }}"
     />
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
     <link
       rel="manifest"
       href="{{ url_for('static', filename='manifest.json') }}"
     />
     <meta name="theme-color" content="#faf8f6" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
 
     <style>
-      /* ─────────────────────────────────────────────────────────────────── */
-      /* 🏆 Award-Winning Dashboard Design System */
-      /* Warm, inviting, restaurant-focused aesthetic */
-      /* ─────────────────────────────────────────────────────────────────── */
-      
       :root {
-        /* Warm Color Palette */
         --soft-cream: #faf8f6;
         --soft-peach: #f5ede7;
         --soft-sage: #c5d4c8;
-        --soft-sage-dark: #9fb8a0;
-        --soft-rust: #c9a8a0;
-        --soft-text: #5a5551;
-        --soft-text-light: #8b8680;
-        --soft-border: #e8ddf8;
+        --soft-sage-dark: #7f987f;
+        --soft-rust: #b98573;
+        --soft-text: #514b46;
+        --soft-text-light: #766f68;
+        --soft-border: #e8dfd8;
         --soft-accent: #d9a891;
-        --soft-highlight: #d4a574;
-        --bold-dark: #2a2520;
-        --bold-accent: #c9714b;
+        --soft-highlight: #c7945b;
+        --bold-dark: #29231e;
+        --bold-accent: #b85f3b;
+
+        --bg-primary: #fffdfa;
+        --bg-secondary: #f5ede7;
+        --text-primary: var(--bold-dark);
+        --text-secondary: var(--soft-text);
+        --text-tertiary: var(--soft-text-light);
+        --text-muted: #948a82;
+        --border-primary: var(--soft-border);
+        --border-secondary: #d9cdc4;
+        --color-amber: var(--bold-accent);
+        --color-amber-hover: #a55233;
+        --color-white: #fff8f2;
+        --color-red: #b94a3b;
+        --color-green: #667f69;
+        --color-green-light: rgba(197, 212, 200, 0.26);
+        --color-blue: #517a8a;
+        --shadow-panel: 0 18px 52px rgba(76, 57, 45, 0.08);
       }
-      
-      /* Typography */
-      body { font-family: 'DM Sans', 'Noto Sans Arabic', sans-serif; }
+
+      body {
+        font-family: 'DM Sans', 'Noto Sans Arabic', sans-serif;
+        background:
+          linear-gradient(90deg, rgba(232, 223, 216, 0.42) 1px, transparent 1px),
+          linear-gradient(0deg, rgba(232, 223, 216, 0.34) 1px, transparent 1px),
+          var(--soft-cream);
+        background-size: 72px 72px;
+        color: var(--bold-dark);
+      }
+
       h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; }
-      
-      /* ─── Sidebar ──────────────────────────────────────────────────── */
+      ::selection { background: rgba(197, 212, 200, 0.55); color: var(--bold-dark); }
+
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible {
+        outline: 3px solid rgba(184, 95, 59, 0.3);
+        outline-offset: 3px;
+      }
+
       .sidebar-link {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 0.75rem 1.25rem;
-        border-radius: 0;
+        gap: 0.875rem;
+        min-height: 44px;
+        padding: 0.72rem 0.9rem;
+        border: 1px solid transparent;
+        border-radius: 8px;
         color: var(--soft-text-light);
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        font-weight: 600;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 800;
+        transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
         text-decoration: none;
-        border-left: 3px solid transparent;
-      }
-      .sidebar-link:hover {
-        background: var(--soft-sage) rgba(197, 212, 200, 0.1);
-        color: var(--bold-dark);
-      }
-      .sidebar-link.active {
-        background: var(--soft-sage) rgba(197, 212, 200, 0.2);
-        color: var(--bold-accent);
-        border-left: 3px solid var(--bold-accent);
-      }
-      .sidebar-link.active:hover {
-        background: var(--soft-sage) rgba(197, 212, 200, 0.3);
       }
 
-      /* ─── Cards & Containers ────────────────────────────────────────── */
+      .sidebar-link:hover {
+        background: rgba(197, 212, 200, 0.16);
+        border-color: rgba(127, 152, 127, 0.22);
+        color: var(--bold-dark);
+        transform: translateX(2px);
+      }
+
+      .sidebar-link.active {
+        background: rgba(245, 237, 231, 0.92);
+        border-color: rgba(184, 95, 59, 0.28);
+        color: var(--bold-accent);
+      }
+
+      .nav-icon {
+        width: 1.1rem;
+        height: 1.1rem;
+        flex: 0 0 1.1rem;
+        stroke-width: 1.8;
+        opacity: 0.82;
+      }
+
       .dashboard-card {
-        background: white;
+        background: var(--bg-primary);
         border: 1px solid var(--soft-border);
-        border-radius: 0.75rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 8px;
+        transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+                    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+                    border-color 180ms ease;
         position: relative;
         overflow: hidden;
       }
+
       .dashboard-card:hover {
-        border-color: var(--soft-sage-dark);
-        box-shadow: 0 8px 24px rgba(197, 212, 200, 0.12);
+        border-color: rgba(127, 152, 127, 0.52);
+        box-shadow: var(--shadow-panel);
         transform: translateY(-2px);
       }
-      
-      /* ─── Gradients ────────────────────────────────────────────────── */
-      .gradient-sage-rust {
-        background: linear-gradient(135deg, var(--soft-sage-dark) 0%, var(--bold-accent) 100%);
-      }
-      
-      .gradient-text-sage-rust {
-        background: linear-gradient(135deg, var(--soft-sage-dark) 0%, var(--bold-accent) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      
-      /* ─── Micro-interactions ───────────────────────────────────────── */
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateX(-12px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-      
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(12px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      
-      .animate-slide-in {
-        animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      }
-      
-      .animate-fade-up {
-        animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+      .dashboard-card-static {
+        background: var(--bg-primary);
+        border: 1px solid var(--soft-border);
+        border-radius: 8px;
       }
 
-      /* Ensure form fields inside white cards always show dark text */
+      .dashboard-action {
+        min-height: 44px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border: 1px solid var(--bold-accent);
+        color: var(--bold-accent);
+        background: rgba(184, 95, 59, 0.05);
+        transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), background-color 180ms ease;
+      }
+
+      .dashboard-action:hover {
+        transform: translateY(-1px);
+        background: rgba(184, 95, 59, 0.1);
+      }
+
+      .dashboard-action.primary {
+        background: var(--bold-accent);
+        color: var(--color-white);
+        box-shadow: 0 12px 28px rgba(184, 95, 59, 0.16);
+      }
+
+      .stat-card {
+        min-height: 10rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 1.35rem;
+      }
+
+      .stat-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(127, 152, 127, 0.34);
+        color: var(--soft-sage-dark);
+        background: rgba(197, 212, 200, 0.14);
+      }
+
+      .stat-value,
+      .gradient-text-sage-rust {
+        color: var(--bold-accent);
+        -webkit-text-fill-color: currentColor;
+        background: none;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .status-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 999px;
+        flex: 0 0 0.5rem;
+      }
+
+      .flash-message {
+        border: 1px solid currentColor;
+        border-radius: 8px;
+        background: var(--bg-primary);
+      }
+
+      .icon-button {
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 8px;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 180ms ease, color 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .icon-button:hover {
+        background: rgba(197, 212, 200, 0.18);
+        color: var(--bold-dark);
+        transform: translateY(-1px);
+      }
+
+      .table-soft tbody tr {
+        transition: background-color 160ms ease;
+      }
+
+      .table-soft tbody tr:hover {
+        background: rgba(245, 237, 231, 0.55);
+      }
+
+      .bg-white { color: var(--text-primary); }
+      .bg-white th { color: var(--text-tertiary); }
+      .bg-white td { color: var(--text-secondary); }
+      .bg-white .font-medium,
+      .bg-white .font-mono { color: var(--text-primary); }
+
       .bg-white input:not([type="checkbox"]):not([type="radio"]),
       .bg-white textarea,
       .bg-white select {
-        color: #111827;
-        background-color: #ffffff;
+        color: var(--text-primary);
+        background-color: var(--bg-primary);
       }
+
       .bg-white input::placeholder,
       .bg-white textarea::placeholder {
-        color: #9ca3af;
+        color: var(--text-muted);
       }
 
-      /* Ensure all text inside white bg cards/tables is dark and readable */
-      .bg-white { color: #1f2937; }
-      .bg-white th { color: #6b7280; }
-      .bg-white td { color: #374151; }
-      .bg-white .font-medium { color: #111827; }
-      .bg-white .font-mono { color: #111827; }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
     </style>
   </head>
-  <body
-    style="background-color: var(--soft-cream); color: var(--bold-dark);"
-    class="min-h-screen relative font-body selection:bg-soft-sage/30 selection:text-bold-dark"
-  >
-    <!-- Background Texture (subtle) -->
-    <div
-      class="fixed inset-0 pointer-events-none z-[-1] opacity-20 mix-blend-overlay"
-      style="background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(197,212,200,0.05) 0%, transparent 100%);"
-    ></div>
-
-    <!-- Mobile overlay -->
+  <body class="min-h-screen relative font-body">
     <div
       id="sidebar-overlay"
       class="fixed inset-0 backdrop-blur-sm z-30 hidden lg:hidden"
@@ -178,173 +286,131 @@
       onclick="toggleSidebar()"
     ></div>
 
-    <!-- Sidebar -->
     <aside
       id="sidebar"
-      class="fixed top-0 left-0 h-screen w-64 flex flex-col z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out overflow-y-auto"
-      style="background: white; border-right: 1px solid var(--soft-border);"
+      class="fixed top-0 left-0 h-screen w-72 flex flex-col z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out overflow-y-auto"
+      style="background: rgba(255, 253, 250, 0.96); border-right: 1px solid var(--soft-border); backdrop-filter: blur(18px);"
+      aria-label="Restaurant manager navigation"
     >
-      <!-- Decorative -->
       <div
-        class="absolute inset-0 pointer-events-none opacity-[0.03]"
-        style="background: radial-gradient(ellipse 80% 100% at 50% 0%, var(--soft-sage), transparent);"
+        class="absolute inset-0 pointer-events-none opacity-60"
+        style="background: linear-gradient(180deg, rgba(245,237,231,0.75), rgba(250,248,246,0));"
       ></div>
 
-      <!-- Logo / Brand -->
-      <div class="px-6 py-8 relative z-10" style="border-bottom: 1px solid var(--soft-border);">
+      <div class="px-6 py-7 relative z-10" style="border-bottom: 1px solid var(--soft-border);">
         <div class="flex items-center gap-4">
           {% if g.restaurant and g.restaurant.logo_url %}
           <img
             src="{{ g.restaurant.logo_url }}"
             alt="{{ g.restaurant.name }}"
             class="w-12 h-12 object-cover shadow-sm p-0.5"
-            style="border: 1px solid var(--soft-border); border-radius: 0.5rem; background: var(--soft-cream);"
+            style="border: 1px solid var(--soft-border); border-radius: 8px; background: var(--soft-cream);"
           />
           {% else %}
           <div
             class="w-12 h-12 flex items-center justify-center text-xl font-display italic shadow-sm"
-            style="border: 1px solid var(--soft-sage-dark); border-radius: 0.5rem; background: var(--soft-peach); color: var(--bold-accent);"
+            style="border: 1px solid var(--soft-sage-dark); border-radius: 8px; background: var(--soft-peach); color: var(--bold-accent);"
           >
             T
           </div>
           {% endif %}
           <div class="min-w-0">
-            <p
-              class="font-display italic tracking-wide text-lg truncate"
-              style="color: var(--bold-dark);"
-            >
+            <p class="font-display italic tracking-normal text-lg truncate" style="color: var(--bold-dark);">
               {{ g.restaurant.name if g.restaurant else 'Tablii' }}
             </p>
-            <p
-              class="text-[9px] uppercase tracking-widest font-bold"
-              style="color: var(--soft-text-light);"
-            >
-              Management
+            <p class="text-[9px] uppercase tracking-[0.14em] font-bold" style="color: var(--soft-text-light);">
+              Restaurant Manager
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Nav -->
-      <nav
-        class="flex-1 py-6 flex flex-col gap-2 overflow-y-auto relative z-10 px-3"
-      >
-        <a
-          href="{{ url_for('dashboard.overview') }}"
-          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.overview' }}"
-        >
-          <span class="text-lg opacity-70">📊</span> <span>Overview</span>
+      <nav class="flex-1 py-5 flex flex-col gap-1.5 overflow-y-auto relative z-10 px-3">
+        <a href="{{ url_for('dashboard.overview') }}" class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.overview' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 13h6V5H4v8Zm10 6h6V5h-6v14ZM4 19h6v-3H4v3Z"/></svg>
+          <span>Overview</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.categories') }}"
-          class="sidebar-link {{ 'active' if 'menu' in (request.endpoint or '') }}"
-        >
-          <span class="text-lg opacity-70">🍽️</span> <span>Menu</span>
+        <a href="{{ url_for('dashboard.categories') }}" class="sidebar-link {{ 'active' if 'menu' in (request.endpoint or '') }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3v18M10 3v7a4 4 0 0 1-4 4m12-11v18m0-18c2 2 3 4.2 3 7.2 0 2.4-1.2 4.8-3 5.8"/></svg>
+          <span>Menu</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.tables') }}"
-          class="sidebar-link {{ 'active' if 'table' in (request.endpoint or '') }}"
-        >
-          <span class="text-lg opacity-70">🪑</span> <span>Tables</span>
+        <a href="{{ url_for('dashboard.tables') }}" class="sidebar-link {{ 'active' if 'table' in (request.endpoint or '') }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M6 6v12m12-12v12M4 18h16M8 10h8"/></svg>
+          <span>Tables</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.staff') }}"
-          class="sidebar-link {{ 'active' if 'staff' in (request.endpoint or '') }}"
-        >
-          <span class="text-lg opacity-70">👥</span> <span>Staff</span>
+        <a href="{{ url_for('dashboard.staff') }}" class="sidebar-link {{ 'active' if 'staff' in (request.endpoint or '') }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11a4 4 0 1 0-8 0m12 8a6 6 0 0 0-8-5.66M4 19a6 6 0 0 1 8-5.66M18 8a3 3 0 0 1 0 6"/></svg>
+          <span>Staff</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.order_history') }}"
-          class="sidebar-link {{ 'active' if 'order' in (request.endpoint or '') }}"
-        >
-          <span class="text-lg opacity-70">📋</span> <span>Orders</span>
+        <a href="{{ url_for('dashboard.order_history') }}" class="sidebar-link {{ 'active' if 'order' in (request.endpoint or '') }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5h8m-8 4h8m-8 4h5M6 3h12a1 1 0 0 1 1 1v16l-3-2-3 2-3-2-3 2-2-1.35V4a1 1 0 0 1 1-1Z"/></svg>
+          <span>Orders</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.analytics') }}"
-          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.analytics' }}"
-        >
-          <span class="text-lg opacity-70">📈</span> <span>Analytics</span>
+        <a href="{{ url_for('dashboard.analytics') }}" class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.analytics' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5m0 14h16M8 16l3-4 3 2 5-7"/></svg>
+          <span>Analytics</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.reviews') }}"
-          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.reviews' }}"
-        >
-          <span class="text-lg opacity-70">⭐</span> <span>Reviews</span>
+        <a href="{{ url_for('dashboard.reviews') }}" class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.reviews' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m12 3 2.7 5.48 6.05.88-4.38 4.27 1.03 6.02L12 16.8l-5.4 2.85 1.03-6.02-4.38-4.27 6.05-.88L12 3Z"/></svg>
+          <span>Reviews</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.settings') }}"
-          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.settings' }}"
-        >
-          <span class="text-lg opacity-70">⚙️</span> <span>Settings</span>
+        <a href="{{ url_for('dashboard.settings') }}" class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.settings' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0-5v2m0 14v2m9-9h-2M5 12H3m15.36-6.36-1.42 1.42M7.05 16.95l-1.41 1.41m12.72 0-1.42-1.41M7.05 7.05 5.64 5.64"/></svg>
+          <span>Settings</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.profile') }}"
-          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.profile' }}"
-        >
-          <span class="text-lg opacity-70">👤</span> <span>Profile</span>
+        <a href="{{ url_for('dashboard.profile') }}" class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.profile' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"/></svg>
+          <span>Profile</span>
         </a>
-        <a
-          href="{{ url_for('dashboard.subscription') }}"
-          class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.subscription' }}"
-        >
-          <span class="text-lg opacity-70">💳</span> <span>Subscription</span>
+        <a href="{{ url_for('dashboard.subscription') }}" class="sidebar-link {{ 'active' if request.endpoint == 'dashboard.subscription' }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16v10H4V7Zm0 3h16M7 15h4"/></svg>
+          <span>Subscription</span>
         </a>
       </nav>
 
-      <!-- Logout -->
-      <div class="p-6 relative z-10" style="border-top: 1px solid var(--soft-border);">
-        <a
-          href="{{ url_for('auth.logout') }}"
-          class="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest transition-colors"
-          style="color: var(--bold-accent);"
-        >
-          <span class="text-lg">🚪</span> <span>Sign Out</span>
+      <div class="p-5 relative z-10" style="border-top: 1px solid var(--soft-border);">
+        <a href="{{ url_for('auth.logout') }}" class="sidebar-link" style="color: var(--bold-accent);">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2m-2-5h8m0 0-3-3m3 3-3 3"/></svg>
+          <span>Sign Out</span>
         </a>
       </div>
     </aside>
 
-    <!-- Main content -->
-    <div class="lg:ml-64 min-h-screen flex flex-col relative z-0">
-      <!-- Top bar -->
+    <div class="lg:ml-72 min-h-screen flex flex-col relative z-0">
       <header
-        class="px-8 py-4 flex items-center justify-between sticky top-0 z-20"
-        style="background: white; border-bottom: 1px solid var(--soft-border); box-shadow: 0 2px 8px rgba(197,212,200,0.08);"
+        class="px-5 sm:px-8 py-4 flex items-center justify-between sticky top-0 z-20"
+        style="background: rgba(255, 253, 250, 0.92); border-bottom: 1px solid var(--soft-border); box-shadow: 0 8px 24px rgba(76, 57, 45, 0.04); backdrop-filter: blur(14px);"
       >
-        <!-- Hamburger -->
-        <button
-          onclick="toggleSidebar()"
-          class="lg:hidden p-2 -ml-2 transition-colors"
-          style="color: var(--bold-accent);"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div class="w-11 flex items-center">
+          <button
+            type="button"
+            onclick="toggleSidebar()"
+            class="lg:hidden icon-button inline-flex -ml-2"
+            style="color: var(--bold-accent);"
+            aria-label="Open navigation"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-        <h1 class="text-2xl font-display italic tracking-wide" style="color: var(--bold-dark);">
-          {% block page_title %}Dashboard{% endblock %}
-        </h1>
-        <div class="flex items-center gap-3">
-          <!-- Notification Bell -->
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="min-w-0">
+          <h1 class="text-2xl sm:text-3xl font-display italic tracking-normal truncate" style="color: var(--bold-dark);">
+            {% block page_title %}Dashboard{% endblock %}
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
           <div class="relative" id="notif-wrapper">
-            <button onclick="toggleNotifDropdown()" class="relative p-2 transition-colors" style="color: var(--soft-text-light);">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-              <span id="notif-badge" class="hidden absolute -top-0.5 -right-0.5 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2" style="background-color: var(--bold-accent); border-color: white;">0</span>
+            <button type="button" onclick="toggleNotifDropdown()" class="relative icon-button inline-flex" style="color: var(--soft-text-light);" aria-label="Open notifications">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-4-5.66V5a2 2 0 1 0-4 0v.34A6 6 0 0 0 6 11v3.2c0 .53-.21 1.04-.59 1.41L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg>
+              <span id="notif-badge" class="hidden absolute -top-0.5 -right-0.5 text-white text-[10px] font-bold min-w-5 h-5 px-1 flex items-center justify-center rounded-full border-2" style="background-color: var(--bold-accent); border-color: var(--bg-primary);">0</span>
             </button>
-            <!-- Dropdown -->
-            <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 shadow-lg z-50 max-h-96 overflow-y-auto" style="background: white; border: 1px solid var(--soft-border); border-radius: 0.75rem;">
+            <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 shadow-lg z-50 max-h-96 overflow-y-auto" style="background: var(--bg-primary); border: 1px solid var(--soft-border); border-radius: 8px;">
               <div class="flex items-center justify-between px-4 py-3" style="border-bottom: 1px solid var(--soft-border);">
-                <span class="text-xs font-bold uppercase tracking-widest" style="color: var(--bold-dark);">Notifications</span>
-                <button onclick="markAllNotificationsRead()" class="text-[10px] uppercase tracking-widest font-bold" style="color: var(--bold-accent);">Mark all read</button>
+                <span class="text-xs font-bold uppercase tracking-[0.12em]" style="color: var(--bold-dark);">Notifications</span>
+                <button type="button" onclick="markAllNotificationsRead()" class="text-[10px] uppercase tracking-[0.12em] font-bold" style="color: var(--bold-accent);">Mark all read</button>
               </div>
               <div id="notif-list" class="divide-y" style="border-color: var(--soft-border);">
                 <div class="px-4 py-6 text-center text-sm" style="color: var(--soft-text-light);">No new notifications</div>
@@ -353,63 +419,55 @@
           </div>
 
           <div class="text-right hidden sm:block">
-            <p class="text-xs font-semibold tracking-wide" style="color: var(--bold-dark);">
-              {{ current_user.email if current_user.email is defined else
-              current_user.username }}
+            <p class="text-xs font-semibold tracking-normal" style="color: var(--bold-dark);">
+              {{ current_user.email if current_user.email is defined else current_user.username }}
             </p>
-            <p class="text-[9px] uppercase tracking-widest font-bold" style="color: var(--bold-accent);">
+            <p class="text-[9px] uppercase tracking-[0.14em] font-bold" style="color: var(--bold-accent);">
               Administrator
             </p>
           </div>
           <div
             class="w-10 h-10 flex items-center justify-center text-sm font-display italic"
-            style="border: 1px solid var(--soft-border); border-radius: 0.5rem; background: var(--soft-peach); color: var(--bold-accent);"
+            style="border: 1px solid var(--soft-border); border-radius: 8px; background: var(--soft-peach); color: var(--bold-accent);"
+            aria-hidden="true"
           >
             {{ (current_user.email or current_user.username)[0]|upper }}
           </div>
         </div>
       </header>
 
-      <!-- Flash messages -->
-      {% with messages = get_flashed_messages(with_categories=True) %} {% if
-      messages %}
-      <div class="px-8 pt-6 space-y-3">
+      {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+      <div class="px-5 sm:px-8 pt-6 space-y-3">
         {% for category, message in messages %}
         <div
-          class="flex items-center gap-3 px-5 py-4 text-sm font-medium border-l-4"
-          style="{% if category == 'success' %}background-color: rgba(197,212,200,0.1); border-left-color: var(--soft-sage-dark); color: var(--soft-sage-dark);{% elif category == 'error' %}background-color: rgba(201, 113, 75, 0.1); border-left-color: var(--bold-accent); color: var(--bold-accent);{% else %}background-color: rgba(197,212,200,0.08); border-left-color: var(--soft-sage); color: var(--soft-sage-dark);{% endif %}"
+          class="flash-message flex items-center gap-3 px-5 py-4 text-sm font-medium"
+          style="{% if category == 'success' %}background-color: rgba(197,212,200,0.16); color: var(--soft-sage-dark); border-color: rgba(127,152,127,0.38);{% elif category == 'error' %}background-color: rgba(184,95,59,0.1); color: var(--bold-accent); border-color: rgba(184,95,59,0.34);{% else %}background-color: rgba(245,237,231,0.75); color: var(--soft-text); border-color: var(--soft-border);{% endif %}"
+          role="alert"
         >
-          <span class="font-light tracking-wide">{{ message }}</span>
+          <span class="font-medium tracking-normal">{{ message }}</span>
           <button
+            type="button"
             onclick="this.parentElement.remove()"
-            class="ml-auto opacity-60 hover:opacity-100 transition-opacity p-1"
+            class="ml-auto opacity-65 hover:opacity-100 transition-opacity p-1"
+            aria-label="Dismiss message"
           >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
         {% endfor %}
       </div>
-      {% endif %} {% endwith %}
+      {% endif %}
+      {% endwith %}
 
-      <!-- Page content -->
-      <main class="flex-1 p-8 pb-20" style="background-color: var(--soft-cream);">
+      <main class="flex-1 p-5 sm:p-8 pb-20">
         {% if g.get('subscription_expired') %}
-        <div class="mb-6 p-5 flex items-start gap-4" style="background-color: rgba(201,113,75,0.1); border: 1px solid var(--bold-accent); border-radius: 0.75rem;">
-            <div class="w-10 h-10 flex items-center justify-center shrink-0" style="border: 1px solid var(--bold-accent); border-radius: 0.5rem; background: var(--soft-peach); color: var(--bold-accent);">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        <div class="mb-6 p-5 flex items-start gap-4 dashboard-card-static" style="background-color: rgba(184,95,59,0.1); border-color: rgba(184,95,59,0.34);">
+            <div class="w-10 h-10 flex items-center justify-center shrink-0" style="border: 1px solid var(--bold-accent); border-radius: 8px; background: var(--soft-peach); color: var(--bold-accent);">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01m-6.94 4h13.86c1.54 0 2.5-1.67 1.73-2.5L13.73 4c-.77-.83-1.96-.83-2.73 0L4.08 16.5c-.77.83.19 2.5 1.73 2.5z" />
                 </svg>
             </div>
             <div>
@@ -418,8 +476,8 @@
             </div>
         </div>
         {% elif g.get('subscription_days_left') is not none %}
-        <div class="mb-6 p-4 flex items-center gap-3" style="background-color: rgba(212,165,116,0.1); border: 1px solid var(--soft-highlight); border-radius: 0.75rem;">
-            <span class="text-lg">⏰</span>
+        <div class="mb-6 p-4 flex items-center gap-3 dashboard-card-static" style="background-color: rgba(199,148,91,0.12); border-color: rgba(199,148,91,0.34);">
+            <span class="status-dot" style="background: var(--soft-highlight);"></span>
             <span class="text-sm" style="color: var(--soft-text);">Your subscription expires in <strong>{{ g.subscription_days_left }}</strong> day{{ 's' if g.subscription_days_left != 1 else '' }}. Contact your administrator to renew.</span>
         </div>
         {% endif %}
@@ -436,11 +494,9 @@
       }
     </script>
 
-    <!-- Socket.IO + Tablii socket helpers -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
     <script>
-      // Connect as staff so we receive real-time events
       {% if g.restaurant %}
       connectAsStaff({{ g.restaurant.id }});
       onEvent('new_notification', function(data) {
@@ -452,18 +508,14 @@
       {% endif %}
     </script>
 
-    <!-- Notifications & PWA -->
     <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     <script>
-      // Request notification permission for staff
       requestNotificationPermission();
 
-      // Register Service Worker
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/static/sw.js').catch(() => {});
       }
 
-      // ── In-app Notification System ──
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
       function toggleNotifDropdown() {
@@ -474,7 +526,6 @@
         }
       }
 
-      // Close dropdown when clicking outside
       document.addEventListener('click', function(e) {
         const wrapper = document.getElementById('notif-wrapper');
         if (wrapper && !wrapper.contains(e.target)) {
@@ -549,7 +600,6 @@
         return Math.floor(diff / 86400) + 'd ago';
       }
 
-      // Poll notification count every 30 seconds
       fetchNotificationCount();
       setInterval(fetchNotificationCount, 30000);
     </script>

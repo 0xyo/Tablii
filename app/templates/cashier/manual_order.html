@@ -1,137 +1,128 @@
 {% extends 'cashier/base_cashier.html' %}
 {% block title %}Manual Order{% endblock %}
-{% block page_title %}Manual Order Entry{% endblock %}
+{% block page_title %}Manual Order{% endblock %}
 
 {% block cashier_content %}
-<form method="POST" class="flex flex-col xl:flex-row gap-8">
+<form method="POST" class="grid xl:grid-cols-[22rem_1fr] gap-6">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <!-- Left panel: table + payment + notes -->
-    <div class="xl:w-80 flex flex-col gap-6">
-        <div class="card !p-6 flex flex-col gap-6">
-            <h2 class="font-display italic text-xl tracking-wide text-cream-50 border-b border-charcoal-700/60 pb-3">Transaction Details</h2>
+    <aside class="space-y-5">
+        <div class="staff-panel p-5">
+            <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-2" style="color: var(--staff-sage-dark);">Transaction</p>
+            <h2 class="font-display italic text-3xl tracking-normal">Counter order details.</h2>
+            <p class="text-sm leading-6 mt-3" style="color: var(--staff-text);">Attach a table when needed, choose payment, and add any service note.</p>
 
-            <div>
-                <label class="block text-[10px] font-bold text-charcoal-400 uppercase tracking-widest mb-2">Station Assignment</label>
-                <select name="table_id" class="input-field w-full appearance-none bg-charcoal-800/50">
-                    <option value="">No table (Takeaway)</option>
-                    {% for t in tables %}
-                    <option value="{{ t.id }}">Table T-{{ t.table_number }} — {{ t.status|title }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-[10px] font-bold text-charcoal-400 uppercase tracking-widest mb-2">Settlement Method</label>
-                <select name="payment_method" class="input-field w-full appearance-none bg-charcoal-800/50">
-                    <option value="cash">Cash Settlement</option>
-                    <option value="card">Card Terminal</option>
-                    <option value="online">Digital Transfer</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-[10px] font-bold text-charcoal-400 uppercase tracking-widest mb-2">Service Notes</label>
-                <textarea name="special_notes" rows="3" placeholder="Special requirements..."
-                          class="input-field w-full resize-none font-light text-sm bg-charcoal-800/50"></textarea>
-            </div>
-        </div>
-
-        <!-- Running total -->
-        <div class="bg-charcoal-900 border border-amber-500/30 p-6 shadow-dark">
-            <div class="flex justify-between items-end mb-2">
-                <span class="text-[10px] uppercase tracking-widest font-bold text-amber-600/80">Pending Total</span>
-                <div class="text-right">
-                    <span id="running-total" class="font-mono text-2xl font-bold text-amber-500">0.000</span>
-                    <span class="text-[10px] text-charcoal-400 uppercase tracking-widest ml-1">{{ restaurant.currency }}</span>
-                </div>
-            </div>
-            <button type="button" onclick="clearOrder()"
-                    class="mt-4 w-full border border-charcoal-700 text-charcoal-300 px-4 py-2 text-[10px] uppercase tracking-[0.2em] font-bold hover:border-amber-500/50 hover:text-amber-400 transition-colors">
-                Clear Selection
-            </button>
-            <p class="text-[10px] text-charcoal-500 italic mt-2 border-t border-charcoal-800 pt-2">Applicable taxes computed at checkout</p>
-        </div>
-
-        <button type="submit"
-                class="btn-primary w-full py-4 text-xs tracking-[0.2em]">
-            Submit Transaction →
-        </button>
-    </div>
-
-    <!-- Right panel: items by category -->
-    <div class="flex-1">
-        <div class="card !p-6 min-h-full">
-            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 border-b border-charcoal-700/60 pb-4 mb-6">
+            <div class="space-y-5 mt-6">
                 <div>
-                    <h2 class="font-display italic text-2xl tracking-wide text-cream-50">Menu Offerings</h2>
-                    <p class="text-[10px] text-charcoal-400 uppercase tracking-widest mt-1 font-bold">Select Items</p>
+                    <label class="block text-[10px] font-bold uppercase tracking-[0.14em] mb-2" style="color: var(--staff-muted);">Station Assignment</label>
+                    <select name="table_id" class="staff-input appearance-none">
+                        <option value="">No table - Takeaway</option>
+                        {% for t in tables %}
+                        <option value="{{ t.id }}">Table T-{{ t.table_number }} - {{ t.status|title }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="w-full lg:w-72 relative">
-                    <input id="item-search" type="text" placeholder="Search menu items..."
-                           class="input-field w-full pl-11 bg-charcoal-800/50 text-sm">
-                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-4.35-4.35m1.35-5.15a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/>
-                    </svg>
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-[0.14em] mb-2" style="color: var(--staff-muted);">Payment Method</label>
+                    <select name="payment_method" class="staff-input appearance-none">
+                        <option value="cash">Cash</option>
+                        <option value="card">Card Terminal</option>
+                        <option value="online">Digital Transfer</option>
+                    </select>
                 </div>
-            </div>
 
-            <!-- Category tabs -->
-            <div class="flex gap-3 flex-wrap mb-8">
-                <button type="button" onclick="filterCategory('all', this)"
-                        class="cat-tab px-5 py-2 text-[10px] uppercase tracking-widest font-bold border rounded-none transition-all duration-300 bg-amber-600/10 text-amber-500 border-amber-500/50 shadow-inner-glow" data-cat="all">All Collections</button>
-                {% for cat in categories %}
-                <button type="button" onclick="filterCategory('{{ cat.id }}', this)"
-                        class="cat-tab px-5 py-2 text-[10px] uppercase tracking-widest font-bold border rounded-none transition-all duration-300 bg-charcoal-800/30 text-charcoal-400 border-charcoal-700/50 hover:bg-charcoal-800 hover:text-cream-100"
-                        data-cat="{{ cat.id }}">{{ cat.icon or '' }} {{ cat.name_fr or cat.name_en or cat.name_ar }}</button>
-                {% endfor %}
-            </div>
-
-            <!-- Items grid -->
-            <div class="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-4" id="items-grid">
-                {% for item in menu_items %}
-                <div class="item-card bg-charcoal-800/20 border border-charcoal-700/50 p-4 flex flex-col gap-3 hover:border-amber-500/50 hover:bg-charcoal-800/50 transition-all group"
-                     data-cat="{{ item.category_id }}"
-                     data-name="{{ (item.name_fr or item.name_en or item.name_ar)|lower }}"
-                     data-price="{{ '%.3f'|format(item.price) }}">
-                    <div class="font-display italic text-lg text-cream-100 leading-tight group-hover:text-amber-400 transition-colors">{{ item.name_fr or item.name_en or item.name_ar }}</div>
-                    <div class="text-amber-500 text-sm font-semibold tracking-wide flex items-center gap-1">
-                        {{ '%.3f'|format(item.price) }} <span class="text-[9px] uppercase tracking-widest text-charcoal-500 font-normal">{{ restaurant.currency }}</span>
-                    </div>
-
-                    <label class="block mt-1">
-                        <span class="text-[9px] uppercase tracking-widest font-bold text-charcoal-500">Item Notes</span>
-                        <textarea name="notes_{{ item.id }}" rows="2" placeholder="No onions, extra spicy..."
-                                  class="mt-2 w-full bg-charcoal-900/70 border border-charcoal-700/60 px-3 py-2 text-xs text-cream-100 placeholder:text-charcoal-500 focus:outline-none focus:border-amber-500/50 resize-none"></textarea>
-                    </label>
-
-                    <div class="flex items-center justify-between mt-auto pt-4 border-t border-charcoal-700/30 gap-2">
-                        <button type="button" onclick="decQty({{ item.id }})"
-                                class="w-8 h-8 rounded-none border border-charcoal-600 text-charcoal-400 hover:text-amber-500 hover:border-amber-500/50 bg-charcoal-800 flex items-center justify-center font-light text-lg transition-colors">−</button>
-
-                        <input type="number" name="item_{{ item.id }}" id="qty-{{ item.id }}"
-                               value="0" min="0" max="20" inputmode="numeric"
-                               class="qty-input w-14 text-center text-sm font-bold border border-charcoal-700 bg-charcoal-900/70 px-2 py-1 focus:outline-none focus:border-amber-500/50 text-cream-50 font-mono">
-
-                        <button type="button" onclick="incQty({{ item.id }})"
-                                class="w-8 h-8 rounded-none border border-charcoal-600 text-charcoal-400 hover:text-amber-500 hover:border-amber-500/50 bg-charcoal-800 flex items-center justify-center font-light text-lg transition-colors">+</button>
-                    </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-[0.14em] mb-2" style="color: var(--staff-muted);">Service Notes</label>
+                    <textarea name="special_notes" rows="4" placeholder="Special requirements..." class="staff-input resize-none text-sm"></textarea>
                 </div>
-                {% endfor %}
-            </div>
-            <div id="items-empty-state" class="hidden mt-6 border border-charcoal-700/50 bg-charcoal-800/20 px-5 py-8 text-center">
-                <p class="font-display italic text-xl text-cream-100">No matching items</p>
-                <p class="mt-2 text-sm text-charcoal-400">Try a different search or switch categories.</p>
             </div>
         </div>
-    </div>
+
+        <div class="staff-card p-5">
+            <div class="flex justify-between items-end gap-4">
+                <span class="text-[10px] uppercase tracking-[0.16em] font-bold" style="color: var(--staff-muted);">Running Total</span>
+                <div class="text-right">
+                    <span id="running-total" class="font-mono text-3xl font-bold" style="color: var(--staff-accent);">0.000</span>
+                    <span class="text-[10px] uppercase tracking-[0.12em] font-bold ml-1" style="color: var(--staff-muted);">{{ restaurant.currency }}</span>
+                </div>
+            </div>
+            <button type="button" onclick="clearOrder()" class="staff-action mt-5 w-full">Clear Selection</button>
+        </div>
+
+        <button type="submit" class="staff-action primary w-full py-4">Submit Order</button>
+    </aside>
+
+    <section class="staff-panel p-5 sm:p-6 min-w-0">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 pb-5 mb-5" style="border-bottom: 1px solid var(--staff-border);">
+            <div>
+                <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-2" style="color: var(--staff-sage-dark);">Menu</p>
+                <h2 class="font-display italic text-4xl tracking-normal">Tap items into the ticket.</h2>
+            </div>
+            <div class="w-full lg:w-80 relative">
+                <input id="item-search" type="text" placeholder="Search menu items..." class="staff-input pl-11 text-sm">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style="color: var(--staff-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M21 21l-4.35-4.35m1.35-5.15a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="flex gap-2 flex-wrap mb-6">
+            <button type="button" onclick="filterCategory('all')" class="cat-tab is-active px-4 py-2 text-[10px] uppercase tracking-[0.12em] font-bold" data-cat="all">All Items</button>
+            {% for cat in categories %}
+            <button type="button" onclick="filterCategory('{{ cat.id }}')" class="cat-tab px-4 py-2 text-[10px] uppercase tracking-[0.12em] font-bold" data-cat="{{ cat.id }}">{{ cat.name_fr or cat.name_en or cat.name_ar }}</button>
+            {% endfor %}
+        </div>
+
+        <div class="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4" id="items-grid">
+            {% for item in menu_items %}
+            <article
+                class="item-card staff-card p-4 flex flex-col gap-3"
+                data-cat="{{ item.category_id }}"
+                data-name="{{ (item.name_fr or item.name_en or item.name_ar)|lower }}"
+                data-price="{{ '%.3f'|format(item.price) }}"
+            >
+                <div>
+                    <h3 class="font-display italic text-xl leading-tight tracking-normal">{{ item.name_fr or item.name_en or item.name_ar }}</h3>
+                    <p class="mt-2 text-sm font-bold" style="color: var(--staff-accent);">
+                        {{ '%.3f'|format(item.price) }}
+                        <span class="text-[9px] uppercase tracking-[0.12em]" style="color: var(--staff-muted);">{{ restaurant.currency }}</span>
+                    </p>
+                </div>
+
+                <label class="block">
+                    <span class="text-[9px] uppercase tracking-[0.12em] font-bold" style="color: var(--staff-muted);">Item Notes</span>
+                    <textarea name="notes_{{ item.id }}" rows="2" placeholder="No onions, extra spicy..." class="staff-input mt-2 min-h-20 resize-none text-xs"></textarea>
+                </label>
+
+                <div class="flex items-center justify-between mt-auto pt-3 gap-2" style="border-top: 1px solid var(--staff-border);">
+                    <button type="button" onclick="decQty({{ item.id }})" class="staff-action w-10 px-0" aria-label="Decrease {{ item.name_fr or item.name_en or item.name_ar }}">-</button>
+                    <input
+                        type="number"
+                        name="item_{{ item.id }}"
+                        id="qty-{{ item.id }}"
+                        value="0"
+                        min="0"
+                        max="20"
+                        inputmode="numeric"
+                        class="qty-input staff-input w-16 min-h-10 text-center font-mono font-bold px-2"
+                    >
+                    <button type="button" onclick="incQty({{ item.id }})" class="staff-action w-10 px-0" aria-label="Increase {{ item.name_fr or item.name_en or item.name_ar }}">+</button>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <div id="items-empty-state" class="hidden mt-6 staff-card px-5 py-10 text-center">
+            <p class="font-display italic text-2xl">No matching items</p>
+            <p class="mt-2 text-sm" style="color: var(--staff-text);">Try a different search or switch categories.</p>
+        </div>
+    </section>
 </form>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const activeClasses = ['bg-amber-600/10', 'text-amber-500', 'border-amber-500/50', 'shadow-inner-glow'];
-const inactiveClasses = ['bg-charcoal-800/30', 'text-charcoal-400', 'border-charcoal-700/50'];
 const searchField = document.getElementById('item-search');
 const emptyState = document.getElementById('items-empty-state');
 let activeCategory = 'all';
@@ -183,9 +174,7 @@ function clearOrder() {
 
 function setActiveCategoryTab() {
     document.querySelectorAll('.cat-tab').forEach(btn => {
-        const isActive = btn.dataset.cat === activeCategory;
-        btn.classList.remove(...(isActive ? inactiveClasses : activeClasses));
-        btn.classList.add(...(isActive ? activeClasses : inactiveClasses));
+        btn.classList.toggle('is-active', btn.dataset.cat === activeCategory);
     });
 }
 
@@ -206,7 +195,7 @@ function applyItemFilters() {
     emptyState.classList.toggle('hidden', visibleCount > 0);
 }
 
-function filterCategory(catId, button = null) {
+function filterCategory(catId) {
     activeCategory = catId;
     setActiveCategoryTab();
     applyItemFilters();

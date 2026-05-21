@@ -1,0 +1,1638 @@
+% ============================================================================
+% Rapport PFE - Tablii: Plateforme Multi-tenant de Gestion de Restaurants
+% ============================================================================
+\documentclass[12pt,a4paper]{report}
+
+% --- Encodage et langue ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+
+% --- Marges ---
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+
+% --- Couleurs ---
+\usepackage{xcolor}
+\definecolor{primary}{HTML}{EA580C}
+\definecolor{secondary}{HTML}{1E293B}
+\definecolor{accent}{HTML}{0EA5E9}
+\definecolor{lightgray}{HTML}{F1F5F9}
+\definecolor{codebg}{HTML}{F8FAFC}
+
+% --- Graphiques et diagrammes ---
+\usepackage{tikz}
+\usetikzlibrary{
+    positioning, shapes.geometric, shapes.multipart,
+    arrows.meta, calc, fit, backgrounds,
+    decorations.pathreplacing, patterns, matrix,
+    chains, scopes, graphs, graphdrawing
+}
+\usegdlibrary{trees, layered, force}
+
+% --- Tableaux et figures ---
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{makecell}
+
+% --- Code source ---
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    frameround=tttt,
+    rulecolor=\color{lightgray},
+    keywordstyle=\color{primary}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{accent},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    language=Python
+}
+
+% --- Liens et URLs ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    urlcolor=accent,
+    citecolor=primary,
+    pdfborder={0 0 0}
+}
+
+% --- Autres packages ---
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath, amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{tcolorbox}
+\usepackage{fontawesome5}
+\usepackage{pifont}
+\usepackage{setspace}
+
+% --- En-têtes et pieds de page ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small \textcolor{primary}{\leftmark}}
+\fancyhead[RO]{\small \textcolor{primary}{Tablii -- Rapport PFE}}
+\fancyfoot[C]{\small \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\color{primary}\hrule}
+
+% --- Formatage des titres ---
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries\color{secondary}}
+    {\chaptertitlename\ \thechapter}{20pt}{\Huge\color{primary}}
+\titleformat{\section}
+    {\normalfont\Large\bfseries\color{secondary}}
+    {\thesection}{1em}{}
+\titleformat{\subsection}
+    {\normalfont\large\bfseries\color{secondary}}
+    {\thesubsection}{1em}{}
+
+% --- Espacement ---
+\onehalfspacing
+
+% --- Boîtes personnalisées ---
+\tcbuselibrary{skins, breakable}
+\newtcolorbox{notebox}{
+    colback=orange!5!white,
+    colframe=primary,
+    title=\textbf{Note},
+    fonttitle=\bfseries,
+    breakable,
+    enhanced,
+    arc=3mm
+}
+\newtcolorbox{defbox}{
+    colback=blue!5!white,
+    colframe=accent,
+    title=\textbf{Définition},
+    fonttitle=\bfseries,
+    breakable,
+    enhanced,
+    arc=3mm
+}
+\newtcolorbox{codebox}[1][]{
+    colback=codebg,
+    colframe=secondary,
+    title=#1,
+    fonttitle=\bfseries,
+    breakable,
+    enhanced,
+    arc=3mm
+}
+
+% ============================================================================
+\begin{document}
+
+% ============================================================================
+% PAGE DE GARDE
+% ============================================================================
+\begin{titlepage}
+    \centering
+
+    % Cadre décoratif
+    \begin{tikzpicture}[remember picture, overlay]
+        \fill[primary] (current page.north west) rectangle ++(\paperwidth, -1.8cm);
+        \fill[secondary] (current page.north west) ++(0, -1.8cm) rectangle ++(\paperwidth, 0.15cm);
+        \fill[primary] (current page.south west) rectangle ++(\paperwidth, 1.2cm);
+    \end{tikzpicture}
+
+    \vspace*{1cm}
+
+    % Logo et université
+    {\Huge\bfseries\color{secondary} UNIVERSITÉ DE TUNIS EL MANAR}\\[0.3cm]
+    {\Large\color{secondary} Faculté des Sciences de Tunis}\\[0.2cm]
+    {\large\color{primary}\textbf{TEKUP -- Pôle d'Excellence}}\\[1.5cm]
+
+    \rule{0.6\textwidth}{1pt}\\[1cm]
+
+    % Titre du projet
+    {\Huge\bfseries\color{primary} Tablii}\\[0.5cm]
+    {\LARGE\color{secondary} Plateforme Multi-tenant de Gestion\\et de Commande pour Restaurants}\\[0.5cm]
+    {\large\color{accent} \textit{Menu QR Code, Temps Réel, Analyse et Paiement en Ligne}}\\[1cm]
+
+    \rule{0.6\textwidth}{1pt}\\[1.5cm]
+
+    % Type de rapport
+    {\Large\bfseries Rapport de Projet de Fin d'Études}\\[0.3cm]
+    {\large Pour l'obtention du diplôme de}\\[0.2cm]
+    {\large\bfseries Licence Appliquée en Génie Logiciel}\\[1.5cm]
+
+    % Auteur et encadrants
+    \begin{tabular}{>{\raggedleft}p{0.3\textwidth} >{\raggedright}p{0.5\textwidth}}
+        \textbf{Réalisé par :} & \textbf{\large Prénom NOM} \\[0.5cm]
+        \textbf{Encadré par :} & \textbf{\large Dr. Nom de l'Encadrant} \\[0.5cm]
+        \textbf{Année universitaire :} & \textbf{\large 2025 -- 2026} \\
+    \end{tabular}\\[2cm]
+
+    % Logos en bas
+    \vfill
+    {\small\color{gray} \textcopyright\ 2026 Tablii -- Tous droits réservés}
+\end{titlepage}
+
+% ============================================================================
+% PAGE DE DÉDICACE (optionnelle)
+% ============================================================================
+\cleardoublepage
+\thispagestyle{empty}
+\vspace*{3cm}
+\begin{center}
+    {\Large\itshape\color{secondary}
+    ``La simplicité est la sophistication suprême.''\\[0.5cm]
+    --- Léonard de Vinci}
+\end{center}
+
+% ============================================================================
+% REMERCIEMENTS
+% ============================================================================
+\cleardoublepage
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+
+Je tiens à exprimer ma profonde gratitude à toutes les personnes qui ont contribué à la réalisation de ce projet.
+
+\vspace{0.5cm}
+
+\noindent\textbf{À mon encadrant}, Dr. [Nom], pour ses conseils précieux, sa disponibilité et son accompagnement tout au long de ce projet.
+
+\vspace{0.3cm}
+
+\noindent\textbf{Au corps enseignant} de TEKUP, pour la qualité de la formation dispensée et les connaissances acquises durant mon parcours universitaire.
+
+\vspace{0.3cm}
+
+\noindent\textbf{À ma famille et mes amis}, pour leur soutien moral et leurs encouragements constants.
+
+\vspace{0.3cm}
+
+\noindent\textbf{À la communauté open-source}, dont les outils et bibliothèques ont rendu ce projet possible.
+
+% ============================================================================
+% RÉSUMÉ
+% ============================================================================
+\cleardoublepage
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+\textbf{Tablii} est une plateforme SaaS multi-tenant conçue pour digitaliser la gestion des restaurants. Elle permet aux clients de consulter le menu et passer des commandes en scannant un QR code placé sur leur table, sans avoir besoin de télécharger une application. Le système offre une gestion complète des commandes en temps réel via WebSocket, un tableau de bord analytique pour les propriétaires, une gestion du personnel avec des rôles différenciés (caissier, cuisine, serveur), un système de paiement en ligne intégré (Flouci), un programme de fidélité, et un mode Ramadan intelligent.
+
+Développée avec Python/Flask, SQLAlchemy, Flask-SocketIO et Tailwind CSS, la plateforme est déployée sur Render.com avec une base de données PostgreSQL. Elle supporte trois langues (français, arabe, anglais) et intègre une architecture PWA pour une expérience mobile optimale.
+
+\vspace{0.3cm}
+\noindent\textbf{Mots-clés :} Restaurant SaaS, Multi-tenant, QR Code, Temps réel, WebSocket, Flask, Python, Paiement en ligne, PWA, Analyse.
+
+\cleardoublepage
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+\textbf{Tablii} is a multi-tenant SaaS platform designed to digitize restaurant management. It enables customers to browse menus and place orders by scanning a QR code on their table, without needing to download an app. The system provides comprehensive real-time order management via WebSocket, an analytics dashboard for owners, staff management with differentiated roles (cashier, kitchen, waiter), integrated online payment (Flouci), a loyalty program, and a smart Ramadan mode.
+
+Built with Python/Flask, SQLAlchemy, Flask-SocketIO, and Tailwind CSS, the platform is deployed on Render.com with a PostgreSQL database. It supports three languages (French, Arabic, English) and integrates a PWA architecture for an optimal mobile experience.
+
+\vspace{0.3cm}
+\noindent\textbf{Keywords:} Restaurant SaaS, Multi-tenant, QR Code, Real-time, WebSocket, Flask, Python, Online Payment, PWA, Analytics.
+
+\cleardoublepage
+
+\chapter*{ملخص}
+\addcontentsline{toc}{chapter}{ملخص (Arabic Abstract)}
+
+\textbf{تابلي} هو منصة سحابية متعددة المستأجرين مصممة لرقمنة إدارة المطاعم. يتيح للعملاء تصفح القوائم وتقديم الطلبات عن طريق مسح رمز QR موضوع على طاولتهم، دون الحاجة إلى تنزيل تطبيق. يوفر النظام إدارة شاملة للطلبات في الوقت الفعلي عبر WebSocket، ولوحة تحليلات لأصحاب المطاعم، وإدارة الموظفين بأدوار مختلفة، ونظام دفع عبر الإنترنت مدمج.
+
+\vspace{0.3cm}
+\noindent\textbf{الكلمات المفتاحية:} منصة مطاعم، متعددة المستأجرين، رمز QR، الوقت الفعلي، Flask، بايثون
+
+% ============================================================================
+% TABLE DES MATIÈRES
+% ============================================================================
+\cleardoublepage
+\tableofcontents
+\cleardoublepage
+
+\listoffigures
+\addcontentsline{toc}{chapter}{Liste des figures}
+\cleardoublepage
+
+\listoftables
+\addcontentsline{toc}{chapter}{Liste des tableaux}
+\cleardoublepage
+
+% ============================================================================
+% LISTE DES ACRONYMES
+% ============================================================================
+\chapter*{Liste des acronymes}
+\addcontentsline{toc}{chapter}{Liste des acronymes}
+
+\begin{tabularx}{\textwidth}{>{\bfseries}lp{0.7\textwidth}}
+    \toprule
+    SaaS & Software as a Service (Logiciel en tant que Service) \\
+    PWA & Progressive Web Application \\
+    QR Code & Quick Response Code \\
+    API & Application Programming Interface \\
+    ORM & Object-Relational Mapping \\
+    WebSocket & Protocole de communication bidirectionnelle \\
+    CSRF & Cross-Site Request Forgery \\
+    JWT & JSON Web Token \\
+    ER & Entity-Relationship (Entité-Relation) \\
+    MVC & Model-View-Controller \\
+    CI/CD & Continuous Integration / Continuous Deployment \\
+    TND & Dinar Tunisien \\
+    \bottomrule
+\end{tabularx}
+
+\cleardoublepage
+
+% ============================================================================
+% INTRODUCTION GÉNÉRALE
+% ============================================================================
+\chapter*{Introduction Générale}
+\addcontentsline{toc}{chapter}{Introduction Générale}
+
+\section*{Contexte et motivation}
+
+Le secteur de la restauration connaît une transformation digitale accélérée. Les clients modernes s'attendent à une expérience fluide et sans friction : consulter le menu, commander, et payer directement depuis leur smartphone, sans attendre un serveur ni télécharger une application dédiée.
+
+Parallèlement, les propriétaires de restaurants ont besoin d'outils de gestion performants pour suivre leurs commandes en temps réel, analyser leurs performances, gérer leur personnel et optimiser leurs opérations. Les solutions existantes sont souvent soit trop coûteuses, soit trop complexes, soit pas adaptées au marché tunisien et maghrébin.
+
+\section*{Problématique}
+
+Comment concevoir une plateforme de gestion de restaurants qui soit :
+\begin{itemize}
+    \item \textbf{Accessible} : utilisable directement depuis un navigateur mobile via QR code
+    \item \textbf{Multi-tenant} : capable de servir plusieurs restaurants de manière isolée
+    \item \textbf{Temps réel} : notifications instantanées entre clients, cuisine et caisse
+    \item \textbf{Multilingue} : supportant le français, l'arabe et l'anglais
+    \item \textbf{Abordable} : avec un modèle freemium adapté aux petits restaurants
+    \item \textbf{Intelligente} : avec un mode Ramadan et des analyses prédictives
+\end{itemize}
+
+\section*{Objectifs du projet}
+
+L'objectif principal est de développer \textbf{Tablii}, une plateforme SaaS complète couvrant :
+\begin{enumerate}
+    \item Interface client via QR code (menu, commande, appel serveur, paiement)
+    \item Tableau de bord propriétaire (analytique, gestion du menu, paramètres)
+    \item Interfaces staff (caissier, cuisine, serveur)
+    \item Système de paiement en ligne (Flouci)
+    \item Programme de fidélité et système de reviews
+    \item Panel d'administration super-admin
+    \item Mode Ramadan automatique
+    \item Support PWA (Progressive Web App)
+\end{enumerate}
+
+\section*{Structure du rapport}
+
+Ce rapport est structuré comme suit :
+\begin{itemize}
+    \item \textbf{Chapitre 1} : Analyse et spécification des besoins
+    \item \textbf{Chapitre 2} : Conception et architecture
+    \item \textbf{Chapitre 3} : Implémentation et technologies
+    \item \textbf{Chapitre 4} : Tests et déploiement
+    \item \textbf{Conclusion} et perspectives
+\end{itemize}
+
+\cleardoublepage
+
+% ============================================================================
+% CHAPITRE 1 : ANALYSE ET SPÉCIFICATION DES BESOINS
+% ============================================================================
+\chapter{Analyse et Spécification des Besoins}
+
+\section{Étude de l'existant}
+
+\subsection{Solutions concurrentes}
+
+Le marché des solutions de gestion de restaurants comprend plusieurs acteurs :
+
+\begin{table}[H]
+    \centering
+    \caption{Comparaison des solutions existantes}
+    \label{tab:concurrents}
+    \begin{tabularx}{\textwidth}{lXcc}
+        \toprule
+        \textbf{Solution} & \textbf{Caractéristiques} & \textbf{Prix} & \textbf{Limites} \\
+        \midrule
+        Square for Restaurants & POS complet, menu digital & \$60+/mois & Pas de QR code natif, cher \\
+        Toast & Gestion complète & \$180+/mois & Complexe, pas adapté Tunisie \\
+        GloriaFood & Menu en ligne, commandes & Gratuit/Premium & Limité en fonctionnalités \\
+        \textbf{Tablii} & \textbf{Multi-tenant, QR, temps réel} & \textbf{Freemium} & \textbf{Nouveau sur le marché} \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Positionnement de Tablii}
+
+Tablii se distingue par :
+\begin{itemize}
+    \item Architecture \textbf{multi-tenant} : un seul système pour plusieurs restaurants
+    \item \textbf{QR code natif} : chaque table a son propre QR code
+    \item \textbf{Temps réel} : WebSocket pour notifications instantanées
+    \item \textbf{Multilingue} : FR/AR/EN pour le menu
+    \item \textbf{Mode Ramadan} : adaptation automatique Iftar/Suhoor
+    \item \textbf{Paiement local} : intégration Flouci (passerelle tunisienne)
+\end{itemize}
+
+\section{Identification des acteurs}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        acteur/.style={
+            rectangle, rounded corners=8pt,
+            draw=#1, fill=#1!10,
+            minimum width=3cm, minimum height=1cm,
+            font=\small\bfseries, text=#1!80!black
+        },
+        arrow/.style={-{Stealth[length=3mm]}, thick, color=gray}
+    ]
+        % Acteurs
+        \node[acteur=primary] (client) {Client};
+        \node[acteur=secondary, right=2cm of client] (caissier) {Caissier};
+        \node[acteur=accent, right=2cm of caissier] (cuisine) {Cuisine};
+        \node[acteur=primary, below=1cm of caissier] (serveur) {Serveur};
+        \node[acteur=secondary, below=1cm of client] (proprietaire) {Propriétaire};
+        \node[acteur=accent, below=1cm of cuisine] (admin) {Super Admin};
+
+        % Relations
+        \draw[arrow] (client) -- node[above, font=\tiny]{Commande} (caissier);
+        \draw[arrow] (caissier) -- node[above, font=\tiny]{Accepte} (cuisine);
+        \draw[arrow] (cuisine) -- node[above, font=\tiny]{Prêt} (serveur);
+        \draw[arrow] (serveur) -- node[right, font=\tiny]{Sert} (client);
+        \draw[arrow] (proprietaire) -- node[left, font=\tiny]{Gère} (caissier);
+        \draw[arrow] (admin) -- node[above, font=\tiny]{Supervise} (proprietaire);
+    \end{tikzpicture}
+    \caption{Diagramme des acteurs et leurs interactions}
+    \label{fig:acteurs}
+\end{figure}
+
+\section{Besoins fonctionnels}
+
+\subsection{Pour le client}
+
+\begin{table}[H]
+    \centering
+    \caption{Besoins fonctionnels -- Client}
+    \label{tab:bf-client}
+    \begin{tabularx}{\textwidth}{>{\bfseries}cp{0.75\textwidth}}
+        \toprule
+        \textbf{ID} & \textbf{Description} \\
+        \midrule
+        BF-C1 & Scanner le QR code de la table pour accéder au menu \\
+        BF-C2 & Parcourir le menu multilingue (FR/AR/EN) avec catégories et images \\
+        BF-C3 & Ajouter des articles au panier avec options de personnalisation \\
+        BF-C4 & Passer une commande avec notes spéciales \\
+        BF-C5 & Appeler le serveur (eau, addition, aide, message personnalisé) \\
+        BF-C6 & Envoyer un cadeau (commande pour une autre table) \\
+        BF-C7 & Payer en ligne via Flouci ou payer à la table \\
+        BF-C8 & Laisser un avis et une note après le repas \\
+        BF-C9 & Gagner et utiliser des points de fidélité \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Pour le propriétaire}
+
+\begin{table}[H]
+    \centering
+    \caption{Besoins fonctionnels -- Propriétaire}
+    \label{tab:bf-owner}
+    \begin{tabularx}{\textwidth}{>{\bfseries}cp{0.75\textwidth}}
+        \toprule
+        \textbf{ID} & \textbf{Description} \\
+        \midrule
+        BF-P1 & Dashboard avec statistiques quotidiennes et tendances \\
+        BF-P2 & Gérer le menu (catégories, articles, prix, images, disponibilité) \\
+        BF-P3 & Configurer les paramètres du restaurant (taxe, service, langue) \\
+        BF-P4 & Gérer les tables et générer les QR codes \\
+        BF-P5 & Gérer le personnel (caissier, cuisine, serveur) \\
+        BF-P6 & Consulter l'historique des commandes et des avis \\
+        BF-P7 & Analyser les heures de pointe et les articles populaires \\
+        BF-P8 & Configurer le mode Ramadan et les horaires d'ouverture \\
+        BF-P9 & Activer/désactiver le programme de fidélité \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Pour le staff}
+
+\begin{table}[H]
+    \centering
+    \caption{Besoins fonctionnels -- Staff}
+    \label{tab:bf-staff}
+    \begin{tabularx}{\textwidth}{>{\bfseries}cp{0.4\textwidth}p{0.35\textwidth}}
+        \toprule
+        \textbf{ID} & \textbf{Rôle} & \textbf{Fonctionnalités} \\
+        \midrule
+        BF-S1 & Caissier & Voir les nouvelles commandes, accepter/refuser, encaisser \\
+        BF-S2 & Cuisine & Voir les commandes acceptées, changer le statut (préparation → prêt) \\
+        BF-S3 & Serveur & Voir les appels des tables, marquer comme résolu, servir les commandes \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Besoins non fonctionnels}
+
+\begin{table}[H]
+    \centering
+    \caption{Besoins non fonctionnels}
+    \label{tab:bnf}
+    \begin{tabularx}{\textwidth}{>{\bfseries}cp{0.3\textwidth}p{0.45\textwidth}}
+        \toprule
+        \textbf{ID} & \textbf{Catégorie} & \textbf{Description} \\
+        \midrule
+        BNF-1 & Performance & Temps de réponse < 200ms pour les API \\
+        BNF-2 & Temps réel & Latence WebSocket < 100ms \\
+        BNF-3 & Sécurité & HTTPS, CSRF protection, hachage des mots de passe \\
+        BNF-4 & Disponibilité & 99.9\% uptime en production \\
+        BNF-5 & Scalabilité & Architecture multi-tenant horizontale \\
+        BNF-6 & Accessibilité & Responsive design, support mobile-first \\
+        BNF-7 & Internationalisation & Support FR/AR/EN avec RTL pour l'arabe \\
+        BNF-8 & PWA & Installable, fonctionne hors ligne partiellement \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\cleardoublepage
+
+% ============================================================================
+% CHAPITRE 2 : CONCEPTION ET ARCHITECTURE
+% ============================================================================
+\chapter{Conception et Architecture}
+
+\section{Architecture globale}
+
+\subsection{Architecture MVC}
+
+Tablii suit le pattern \textbf{Modèle-Vue-Contrôleur} (MVC) adapté à Flask :
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={
+            rectangle, rounded corners=5pt,
+            draw=#1, fill=#1!8,
+            minimum width=3.5cm, minimum height=1.2cm,
+            font=\small\bfseries, text=#1!80!black,
+            align=center
+        },
+        arrow/.style={-{Stealth[length=3mm]}, thick, color=gray!70},
+        label/.style={font=\tiny, color=gray}
+    ]
+        % Couches
+        \node[box=primary] (view) {Vue\\(Jinja2 + Tailwind CSS)};
+        \node[box=secondary, right=3cm of view] (controller) {Contrôleur\\(Blueprints Flask)};
+        \node[box=accent, right=3cm of controller] (model) {Modèle\\(SQLAlchemy ORM)};
+        \node[box=primary, below=2cm of model] (db) {Base de données\\(PostgreSQL / SQLite)};
+
+        % Services
+        \node[box=accent!70!black, below=2cm of controller] (services) {Services\\(Order, Payment, QR, etc.)};
+        \node[box=secondary!70!black, below=2cm of view] (events) {Événements\\(WebSocket / SocketIO)};
+
+        % Flux
+        \draw[arrow] (view) -- node[label, above]{Requête HTTP} (controller);
+        \draw[arrow] (controller) -- node[label, above]{Appel} (model);
+        \draw[arrow] (model) -- node[label, right]{Requêtes SQL} (db);
+        \draw[arrow] (db) -- node[label, left]{Résultats} (model);
+        \draw[arrow] (controller) -- node[label, left]{Utilise} (services);
+        \draw[arrow] (controller) -- node[label, right]{Émet} (events);
+        \draw[arrow, dashed] (events) -- node[label, below]{Notifie} (view);
+        \draw[arrow, dashed] (services) -- node[label, below]{Accède} (model);
+
+        % Légende
+        \node[below=1cm of services, font=\small\itshape, color=gray] {
+            Les lignes pleines = flux synchrone\\
+            Les lignes pointillées = flux asynchrone
+        };
+    \end{tikzpicture}
+    \caption{Architecture MVC de Tablii}
+    \label{fig:mvc}
+\end{figure}
+
+\subsection{Architecture multi-tenant}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        tenant/.style={
+            rectangle, rounded corners=8pt,
+            draw=#1, fill=#1!5,
+            minimum width=4cm, minimum height=3.5cm,
+            align=center
+        },
+        comp/.style={
+            rectangle, rounded corners=4pt,
+            draw=#1, fill=#1!15,
+            minimum width=3cm, minimum height=0.6cm,
+            font=\small, text=#1!80!black
+        },
+        arrow/.style={-{Stealth[length=2mm]}, thick}
+    ]
+        % Super Admin
+        \node[tenant=secondary] (sa) {
+            \textbf{\large Super Admin}\\[0.3cm]
+            \node[comp=secondary] at (0, -0.5) {Gestion des restaurants};\\
+            \node[comp=secondary] at (0, -1.2) {Gestion des abonnements};\\
+            \node[comp=secondary] at (0, -1.9) {Statistiques globales};
+        };
+
+        % Restaurant 1
+        \node[tenant=primary, right=2cm of sa] (r1) {
+            \textbf{\large Restaurant 1} \textit{(chez-ahmed)}\\[0.3cm]
+            \node[comp=primary] at (0, -0.5) {Propriétaire};\\
+            \node[comp=primary] at (0, -1.2) {Caissier, Cuisine, Serveur};\\
+            \node[comp=primary] at (0, -1.9) {Menu, Tables, Commandes};\\
+            \node[comp=primary] at (0, -2.6) {Analytics, Fidélité};
+        };
+
+        % Restaurant 2
+        \node[tenant=accent, right=2cm of r1] (r2) {
+            \textbf{\large Restaurant 2} \textit{(dar-el-jeld)}\\[0.3cm]
+            \node[comp=accent] at (0, -0.5) {Propriétaire};\\
+            \node[comp=accent] at (0, -1.2) {Caissier, Cuisine, Serveur};\\
+            \node[comp=accent] at (0, -1.9) {Menu, Tables, Commandes};\\
+            \node[comp=accent] at (0, -2.6) {Analytics, Fidélité};
+        };
+
+        % Client
+        \node[tenant=primary!50!white, below=2cm of r1] (client) {
+            \textbf{\large Clients}\\[0.3cm]
+            \node[comp=primary!70] at (0, -0.5) {Scan QR → Menu};\\
+            \node[comp=primary!70] at (0, -1.2) {Commande + Paiement};\\
+            \node[comp=primary!70] at (0, -1.9) {Appel serveur + Avis};
+        };
+
+        % Flèches
+        \draw[arrow, color=gray] (sa) -- (r1);
+        \draw[arrow, color=gray] (sa) -- (r2);
+        \draw[arrow, color=gray] (r1) -- (client);
+        \draw[arrow, color=gray] (r2) -- (client);
+
+        % Isolation
+        \node[below=0.5cm of client, font=\small\itshape, color=gray] {
+            Chaque restaurant est isolé : données, staff, et configuration indépendants
+        };
+    \end{tikzpicture}
+    \caption{Architecture multi-tenant}
+    \label{fig:multitenant}
+\end{figure}
+
+\section{Diagramme de cas d'utilisation}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        actor/.style={
+            circle, draw=secondary, fill=secondary!10,
+            minimum size=1.2cm, font=\small\bfseries,
+            text=secondary
+        },
+        uc/.style={
+            ellipse, draw=#1, fill=#1!8,
+            minimum width=3.5cm, minimum height=0.9cm,
+            font=\small, text=#1!80!black,
+            align=center
+        },
+        system/.style={
+            rectangle, draw=gray!50, dashed,
+            minimum width=12cm, minimum height=10cm,
+            rounded corners=10pt
+        }
+    ]
+        % Système
+        \node[system] (sys) {};
+        \node[above right=0.2cm and 0.2cm of sys.north west, font=\small\bfseries, color=gray] {Tablii};
+
+        % Acteurs
+        \node[actor, left=2.5cm of sys.west, yshift=2cm] (client) {Client};
+        \node[actor, left=2.5cm of sys.west, yshift=-0.5cm] (owner) {Propriétaire};
+        \node[actor, left=2.5cm of sys.west, yshift=-2.5cm] (staff) {Staff};
+        \node[actor, right=2.5cm of sys.east, yshift=2cm] (flouci) {Flouci};
+        \node[actor, right=2.5cm of sys.east, yshift=-1cm] (admin) {Super Admin};
+
+        % Cas d'utilisation - Client
+        \node[uc=primary] (uc1) at ([xshift=2cm]sys.west) {Consulter le menu};
+        \node[uc=primary] (uc2) at ([xshift=2cm, yshift=-1.2cm]sys.west) {Passer une commande};
+        \node[uc=primary] (uc3) at ([xshift=2cm, yshift=-2.4cm]sys.west) {Payer en ligne};
+        \node[uc=primary] (uc4) at ([xshift=2cm, yshift=-3.6cm]sys.west) {Appeler le serveur};
+        \node[uc=primary] (uc5) at ([xshift=2cm, yshift=-4.8cm]sys.west) {Laisser un avis};
+
+        % Cas d'utilisation - Owner
+        \node[uc=secondary] (uc6) at ([xshift=5cm, yshift=-1cm]sys.west) {Gérer le menu};
+        \node[uc=secondary] (uc7) at ([xshift=5cm, yshift=-2.2cm]sys.west) {Voir les analytics};
+        \node[uc=secondary] (uc8) at ([xshift=5cm, yshift=-3.4cm]sys.west) {Gérer le personnel};
+
+        % Cas d'utilisation - Staff
+        \node[uc=accent] (uc9) at ([xshift=5cm, yshift=-5cm]sys.west) {Gérer les commandes};
+
+        % Cas d'utilisation - Admin
+        \node[uc=accent!70!black] (uc10) at ([xshift=-2cm]sys.east) {Superviser les restaurants};
+
+        % Connexions
+        \draw (client) -- (uc1);
+        \draw (client) -- (uc2);
+        \draw (client) -- (uc3);
+        \draw (client) -- (uc4);
+        \draw (client) -- (uc5);
+        \draw (owner) -- (uc6);
+        \draw (owner) -- (uc7);
+        \draw (owner) -- (uc8);
+        \draw (staff) -- (uc9);
+        \draw (admin) -- (uc10);
+        \draw (flouci) -- (uc3);
+
+        % Include/Extend
+        \node[uc=gray] (uc11) at ([xshift=5cm, yshift=-6cm]sys.west) {Gagner points fidélité};
+        \draw[dashed, -{Stealth[length=2mm]}] (uc3) -- node[right, font=\tiny]{<<extend>>} (uc11);
+    \end{tikzpicture}
+    \caption{Diagramme de cas d'utilisation global}
+    \label{fig:usecase}
+\end{figure}
+
+\section{Modèle de données}
+
+\subsection{Diagramme Entité-Relation}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        entity/.style={
+            rectangle, draw=#1, fill=#1!5,
+            minimum width=3.5cm, minimum height=0.7cm,
+            font=\small\bfseries, text=#1!80!black
+        },
+        attr/.style={
+            font=\tiny, text=gray!70,
+            align=left
+        },
+        rel/.style={
+            font=\tiny, color=primary,
+            align=center
+        },
+        arrow/.style={-{Stealth[length=2mm]}, thick, color=gray!60}
+    ]
+        % Users
+        \node[entity=secondary] (users) {Users};
+        \node[attr, below=0.1cm of users] (users_attr) {id, email, password\_hash\\name, role, is\_active};
+
+        % Restaurants
+        \node[entity=primary, right=3cm of users] (restaurants) {Restaurants};
+        \node[attr, below=0.1cm of restaurants] (rest_attr) {id, owner\_id, name, slug\\address, city, tax\_rate\\ramadan\_mode, is\_open};
+
+        % Staff
+        \node[entity=accent, below=2cm of restaurants] (staff) {StaffUsers};
+        \node[attr, below=0.1cm of staff] (staff_attr) {id, restaurant\_id, username\\role (cashier/kitchen/waiter)};
+
+        % Categories
+        \node[entity=primary, right=3cm of restaurants] (categories) {Categories};
+        \node[attr, below=0.1cm of categories] (cat_attr) {id, restaurant\_id\\name\_fr, name\_ar, name\_en\\icon, sort\_order, ramadan\_type};
+
+        % Menu Items
+        \node[entity=primary, below=2cm of categories] (menuitems) {MenuItems};
+        \node[attr, below=0.1cm of menuitems] (mi_attr) {id, category\_id, restaurant\_id\\name\_fr, price, image\_url\\is\_available, is\_popular, calories};
+
+        % Tables
+        \node[entity=secondary, below=2cm of users] (tables) {Tables};
+        \node[attr, below=0.1cm of tables] (tbl_attr) {id, restaurant\_id, table\_number\\capacity, status, qr\_code\_url};
+
+        % Table Sessions
+        \node[entity=secondary, right=1cm of tables] (sessions) {TableSessions};
+        \node[attr, below=0.1cm of sessions] (sess_attr) {id, table\_id, restaurant\_id\\customer\_id, session\_token\\is\_active};
+
+        % Orders
+        \node[entity=accent!70!black, right=3cm of sessions] (orders) {Orders};
+        \node[attr, below=0.1cm of orders] (ord_attr) {id, session\_id, restaurant\_id\\order\_number, status, payment\_status\\subtotal, tax, total, is\_gift};
+
+        % Order Items
+        \node[entity=accent!70!black, right=2cm of menuitems] (orderitems) {OrderItems};
+        \node[attr, below=0.1cm of orderitems] (oi_attr) {id, order\_id, menu\_item\_id\\quantity, unit\_price, total\_price\\selected\_options, notes};
+
+        % Payment
+        \node[entity=gray, below=1.5cm of orders] (payments) {PaymentTransactions};
+        \node[attr, below=0.1cm of payments] (pay_attr) {id, order\_id, gateway\\amount, status, gateway\_tx\_id};
+
+        % Reviews
+        \node[entity=gray, below=2cm of orderitems] (reviews) {Reviews};
+        \node[attr, below=0.1cm of reviews] (rev_attr) {id, order\_id, restaurant\_id\\rating, food\_rating, service\_rating\\comment, photo\_url};
+
+        % Customizations
+        \node[entity=primary, above=1cm of menuitems] (custom) {Customizations};
+        \node[attr, below=0.1cm of custom] (cust_attr) {id, menu\_item\_id\\group\_name\_fr, selection\_type\\is\_required, max\_selections};
+
+        % Custom Options
+        \node[entity=primary, right=2.5cm of custom] (custopt) {CustomOptions};
+        \node[attr, below=0.1cm of custopt] (copt_attr) {id, customization\_id\\name\_fr, extra\_price, is\_default};
+
+        % Relations
+        \draw[arrow] (users) -- node[rel, above]{1} (restaurants);
+        \draw[arrow] (restaurants) -- node[rel, above]{1} (categories);
+        \draw[arrow] (categories) -- node[rel, right]{1} (menuitems);
+        \draw[arrow] (restaurants) -- node[rel, right]{1} (staff);
+        \draw[arrow] (restaurants) -- node[rel, left]{1} (tables);
+        \draw[arrow] (tables) -- node[rel, above]{1} (sessions);
+        \draw[arrow] (sessions) -- node[rel, above]{1} (orders);
+        \draw[arrow] (orders) -- node[rel, right]{1} (orderitems);
+        \draw[arrow] (menuitems) -- node[rel, right]{1} (orderitems);
+        \draw[arrow] (orders) -- node[rel, right]{1} (payments);
+        \draw[arrow] (orders) -- node[rel, right]{1} (reviews);
+        \draw[arrow] (menuitems) -- node[rel, right]{1} (custom);
+        \draw[arrow] (custom) -- node[rel, above]{1} (custopt);
+    \end{tikzpicture}
+    \caption{Diagramme Entité-Relation simplifié}
+    \label{fig:er}
+\end{figure}
+
+\subsection{Schéma de la base de données détaillé}
+
+\begin{table}[H]
+    \centering
+    \caption{Schéma complet de la base de données}
+    \label{tab:schema}
+    \small
+    \begin{tabularx}{\textwidth}{llXl}
+        \toprule
+        \textbf{Table} & \textbf{Colonne} & \textbf{Type} & \textbf{Contrainte} \\
+        \midrule
+        \multirow{7}{*}{\textbf{users}} & id & INTEGER & PRIMARY KEY \\
+        & email & VARCHAR(120) & UNIQUE, NOT NULL, INDEX \\
+        & password\_hash & VARCHAR(256) & NOT NULL \\
+        & name & VARCHAR(100) & NOT NULL \\
+        & phone & VARCHAR(20) & NULLABLE \\
+        & role & VARCHAR(20) & NOT NULL, DEFAULT 'owner' \\
+        & is\_active & BOOLEAN & DEFAULT true \\
+        \midrule
+        \multirow{15}{*}{\textbf{restaurants}} & id & INTEGER & PRIMARY KEY \\
+        & owner\_id & INTEGER & FK $\rightarrow$ users.id \\
+        & name & VARCHAR(150) & NOT NULL \\
+        & slug & VARCHAR(100) & UNIQUE, NOT NULL, INDEX \\
+        & description & TEXT & NULLABLE \\
+        & logo\_url & VARCHAR(300) & NULLABLE \\
+        & address & VARCHAR(300) & NULLABLE \\
+        & city & VARCHAR(100) & NULLABLE \\
+        & currency & VARCHAR(10) & DEFAULT 'TND' \\
+        & tax\_rate & FLOAT & DEFAULT 0.0 \\
+        & service\_charge & FLOAT & DEFAULT 0.0 \\
+        & auto\_accept & BOOLEAN & DEFAULT false \\
+        & online\_payment & BOOLEAN & DEFAULT false \\
+        & ramadan\_mode & BOOLEAN & DEFAULT false \\
+        & loyalty\_enabled & BOOLEAN & DEFAULT false \\
+        \midrule
+        \multirow{10}{*}{\textbf{menu\_items}} & id & INTEGER & PRIMARY KEY \\
+        & category\_id & INTEGER & FK $\rightarrow$ categories.id \\
+        & restaurant\_id & INTEGER & FK $\rightarrow$ restaurants.id \\
+        & name\_fr & VARCHAR(150) & NOT NULL \\
+        & name\_ar & VARCHAR(150) & NULLABLE \\
+        & name\_en & VARCHAR(150) & NULLABLE \\
+        & price & FLOAT & NOT NULL \\
+        & image\_url & VARCHAR(300) & NULLABLE \\
+        & is\_available & BOOLEAN & DEFAULT true \\
+        & is\_popular & BOOLEAN & DEFAULT false \\
+        \midrule
+        \multirow{10}{*}{\textbf{orders}} & id & INTEGER & PRIMARY KEY \\
+        & session\_id & INTEGER & FK $\rightarrow$ table\_sessions.id \\
+        & restaurant\_id & INTEGER & FK, INDEX \\
+        & table\_id & INTEGER & FK $\rightarrow$ tables\_.id \\
+        & order\_number & VARCHAR(10) & NOT NULL \\
+        & status & VARCHAR(20) & DEFAULT 'new' \\
+        & payment\_status & VARCHAR(20) & DEFAULT 'pending' \\
+        & subtotal & FLOAT & DEFAULT 0.0 \\
+        & total\_amount & FLOAT & DEFAULT 0.0 \\
+        & is\_gift & BOOLEAN & DEFAULT false \\
+        \midrule
+        \multirow{6}{*}{\textbf{staff\_users}} & id & INTEGER & PRIMARY KEY \\
+        & restaurant\_id & INTEGER & FK, INDEX \\
+        & username & VARCHAR(50) & NOT NULL \\
+        & password\_hash & VARCHAR(256) & NOT NULL \\
+        & role & VARCHAR(20) & NOT NULL \\
+        & UNIQUE & (restaurant\_id, username) & \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Machine d'états des commandes}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        state/.style={
+            circle, draw=#1, fill=#1!10,
+            minimum size=1.5cm,
+            font=\small\bfseries, text=#1!80!black
+        },
+        arrow/.style={-{Stealth[length=3mm]}, thick, color=gray!70},
+        label/.style={font=\tiny, color=gray!60}
+    ]
+        % États
+        \node[state=gray] (start) {};
+        \node[state=primary, right=2.5cm of start] (new) {new};
+        \node[state=secondary, right=2.5cm of new] (accepted) {accepted};
+        \node[state=accent, right=2.5cm of accepted] (preparing) {preparing};
+        \node[state=accent, right=2.5cm of preparing] (ready) {ready};
+        \node[state=primary, right=2.5cm of ready] (served) {served};
+        \node[state=primary!50!green, right=2.5cm of served] (completed) {completed};
+        \node[state=red!50!white, below=2cm of new] (cancelled) {cancelled};
+        \node[state=gray] (end1) at ([xshift=2cm]completed.east) {};
+        \node[state=gray] (end2) at ([yshift=-1.5cm]cancelled.south) {};
+
+        % Transitions
+        \draw[arrow] (start) -- node[label, above]{Création} (new);
+        \draw[arrow] (new) -- node[label, above]{Caissier accepte} (accepted);
+        \draw[arrow] (accepted) -- node[label, above]{Cuisine commence} (preparing);
+        \draw[arrow] (preparing) -- node[label, above]{Cuisine termine} (ready);
+        \draw[arrow] (ready) -- node[label, above]{Serveur sert} (served);
+        \draw[arrow] (served) -- node[label, above]{Paiement confirmé} (completed);
+        \draw[arrow] (new) -- node[label, right]{Caissier refuse} (cancelled);
+        \draw[arrow] (accepted) -- node[label, left]{Annulation} (cancelled);
+        \draw[arrow] (completed) -- (end1);
+        \draw[arrow] (cancelled) -- (end2);
+
+        % Auto-accept
+        \draw[arrow, dashed] (new) to[bend left=45] node[label, above]{auto\_accept} (accepted);
+    \end{tikzpicture}
+    \caption{Machine d'états des commandes}
+    \label{fig:state-machine}
+\end{figure}
+
+\section{Architecture WebSocket et temps réel}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={
+            rectangle, rounded corners=5pt,
+            draw=#1, fill=#1!8,
+            minimum width=3cm, minimum height=0.8cm,
+            font=\small, text=#1!80!black,
+            align=center
+        },
+        arrow/.style={-{Stealth[length=3mm]}, thick},
+        label/.style={font=\tiny}
+    ]
+        % Client
+        \node[box=primary] (browser) {Navigateur Client\\(WebSocket)};
+
+        % Server
+        \node[box=secondary, right=4cm of browser] (server) {Flask-SocketIO\\Server};
+
+        % Rooms
+        \node[box=accent, above=1.5cm of server] (kitchen_room) {Room: kitchen\_R1};
+        \node[box=accent, right=0cm of kitchen_room] (cashier_room) {Room: cashier\_R1};
+        \node[box=accent, below=1.5cm of server] (waiter_room) {Room: waiter\_R1};
+
+        % Events
+        \node[box=primary, right=4cm of server] (events) {Événements\\order\_events\\kitchen\_events\\waiter\_events};
+
+        % Flux
+        \draw[arrow, color=primary] (browser) -- node[label, above]{connect()} (server);
+        \draw[arrow, color=primary] (browser) -- node[label, below]{send\_order()} (server);
+        \draw[arrow, color=secondary] (server) -- node[label, above]{join\_room()} (kitchen_room);
+        \draw[arrow, color=secondary] (server) -- node[label, above]{join\_room()} (cashier_room);
+        \draw[arrow, color=secondary] (server) -- node[label, below]{join\_room()} (waiter_room);
+        \draw[arrow, color=accent] (server) -- node[label, above]{emit()} (events);
+        \draw[arrow, color=accent, dashed] (events) -- node[label, above]{broadcast} (kitchen_room);
+        \draw[arrow, color=accent, dashed] (events) -- node[label, above]{broadcast} (cashier_room);
+        \draw[arrow, color=accent, dashed] (events) -- node[label, below]{broadcast} (waiter_room);
+
+        % Légende
+        \node[below=1cm of waiter_room, font=\small\itshape, color=gray] {
+            Chaque restaurant a ses propres rooms isolées
+        };
+    \end{tikzpicture}
+    \caption{Architecture WebSocket temps réel}
+    \label{fig:websocket}
+\end{figure}
+
+\section{Flux de paiement}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={
+            rectangle, rounded corners=5pt,
+            draw=#1, fill=#1!8,
+            minimum width=2.5cm, minimum height=0.8cm,
+            font=\small, text=#1!80!black,
+            align=center
+        },
+        arrow/.style={-{Stealth[length=3mm]}, thick, color=gray!70},
+        label/.style={font=\tiny, color=gray}
+    ]
+        % Acteurs
+        \node[box=primary] (client) {Client};
+        \node[box=secondary, right=3cm of client] (tablii) {Tablii\\(Flask)};
+        \node[box=accent, right=3cm of tablii] (flouci) {Flouci\\API};
+        \node[box=primary!50!green, right=3cm of flouci] (bank) {Banque\\Passerelle};
+
+        % Flux
+        \draw[arrow] (client) -- node[label, above]{1. Choisir "Payer en ligne"} (tablii);
+        \draw[arrow] (tablii) -- node[label, above]{2. initiate\_payment(order, amount)} (flouci);
+        \draw[arrow] (flouci) -- node[label, above]{3. Créer session paiement} (bank);
+        \draw[arrow] (bank) -- node[label, below]{4. payment\_url} (flouci);
+        \draw[arrow] (flouci) -- node[label, below]{5. URL de paiement} (tablii);
+        \draw[arrow] (tablii) -- node[label, below]{6. Rediriger vers Flouci} (client);
+        \draw[arrow, dashed] (client) -- node[label, above]{7. Saisir carte} (bank);
+        \draw[arrow, dashed] (bank) -- node[label, above]{8. Callback SUCCESS} (flouci);
+        \draw[arrow, dashed] (flouci) -- node[label, above]{9. verify\_payment()} (tablii);
+        \draw[arrow, dashed] (tablii) -- node[label, below]{10. order.payment\_status = 'paid'} (client);
+    \end{tikzpicture}
+    \caption{Flux de paiement Flouci}
+    \label{fig:payment-flow}
+\end{figure}
+
+\cleardoublepage
+
+% ============================================================================
+% CHAPITRE 3 : IMPLÉMENTATION ET TECHNOLOGIES
+% ============================================================================
+\chapter{Implémentation et Technologies}
+
+\section{Stack technique}
+
+\begin{table}[H]
+    \centering
+    \caption{Stack technique complète}
+    \label{tab:stack}
+    \begin{tabularx}{\textwidth}{lXlc}
+        \toprule
+        \textbf{Couche} & \textbf{Technologie} & \textbf{Version} & \textbf{Rôle} \\
+        \midrule
+        Langage & Python & 3.11 & Backend principal \\
+        Framework Web & Flask & 3.1.3 & Serveur HTTP, routing \\
+        ORM & SQLAlchemy & 2.0.46 & Mapping objet-relationnel \\
+        Migrations & Flask-Migrate / Alembic & 4.1.0 / 1.18.4 & Gestion du schéma DB \\
+        Authentification & Flask-Login & 0.6.3 & Gestion de session \\
+        Forms / CSRF & Flask-WTF & 1.2.2 & Protection CSRF, formulaires \\
+        Temps réel & Flask-SocketIO + eventlet & 5.6.0 / 0.40.4 & WebSocket \\
+        Templating & Jinja2 & -- & Rendu HTML côté serveur \\
+        CSS & Tailwind CSS & 3.4 & Utility-first CSS \\
+        Images & Pillow & 12.1.1 & Traitement d'images \\
+        QR Codes & qrcode & 8.2 & Génération de QR codes \\
+        Serveur prod & Gunicorn & 25.1.0 & WSGI HTTP Server \\
+        DB (dev) & SQLite & -- & Base de données locale \\
+        DB (prod) & PostgreSQL & -- & Base de données production \\
+        Paiement & Flouci API & -- & Passerelle de paiement \\
+        Hébergement & Render.com & -- & Cloud PaaS \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Structure du projet}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        file/.style={font=\ttfamily\small, text=gray!80},
+        dir/.style={font=\ttfamily\small\bfseries, text=secondary},
+        node distance=0.3cm and 0cm
+    ]
+        \matrix (tree) [matrix of nodes, nodes in empty cells,
+            row sep=0.1cm, column sep=0cm,
+            nodes={anchor=west}] {
+            \node[dir] {Tablii/}; \\
+            \node[dir] {├── app/}; \\
+            \node[dir] {│   ├── \_\_init\_\_.py}; & \node[file] {\# Application factory}; \\
+            \node[dir] {│   ├── models/}; \\
+            \node[file] {│   │   ├── user.py}; & \node[file] {\# User, StaffUser}; \\
+            \node[file] {│   │   ├── restaurant.py}; & \node[file] {\# Restaurant, Subscription}; \\
+            \node[file] {│   │   ├── menu.py}; & \node[file] {\# Category, MenuItem, Customization}; \\
+            \node[file] {│   │   ├── table.py}; & \node[file] {\# Table, TableSession}; \\
+            \node[file] {│   │   ├── order.py}; & \node[file] {\# Order, OrderItem, Payment}; \\
+            \node[file] {│   │   └── review.py}; & \node[file] {\# Review, LoyaltyPoints}; \\
+            \node[dir] {│   ├── routes/}; \\
+            \node[file] {│   │   ├── auth.py}; & \node[file] {\# Login, Register, Logout}; \\
+            \node[file] {│   │   ├── customer.py}; & \node[file] {\# Menu, Cart, Order}; \\
+            \node[file] {│   │   ├── dashboard.py}; & \node[file] {\# Owner analytics}; \\
+            \node[file] {│   │   ├── cashier.py}; & \node[file] {\# Cashier interface}; \\
+            \node[file] {│   │   ├── kitchen.py}; & \node[file] {\# Kitchen display}; \\
+            \node[file] {│   │   ├── waiter.py}; & \node[file] {\# Waiter interface}; \\
+            \node[file] {│   │   ├── admin.py}; & \node[file] {\# Super admin panel}; \\
+            \node[file] {│   │   ├── api.py}; & \node[file] {\# REST API endpoints}; \\
+            \node[file] {│   │   ├── landing.py}; & \node[file] {\# Landing page}; \\
+            \node[file] {│   │   └── onboarding.py}; & \node[file] {\# Restaurant setup wizard}; \\
+            \node[dir] {│   ├── services/}; \\
+            \node[file] {│   │   ├── order\_service.py}; & \node[file] {\# Order creation, state machine}; \\
+            \node[file] {│   │   ├── payment\_service.py}; & \node[file] {\# Flouci integration}; \\
+            \node[file] {│   │   ├── qr\_service.py}; & \node[file] {\# QR code generation}; \\
+            \node[file] {│   │   ├── analytics\_service.py}; & \node[file] {\# Statistics, trends}; \\
+            \node[file] {│   │   ├── loyalty\_service.py}; & \node[file] {\# Points system}; \\
+            \node[file] {│   │   ├── notification\_service.py}; & \node[file] {\# In-app notifications}; \\
+            \node[file] {│   │   └── upload\_service.py}; & \node[file] {\# Image upload handling}; \\
+            \node[dir] {│   ├── events/}; \\
+            \node[file] {│   │   ├── order\_events.py}; & \node[file] {\# WebSocket order events}; \\
+            \node[file] {│   │   ├── kitchen\_events.py}; & \node[file] {\# WebSocket kitchen events}; \\
+            \node[file] {│   │   └── waiter\_events.py}; & \node[file] {\# WebSocket waiter events}; \\
+            \node[dir] {│   ├── utils/}; \\
+            \node[file] {│   │   ├── decorators.py}; & \node[file] {\# Role-based access decorators}; \\
+            \node[file] {│   │   ├── helpers.py}; & \node[file] {\# Utility functions}; \\
+            \node[file] {│   │   ├── translations.py}; & \node[file] {\# i18n (FR/AR/EN)}; \\
+            \node[file] {│   │   └── validators.py}; & \node[file] {\# Input validation}; \\
+            \node[dir] {│   ├── templates/}; & \node[file] {\# Jinja2 HTML templates}; \\
+            \node[dir] {│   └── static/}; & \node[file] {\# CSS, JS, images}; \\
+            \node[dir] {├── migrations/}; & \node[file] {\# Alembic migrations}; \\
+            \node[dir] {├── tests/}; & \node[file] {\# pytest test suite}; \\
+            \node[dir] {├── docs/}; & \node[file] {\# Documentation}; \\
+            \node[file] {├── config.py}; \\
+            \node[file] {├── run.py}; \\
+            \node[file] {├── seed.py}; & \node[file] {\# Demo data seeding}; \\
+            \node[file] {├── requirements.txt}; \\
+            \node[file] {├── render.yaml}; & \node[file] {\# Render deployment config}; \\
+            \node[file] {└── tailwind.config.js}; \\
+        };
+    \end{tikzpicture}
+    \caption{Structure complète du projet}
+    \label{fig:structure}
+\end{figure}
+
+\section{Implémentation des services clés}
+
+\subsection{Service de commande}
+
+Le service de commande (\texttt{order\_service.py}) est le cœur du système. Il gère :
+\begin{itemize}
+    \item La création de commandes avec validation côté serveur des prix
+    \item La machine d'états des commandes (new → accepted → preparing → ready → served → completed)
+    \item Le calcul automatique des taxes et frais de service
+    \item La libération automatique des tables
+    \item Les notifications temps réel et le programme de fidélité
+\end{itemize}
+
+\begin{codebox}[Création de commande -- Extrait]
+\begin{lstlisting}
+def create_order(session_id, items, payment_method,
+                 special_notes, restaurant, ...):
+    """Create order with server-side price calculation."""
+    # Validate subscription is active
+    sub = restaurant.subscription
+    if sub and sub.expires_at < datetime.now(timezone.utc):
+        raise ValueError('Subscription expired.')
+
+    # Calculate prices from DB (never trust client)
+    for item_data in items:
+        menu_item = MenuItem.query.filter_by(
+            id=menu_item_id,
+            restaurant_id=restaurant.id,
+            is_available=True
+        ).first()
+        unit_price = menu_item.price
+        # Add customization extras...
+
+    # Calculate totals
+    tax = subtotal * (restaurant.tax_rate / 100)
+    service = subtotal * (restaurant.service_charge / 100)
+    total = subtotal + tax + service
+
+    # Create order and notify via WebSocket
+    order = Order(...)
+    notify_new_order(order)
+    create_notification(restaurant.id, 'new_order', ...)
+    earn_points(customer_id, restaurant, total)
+\end{lstlisting}
+\end{codebox}
+
+\subsection{Service de paiement Flouci}
+
+L'intégration avec la passerelle de paiement tunisienne Flouci suit ces principes de sécurité :
+\begin{itemize}
+    \item Les identifiants API sont lus depuis la configuration serveur, jamais depuis le client
+    \item Les montants sont convertis en millimes ($\times 1000$) comme requis par Flouci
+    \item Une seule transaction active par commande (contrainte d'unicité en base)
+    \item Les secrets ne sont jamais logués
+\end{itemize}
+
+\subsection{Génération de QR Code}
+
+Chaque table du restaurant possède un QR code unique qui pointe vers l'URL du menu :
+
+\begin{codebox}[Génération de QR Code]
+\begin{lstlisting}
+def generate_qr_code(table, restaurant):
+    """Generate QR code for a table."""
+    url = f"https://tablii.com/{restaurant.slug}/menu?table={table.id}"
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10, border=4
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    img.save(f"app/static/images/qr/{restaurant.slug}_table_{table.id}.png")
+\end{lstlisting}
+\end{codebox}
+
+\section{Sécurité}
+
+\begin{table}[H]
+    \centering
+    \caption{Mesures de sécurité implémentées}
+    \label{tab:security}
+    \begin{tabularx}{\textwidth}{lXp{0.35\textwidth}}
+        \toprule
+        \textbf{Menace} & \textbf{Mesure} & \textbf{Implémentation} \\
+        \midrule
+        CSRF & Token CSRF & Flask-WTF CSRFProtect sur toutes les routes sauf API \\
+        Injection SQL & ORM paramétré & SQLAlchemy avec requêtes paramétrées \\
+        XSS & Échappement Jinja2 & Templates Jinja2 avec auto-échappement \\
+        Session hijacking & Cookies sécurisés & HttpOnly, SameSite=Lax, Secure en prod \\
+        Password leak & Hachage bcrypt & Werkzeug generate\_password\_hash \\
+        Auth bypass & Préfixe de session & user\_ID vs staff\_ID dans Flask-Login \\
+        Price manipulation & Calcul serveur & Prix recalculés côté serveur \\
+        Rate limiting & Unicité DB & Une transaction de paiement par commande \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Internationalisation}
+
+Le système supporte trois langues avec une architecture de traduction intégrée :
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        lang/.style={
+            rectangle, rounded corners=5pt,
+            draw=#1, fill=#1!10,
+            minimum width=2.5cm, minimum height=0.8cm,
+            font=\small\bfseries, text=#1!80!black
+        }
+    ]
+        \node[lang=primary] (fr) {Français};
+        \node[lang=secondary, right=1cm of fr] (ar) {العربية};
+        \node[lang=accent, right=1cm of ar] (en) {English};
+
+        \node[below=1cm of fr, font=\tiny, color=gray] {name\_fr\\description\_fr};
+        \node[below=1cm of ar, font=\tiny, color=gray] {name\_ar\\description\_ar};
+        \node[below=1cm of en, font=\tiny, color=gray] {name\_en\\description\_en};
+
+        % RTL note
+        \node[below=2cm of ar, font=\small\itshape, color=gray] {
+            Support RTL automatique pour l'arabe via Tailwind
+        };
+    \end{tikzpicture}
+    \caption{Support multilingue FR/AR/EN}
+    \label{fig:i18n}
+\end{figure}
+
+\cleardoublepage
+
+% ============================================================================
+% CHAPITRE 4 : TESTS ET DÉPLOIEMENT
+% ============================================================================
+\chapter{Tests et Déploiement}
+
+\section{Stratégie de tests}
+
+\subsection{Tests unitaires}
+
+Les tests unitaires couvrent les services et modèles critiques :
+
+\begin{table}[H]
+    \centering
+    \caption{Couverture des tests}
+    \label{tab:tests}
+    \begin{tabularx}{\textwidth}{lXcc}
+        \toprule
+        \textbf{Module} & \textbf{Tests} & \textbf{Cas} & \textbf{Statut} \\
+        \midrule
+        order\_service & Création, validation, machine d'états & 15 & \checkmark \\
+        payment\_service & Initiation, vérification Flouci & 8 & \checkmark \\
+        qr\_service & Génération, format URL & 5 & \checkmark \\
+        analytics\_service & Statistiques, agrégations & 10 & \checkmark \\
+        loyalty\_service & Points, redemption & 6 & \checkmark \\
+        Models & CRUD, relations, contraintes & 20 & \checkmark \\
+        Routes & Authentification, autorisation & 12 & \checkmark \\
+        \midrule
+        \multicolumn{2}{l}{\textbf{Total}} & \textbf{76} & \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Exécution des tests}
+
+\begin{codebox}[Commandes de test]
+\begin{lstlisting}
+# Exécuter la suite complète
+pytest tests/
+
+# Avec rapport de couverture
+pytest tests/ --cov=app --cov-report=term-missing
+
+# Linting
+flake8 app/ --max-line-length=100
+# ou
+ruff check app/
+\end{lstlisting}
+\end{codebox}
+
+\section{Déploiement sur Render.com}
+
+\subsection{Configuration render.yaml}
+
+\begin{codebox}[Configuration de déploiement]
+\begin{lstlisting}[language=bash]
+services:
+  - type: web
+    name: tablii
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+      npm install
+      npm run build:css
+      flask db upgrade
+    startCommand: gunicorn run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tablii-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLOUCI_APP_TOKEN
+        sync: false
+      - key: FLOUCI_APP_SECRET
+        sync: false
+
+databases:
+  - name: tablii-db
+    plan: free
+    ipAllowList: []
+\end{lstlisting}
+\end{codebox}
+
+\subsection{Architecture de déploiement}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={
+            rectangle, rounded corners=5pt,
+            draw=#1, fill=#1!8,
+            minimum width=3cm, minimum height=1cm,
+            font=\small, text=#1!80!black,
+            align=center
+        },
+        arrow/.style={-{Stealth[length=3mm]}, thick, color=gray!70}
+    ]
+        % Client
+        \node[box=primary] (user) {Utilisateurs\\(Navigateur Mobile/Desktop)};
+
+        % CDN / DNS
+        \node[box=secondary, below=1.5cm of user] (cdn) {DNS / CDN\\Render Edge};
+
+        % App
+        \node[box=accent, below=1.5cm of cdn] (app) {Gunicorn + Flask\\(Render Web Service)};
+
+        % DB
+        \node[box=primary, below=1.5cm of app, xshift=-2cm] (db) {PostgreSQL\\(Render Managed DB)};
+
+        % Redis (optionnel)
+        \node[box=secondary, below=1.5cm of app, xshift=2cm] (redis) {Redis\\(Optionnel -- Cache)};
+
+        % Flouci
+        \node[box=accent!70!black, right=3cm of app] (flouci) {Flouci API\\(Paiement)};
+
+        % Flux
+        \draw[arrow] (user) -- node[left, font=\tiny]{HTTPS} (cdn);
+        \draw[arrow] (cdn) -- node[left, font=\tiny]{Route} (app);
+        \draw[arrow] (app) -- node[left, font=\tiny]{SQL} (db);
+        \draw[arrow] (app) -- node[right, font=\tiny]{Cache} (redis);
+        \draw[arrow] (app) -- node[above, font=\tiny]{REST API} (flouci);
+
+        % WebSocket
+        \draw[arrow, dashed, color=primary] (user) to[bend right=30] node[left, font=\tiny]{WebSocket} (app);
+    \end{tikzpicture}
+    \caption{Architecture de déploiement sur Render.com}
+    \label{fig:deploy}
+\end{figure}
+
+\section{Variables d'environnement}
+
+\begin{table}[H]
+    \centering
+    \caption{Variables d'environnement de production}
+    \label{tab:env}
+    \begin{tabularx}{\textwidth}{lXl}
+        \toprule
+        \textbf{Variable} & \textbf{Description} & \textbf{Production} \\
+        \midrule
+        \texttt{SECRET\_KEY} & Clé de session Flask & Générée automatiquement \\
+        \texttt{DATABASE\_URL} & URI de connexion DB & \texttt{postgresql+psycopg://...} \\
+        \texttt{FLASK\_ENV} & Environnement & \texttt{production} \\
+        \texttt{FLOUCI\_APP\_TOKEN} & Token API Flouci & Configuré manuellement \\
+        \texttt{FLOUCI\_APP\_SECRET} & Secret API Flouci & Configuré manuellement \\
+        \texttt{SOCKETIO\_CORS\_ORIGINS} & Origines WebSocket & Domaine de production \\
+        \texttt{MAX\_CONTENT\_LENGTH} & Taille max upload & 5242880 (5 MB) \\
+        \texttt{TABLII\_AUTO\_SEED} & Auto-seed démo & \texttt{true} pour démo \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Mode Ramadan}
+
+Une fonctionnalité unique de Tablii est le \textbf{mode Ramadan} qui adapte automatiquement le menu affiché selon l'heure :
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        timeline/.style={
+            rectangle, rounded corners=3pt,
+            fill=#1!15, draw=#1,
+            minimum height=0.7cm,
+            font=\small, text=#1!80!black
+        }
+    ]
+        % Timeline 24h
+        \draw[gray!30, thick] (0, 0) -- (12, 0);
+        \foreach \x/\label in {0/00h, 3/03h, 6/06h, 9/09h, 12/12h, 15/15h, 18/18h, 21/21h} {
+            \draw[gray!30] (\x, -0.1) -- (\x, 0.1);
+            \node[font=\tiny, color=gray] at (\x, -0.4) {\label};
+        }
+
+        % Suhoor
+        \node[timeline=accent] at (1.5, 0.7) {Suhoor (00h -- 04h30)};
+        \fill[accent!15] (0, -0.05) rectangle (2.25, 0.05);
+
+        % Fermé
+        \fill[gray!10] (2.25, -0.05) rectangle (7.5, 0.05);
+        \node[font=\tiny, color=gray] at (4.875, 0.4) {Fermé};
+
+        % Iftar
+        \node[timeline=primary] at (9.75, 0.7) {Iftar (18h30 -- 00h)};
+        \fill[primary!15] (7.5, -0.05) rectangle (12, 0.05);
+
+        % Flèches
+        \draw[accent, thick, -{Stealth}] (1.5, 0.4) -- (1.5, 0.15);
+        \draw[primary, thick, -{Stealth}] (9.75, 0.4) -- (9.75, 0.15);
+
+        % Note
+        \node[below=1cm of {6, 0}, font=\small\itshape, color=gray] {
+            Les catégories avec ramadan\_type='suhoor' ou 'iftar' sont affichées automatiquement
+        };
+    \end{tikzpicture}
+    \caption{Fonctionnement du mode Ramadan}
+    \label{fig:ramadan}
+\end{figure}
+
+\section{PWA (Progressive Web App)}
+
+Tablii intègre les fonctionnalités PWA suivantes :
+
+\begin{table}[H]
+    \centering
+    \caption{Fonctionnalités PWA}
+    \label{tab:pwa}
+    \begin{tabularx}{\textwidth}{lXl}
+        \toprule
+        \textbf{Fonctionnalité} & \textbf{Description} & \textbf{Implémentation} \\
+        \midrule
+        Manifest & Métadonnées de l'app & \texttt{manifest.json} \\
+        Service Worker & Cache et offline & \texttt{sw.js} avec стратегии cache \\
+        Installable & Ajout à l'écran d'accueil & \texttt{beforeinstallprompt} \\
+        Offline fallback & Page hors ligne & Cache des assets statiques \\
+        Icons & Icônes multi-tailles & \texttt{static/images/icons/} \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\cleardoublepage
+
+% ============================================================================
+% CONCLUSION ET PERSPECTIVES
+% ============================================================================
+\chapter*{Conclusion et Perspectives}
+\addcontentsline{toc}{chapter}{Conclusion et Perspectives}
+
+\section*{Conclusion}
+
+Ce projet a permis de concevoir et développer \textbf{Tablii}, une plateforme SaaS multi-tenant complète pour la gestion de restaurants. Les objectifs fixés ont été atteints :
+
+\begin{itemize}
+    \item \textbf{Interface client intuitive} : consultation du menu et commande via QR code, sans application à installer
+    \item \textbf{Temps réel} : notifications instantanées entre tous les acteurs via WebSocket
+    \item \textbf{Multi-tenant} : isolation complète des données entre restaurants
+    \item \textbf{Multilingue} : support français, arabe et anglais avec gestion RTL
+    \item \textbf{Paiement intégré} : intégration avec la passerelle tunisienne Flouci
+    \item \textbf{Analytics} : tableau de bord avec statistiques, tendances et heatmaps
+    \item \textbf{Mode Ramadan} : adaptation automatique du menu selon l'heure
+    \item \textbf{PWA} : installable et fonctionnelle hors ligne partiellement
+\end{itemize}
+
+L'architecture choisie (Flask + SQLAlchemy + SocketIO + Tailwind CSS) s'est révélée adaptée aux besoins du projet, offrant un bon équilibre entre performance, maintenabilité et rapidité de développement.
+
+\section*{Perspectives d'évolution}
+
+Plusaxes d'amélioration et d'extension sont envisageables :
+
+\begin{enumerate}
+    \item \textbf{Application mobile native} : développement d'une app React Native/Flutter pour les staffs
+    \item \textbf{Intelligence artificielle} : prédiction de la demande, recommandations personnalisées
+    \item \textbf{Multi-restaurants par propriétaire} : permettre à un propriétaire de gérer plusieurs établissements
+    \item \textbf{Réservation de tables} : module de réservation en ligne
+    \item \textbf{Livraison} : intégration avec des services de livraison (livreur tracking)
+    \item \textbf{API publique} : ouverture d'une API REST documentée pour intégrations tierces
+    \item \textbf{Webhooks} : notifications push vers des services externes (Slack, WhatsApp)
+    \item \textbf{Multi-devises} : support de plusieurs devises avec conversion automatique
+    \item \textbf{Tests E2E} : mise en place de tests end-to-end avec Playwright
+    \item \textbf{Monitoring} : intégration de Sentry, Prometheus et Grafana pour le monitoring production
+\end{enumerate}
+
+\section*{Bilan personnel}
+
+Ce projet de fin d'études m'a permis de :
+\begin{itemize}
+    \item Maîtriser l'architecture multi-tenant et ses challenges
+    \item Implémenter des communications temps réel avec WebSocket
+    \item Intégrer une passerelle de paiement avec les bonnes pratiques de sécurité
+    \item Concevoir une API RESTful complète et documentée
+    \item Déployer une application en production sur une plateforme cloud
+    \item Appliquer les méthodologies de développement agile sur un projet de grande envergure
+\end{itemize}
+
+\cleardoublepage
+
+% ============================================================================
+% BIBLIOGRAPHIE
+% ============================================================================
+\chapter*{Bibliographie}
+\addcontentsline{toc}{chapter}{Bibliographie}
+
+\begin{enumerate}
+    \item Flask Documentation. \url{https://flask.palletsprojects.com/}
+    \item SQLAlchemy Documentation. \url{https://docs.sqlalchemy.org/}
+    \item Flask-SocketIO Documentation. \url{https://flask-socketio.readthedocs.io/}
+    \item Tailwind CSS Documentation. \url{https://tailwindcss.com/}
+    \item Flouci Developer API. \url{https://developers.flouci.com/}
+    \item Render.com Documentation. \url{https://render.com/docs}
+    \item PostgreSQL Documentation. \url{https://www.postgresql.org/docs/}
+    \item Jinja2 Template Engine. \url{https://jinja.palletsprojects.com/}
+    \item PWA Developer Guide. \url{https://web.dev/progressive-web-apps/}
+    \item OWASP Security Guidelines. \url{https://owasp.org/}
+\end{enumerate}
+
+\cleardoublepage
+
+% ============================================================================
+% ANNEXES
+% ============================================================================
+\appendix
+\chapter*{Annexes}
+\addcontentsline{toc}{chapter}{Annexes}
+
+\section{Annexe A : API REST}
+
+\begin{table}[H]
+    \centering
+    \caption{Endpoints API REST principaux}
+    \label{tab:api}
+    \small
+    \begin{tabularx}{\textwidth}{llXl}
+        \toprule
+        \textbf{Méthode} & \textbf{Endpoint} & \textbf{Description} & \textbf{Auth} \\
+        \midrule
+        GET & \texttt{/api/restaurants} & Liste des restaurants & Public \\
+        GET & \texttt{/api/restaurants/:slug/menu} & Menu d'un restaurant & Public \\
+        POST & \texttt{/api/orders} & Créer une commande & Session \\
+        GET & \texttt{/api/orders/:id} & Détails d'une commande & Owner/Staff \\
+        PUT & \texttt{/api/orders/:id/status} & Changer le statut & Staff \\
+        POST & \texttt{/api/payments/initiate} & Initier paiement Flouci & Session \\
+        GET & \texttt{/api/payments/verify/:id} & Vérifier paiement & Public \\
+        GET & \texttt{/api/analytics/daily} & Statistiques journalières & Owner \\
+        GET & \texttt{/api/analytics/popular} & Articles populaires & Owner \\
+        POST & \texttt{/api/reviews} & Créer un avis & Session \\
+        GET & \texttt{/api/loyalty/:phone} & Points de fidélité & Session \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Annexe B : Comptes de démonstration}
+
+\begin{table}[H]
+    \centering
+    \caption{Comptes de démonstration}
+    \label{tab:demo}
+    \begin{tabularx}{\textwidth}{llll}
+        \toprule
+        \textbf{Rôle} & \textbf{Email/Username} & \textbf{Mot de passe} & \textbf{Restaurant} \\
+        \midrule
+        Super Admin & \texttt{superadmin@tablii.com} & \texttt{admin1234} & -- \\
+        Propriétaire & \texttt{owner@tablii.com} & \texttt{owner1234} & chez-ahmed \\
+        Caissier & \texttt{caisse1} & \texttt{staff1234} & chez-ahmed \\
+        Serveur & \texttt{serveur1} & \texttt{staff1234} & chez-ahmed \\
+        Cuisine & \texttt{cuisine1} & \texttt{staff1234} & chez-ahmed \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\section{Annexe C : Captures d'écran}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}
+        \textit{Insérer ici : capture de l'interface client (menu QR code)}\\
+        \texttt{docs/screenshots/customer-menu.png}\vspace{3cm}}}
+    \caption{Interface client -- Menu digital}
+    \label{fig:customer-menu}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}
+        \textit{Insérer ici : capture du tableau de bord propriétaire}\\
+        \texttt{docs/screenshots/dashboard.png}\vspace{3cm}}}
+    \caption{Tableau de bord propriétaire -- Analytics}
+    \label{fig:dashboard}
+\end{figure}
+
+\section{Annexe D : Guide d'installation locale}
+
+\begin{codebox}[Installation locale (Windows PowerShell)]
+\begin{lstlisting}[language=bash]
+# 1. Cloner le repository
+git clone https://github.com/0xyo/Tablii.git
+cd Tablii
+
+# 2. Créer et activer l'environnement virtuel
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# 3. Installer les dépendances Python
+pip install -r requirements.txt
+
+# 4. Installer les dépendances Node
+npm install
+
+# 5. Créer le fichier .env
+Copy-Item .env.example .env
+
+# 6. Compiler le CSS
+npm run build:css
+
+# 7. Initialiser la base de données
+flask db upgrade
+
+# 8. Seeder les données de démonstration
+python seed.py
+
+# 9. Lancer l'application
+python run.py
+\end{lstlisting}
+\end{codebox}
+
+\end{document}

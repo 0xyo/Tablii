@@ -3,60 +3,128 @@
 {% block page_title %}Staff Management{% endblock %}
 
 {% block dashboard_content %}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <p class="text-sm" style="color: var(--soft-text);">{{ staff|length }} member{{ 's' if staff|length != 1 }}</p>
-        <p class="text-[10px] uppercase tracking-widest font-bold mt-1" style="color: var(--soft-text-light);">Team Members</p>
-    </div>
-    <a href="{{ url_for('dashboard.staff_add') }}" class="text-white px-6 py-2 rounded-lg text-sm font-semibold transition-all" style="background-color: var(--bold-accent);">+ Add Staff Member</a>
-</div>
+{% set counts = namespace(active=0, cashier=0, kitchen=0, waiter=0) %}
+{% for member in staff %}
+  {% if member.is_active %}{% set counts.active = counts.active + 1 %}{% endif %}
+  {% if member.role == 'cashier' %}{% set counts.cashier = counts.cashier + 1 %}{% endif %}
+  {% if member.role == 'kitchen' %}{% set counts.kitchen = counts.kitchen + 1 %}{% endif %}
+  {% if member.role == 'waiter' %}{% set counts.waiter = counts.waiter + 1 %}{% endif %}
+{% endfor %}
 
-{# Staff login credentials info #}
-<div class="rounded-lg p-5 mb-6 flex items-start gap-4" style="background: rgba(212,165,116,0.1); border: 1px solid var(--soft-highlight);">
-    <div class="text-2xl mt-0.5">ℹ️</div>
+<section class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
     <div>
-        <p class="font-semibold mb-2" style="color: var(--bold-dark);">Share Staff Login Details</p>
-        <p class="text-sm mb-3" style="color: var(--soft-text);">Staff members can log in at <strong>/login</strong> using the "Floor Staff" tab with:</p>
-        <div class="border rounded-lg p-4 font-mono text-sm" style="background: white; border: 1px solid var(--soft-border); color: var(--bold-dark);">
-            <span style="color: var(--soft-text-light);">Restaurant ID: </span><strong style="color: var(--bold-accent); font-weight: 700;">{{ restaurant.slug }}</strong>
-        </div>
+      <p class="text-sm" style="color: var(--soft-text);">{{ staff|length }} member{{ 's' if staff|length != 1 }}</p>
+      <p class="text-[10px] uppercase tracking-[0.16em] font-bold mt-1" style="color: var(--soft-text-light);">Team Members</p>
     </div>
-</div>
+    <a href="{{ url_for('dashboard.staff_add') }}" class="dashboard-action primary self-start sm:self-auto">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 5v14m7-7H5"/></svg>
+      Add Staff
+    </a>
+  </div>
 
-<div class="dashboard-card !p-0 overflow-x-auto">
-    <table class="w-full text-sm">
-        <thead style="background: var(--soft-cream); border-bottom: 1px solid var(--soft-border);">
-            <tr>
-                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color: var(--soft-text-light);">Name</th>
-                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color: var(--soft-text-light);">Username</th>
-                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color: var(--soft-text-light);">Role</th>
-                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color: var(--soft-text-light);">Status</th>
-                <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest" style="color: var(--soft-text-light);">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for member in staff %}
-            <tr style="border-bottom: 1px solid var(--soft-border); color: var(--bold-dark);">
-                <td class="px-6 py-4 font-medium">{{ member.name }}</td>
-                <td class="px-6 py-4 font-mono text-xs" style="color: var(--soft-text);">{{ member.username }}</td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-[10px] font-semibold rounded-full uppercase tracking-wide" style="{% if member.role == 'cashier' %}background: rgba(100,181,246,0.15); color: rgb(100,181,246);{% elif member.role == 'kitchen' %}background: rgba(201,113,75,0.15); color: var(--bold-accent);{% elif member.role == 'waiter' %}background: rgba(197,212,200,0.2); color: var(--soft-sage-dark);{% else %}background: var(--soft-border); color: var(--soft-text);{% endif %}">{{ member.role|title }}</span>
-                </td>
-                <td class="px-6 py-4">
-                    <span class="px-3 py-1 text-[10px] font-semibold rounded-full uppercase tracking-wide" style="{% if member.is_active %}background: rgba(197,212,200,0.2); color: var(--soft-sage-dark);{% else %}background: var(--soft-border); color: var(--soft-text-light);{% endif %}">{% if member.is_active %}Active{% else %}Inactive{% endif %}</span>
-                </td>
-                <td class="px-6 py-4 flex gap-2">
-                    <a href="{{ url_for('dashboard.staff_edit', id=member.id) }}" class="text-xs font-semibold px-3 py-2 rounded transition-all" style="color: var(--bold-accent); background: rgba(201,113,75,0.1);">Edit</a>
-                    <form method="POST" action="{{ url_for('dashboard.staff_delete', id=member.id) }}" onsubmit="return confirm('Delete this staff member?')" style="display:inline;">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="text-xs font-semibold px-3 py-2 rounded transition-all" style="color: var(--bold-accent); background: rgba(201,113,75,0.1);">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5" class="px-6 py-12 text-center" style="color: var(--soft-text-light);">No staff members yet. <a href="{{ url_for('dashboard.staff_add') }}" style="color: var(--bold-accent); font-weight: 600;">Add your first team member →</a></td></tr>
-            {% endfor %}
-        </tbody>
+  <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
+    <div class="dashboard-card-static p-4">
+      <p class="text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Active</p>
+      <p class="font-display italic text-3xl mt-2" style="color: var(--soft-sage-dark);">{{ counts.active }}</p>
+    </div>
+    <div class="dashboard-card-static p-4">
+      <p class="text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Cashiers</p>
+      <p class="font-display italic text-3xl mt-2" style="color: #517a8a;">{{ counts.cashier }}</p>
+    </div>
+    <div class="dashboard-card-static p-4">
+      <p class="text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Kitchen</p>
+      <p class="font-display italic text-3xl mt-2" style="color: var(--bold-accent);">{{ counts.kitchen }}</p>
+    </div>
+    <div class="dashboard-card-static p-4">
+      <p class="text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Waiters</p>
+      <p class="font-display italic text-3xl mt-2" style="color: var(--soft-sage-dark);">{{ counts.waiter }}</p>
+    </div>
+  </div>
+
+  <div class="dashboard-card-static p-5">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div>
+        <p class="font-semibold" style="color: var(--bold-dark);">Share Staff Login Details</p>
+        <p class="text-sm leading-6 mt-1" style="color: var(--soft-text);">Staff members log in at <strong>/login</strong> using the Floor Staff tab.</p>
+      </div>
+      <div class="px-4 py-3" style="border: 1px solid var(--soft-border); border-radius: 8px; background: var(--bg-primary);">
+        <span class="text-[10px] uppercase tracking-[0.14em] font-bold mr-2" style="color: var(--soft-text-light);">Restaurant ID</span>
+        <strong class="font-mono" style="color: var(--bold-accent);">{{ restaurant.slug }}</strong>
+      </div>
+    </div>
+  </div>
+
+  {% if staff %}
+  <div class="hidden lg:block dashboard-card-static overflow-hidden">
+    <table class="w-full text-sm table-soft">
+      <thead style="background: var(--soft-cream); border-bottom: 1px solid var(--soft-border);">
+        <tr>
+          <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Name</th>
+          <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Username</th>
+          <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Role</th>
+          <th class="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Status</th>
+          <th class="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-[0.14em]" style="color: var(--soft-text-light);">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in staff %}
+        <tr style="border-bottom: 1px solid var(--soft-border);">
+          <td class="px-6 py-4 font-semibold" style="color: var(--bold-dark);">{{ member.name }}</td>
+          <td class="px-6 py-4 font-mono text-xs" style="color: var(--soft-text);">{{ member.username }}</td>
+          <td class="px-6 py-4">
+            <span class="status-pill" style="{% if member.role == 'cashier' %}background: rgba(81,122,138,0.12); color: #517a8a;{% elif member.role == 'kitchen' %}background: rgba(184,95,59,0.1); color: var(--bold-accent);{% else %}background: rgba(197,212,200,0.22); color: var(--soft-sage-dark);{% endif %}">{{ member.role|title }}</span>
+          </td>
+          <td class="px-6 py-4">
+            <span class="status-pill" style="{% if member.is_active %}background: rgba(197,212,200,0.22); color: var(--soft-sage-dark);{% else %}background: var(--soft-border); color: var(--soft-text-light);{% endif %}">
+              <span class="status-dot" style="background: {% if member.is_active %}var(--soft-sage-dark){% else %}var(--soft-text-light){% endif %};"></span>
+              {{ 'Active' if member.is_active else 'Inactive' }}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex justify-end gap-2">
+              <a href="{{ url_for('dashboard.staff_edit', id=member.id) }}" class="dashboard-action">Edit</a>
+              <form method="POST" action="{{ url_for('dashboard.staff_delete', id=member.id) }}" onsubmit="return confirm('Delete this staff member?')" class="inline-flex">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="dashboard-action" style="border-color: rgba(184,95,59,0.32); color: var(--bold-accent);">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
-</div>
+  </div>
+
+  <div class="grid gap-4 lg:hidden">
+    {% for member in staff %}
+    <article class="dashboard-card-static p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <p class="font-semibold truncate" style="color: var(--bold-dark);">{{ member.name }}</p>
+          <p class="font-mono text-xs mt-1 truncate" style="color: var(--soft-text);">{{ member.username }}</p>
+        </div>
+        <span class="status-pill shrink-0" style="{% if member.is_active %}background: rgba(197,212,200,0.22); color: var(--soft-sage-dark);{% else %}background: var(--soft-border); color: var(--soft-text-light);{% endif %}">{{ 'Active' if member.is_active else 'Inactive' }}</span>
+      </div>
+      <div class="mt-5 flex items-center justify-between gap-3">
+        <span class="status-pill" style="{% if member.role == 'cashier' %}background: rgba(81,122,138,0.12); color: #517a8a;{% elif member.role == 'kitchen' %}background: rgba(184,95,59,0.1); color: var(--bold-accent);{% else %}background: rgba(197,212,200,0.22); color: var(--soft-sage-dark);{% endif %}">{{ member.role|title }}</span>
+        <div class="flex gap-2">
+          <a href="{{ url_for('dashboard.staff_edit', id=member.id) }}" class="dashboard-action">Edit</a>
+          <form method="POST" action="{{ url_for('dashboard.staff_delete', id=member.id) }}" onsubmit="return confirm('Delete this staff member?')" class="inline-flex">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="dashboard-action" style="border-color: rgba(184,95,59,0.32); color: var(--bold-accent);">Delete</button>
+          </form>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="dashboard-card-static p-10 text-center">
+    <p class="font-display italic text-3xl" style="color: var(--bold-dark);">No staff members yet.</p>
+    <p class="text-sm mt-3" style="color: var(--soft-text);">Add your first team member to unlock role-based access.</p>
+    <a href="{{ url_for('dashboard.staff_add') }}" class="dashboard-action primary mt-6">Add Staff Member</a>
+  </div>
+  {% endif %}
+</section>
 {% endblock %}

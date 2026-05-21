@@ -4,115 +4,291 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>{% block title %}Cashier{% endblock %} — {{ restaurant.name }}</title>
-    
-    <!-- Google Fonts -->
+    <title>{% block title %}Cashier{% endblock %} - {{ restaurant.name }}</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
-    
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+
     <style>
-        .order-card { transition: box-shadow .3s ease, border-color .3s ease, transform .2s ease; }
-        .order-card.moving { opacity: 0; transform: scale(0.95); transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .sidebar-link {
-            transition: all 0.3s ease; text-decoration: none; border-left: 2px solid transparent;
+        :root {
+            --staff-cream: #faf8f6;
+            --staff-peach: #f5ede7;
+            --staff-sage: #c5d4c8;
+            --staff-sage-dark: #7f987f;
+            --staff-border: #e8dfd8;
+            --staff-text: #514b46;
+            --staff-muted: #766f68;
+            --staff-dark: #29231e;
+            --staff-accent: #b85f3b;
+            --staff-blue: #517a8a;
+            --staff-green: #667f69;
+            --staff-white: #fffdfa;
         }
-        .sidebar-link.active {
-            background: rgba(196, 149, 106, 0.1); color: #C4956A; border-left: 2px solid #C4956A;
+
+        body {
+            font-family: "DM Sans", sans-serif;
+            background:
+                linear-gradient(90deg, rgba(232, 223, 216, 0.44) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(232, 223, 216, 0.34) 1px, transparent 1px),
+                var(--staff-cream);
+            background-size: 72px 72px;
+            color: var(--staff-dark);
+        }
+
+        h1, h2, h3, h4 { font-family: "Playfair Display", serif; }
+        ::selection { background: rgba(197, 212, 200, 0.55); color: var(--staff-dark); }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+            outline: 3px solid rgba(184, 95, 59, 0.26);
+            outline-offset: 3px;
+        }
+
+        .staff-sidebar {
+            border-color: var(--staff-border);
+            background: rgba(255, 253, 250, 0.94);
+            backdrop-filter: blur(18px);
+        }
+
+        .staff-mark,
+        .staff-avatar {
+            border: 1px solid var(--staff-border);
+            border-radius: 8px;
+            background: var(--staff-peach);
+            color: var(--staff-accent);
+        }
+
+        .staff-link {
+            min-height: 44px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--staff-muted);
+            transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+        }
+
+        .staff-link:hover,
+        .staff-link.active {
+            background: rgba(245, 237, 231, 0.88);
+            border-color: rgba(184, 95, 59, 0.24);
+            color: var(--staff-accent);
+        }
+
+        .staff-nav {
+            scrollbar-width: none;
+        }
+
+        .staff-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .staff-panel,
+        .staff-card {
+            border: 1px solid var(--staff-border);
+            border-radius: 8px;
+            background: rgba(255, 253, 250, 0.92);
+        }
+
+        .staff-card {
+            box-shadow: 0 18px 44px rgba(76, 57, 45, 0.07);
+        }
+
+        .staff-input {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid var(--staff-border);
+            border-radius: 8px;
+            background: var(--staff-white);
+            color: var(--staff-dark);
+            padding: 0.78rem 0.95rem;
+        }
+
+        .staff-input::placeholder { color: #9a928a; }
+        .staff-input:focus {
+            border-color: rgba(184, 95, 59, 0.5);
+            box-shadow: 0 0 0 3px rgba(184, 95, 59, 0.14);
+            outline: none;
+        }
+
+        .staff-action {
+            min-height: 44px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.65rem 0.95rem;
+            border: 1px solid var(--staff-accent);
+            color: var(--staff-accent);
+            background: rgba(184, 95, 59, 0.06);
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .staff-action:hover {
+            transform: translateY(-1px);
+            background: rgba(184, 95, 59, 0.1);
+        }
+
+        .staff-action.primary {
+            background: var(--staff-accent);
+            color: #fff8f2;
+            box-shadow: 0 12px 28px rgba(184, 95, 59, 0.18);
+        }
+
+        .staff-action.success {
+            border-color: var(--staff-green);
+            color: #fff8f2;
+            background: var(--staff-green);
+        }
+
+        .staff-action.danger {
+            border-color: rgba(184, 95, 59, 0.36);
+            color: var(--staff-accent);
+            background: rgba(184, 95, 59, 0.08);
+        }
+
+        .staff-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            border-radius: 999px;
+            padding: 0.35rem 0.72rem;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .staff-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 999px;
+            flex: 0 0 0.5rem;
+        }
+
+        .order-card,
+        .kitchen-card,
+        .table-card {
+            transition: opacity 240ms ease, transform 240ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .order-card.moving,
+        .kitchen-card.removing {
+            opacity: 0;
+            transform: scale(0.97);
+        }
+
+        .cat-tab {
+            min-height: 40px;
+            border: 1px solid var(--staff-border);
+            border-radius: 8px;
+            background: rgba(255, 253, 250, 0.86);
+            color: var(--staff-muted);
+        }
+
+        .cat-tab.is-active {
+            border-color: rgba(184, 95, 59, 0.38);
+            background: rgba(184, 95, 59, 0.08);
+            color: var(--staff-accent);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen flex bg-charcoal-950 font-body text-cream-50 selection:bg-amber-500/30 selection:text-amber-100">
-
-    <!-- Global Background Texture -->
-    <div class="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-overlay bg-grain"></div>
-
-    <!-- Sidebar -->
-    <aside class="w-64 bg-charcoal-900 border-r border-charcoal-800/60 flex flex-col pt-8 pb-6 shadow-dark relative z-10">
-        
-        <div class="px-6 mb-8 flex items-center gap-3">
-            <div class="w-10 h-10 border border-amber-900/50 bg-charcoal-800 flex items-center justify-center text-amber-500 font-display italic text-xl shadow-inner-glow">T</div>
-            <div>
-                <div class="text-lg font-display italic tracking-wide text-amber-500">{{ restaurant.name }}</div>
-                <div class="text-[9px] uppercase tracking-widest text-charcoal-400 font-bold">Service Console</div>
-            </div>
-        </div>
-
-        <nav class="flex-1 flex flex-col gap-1 px-4">
-            <a href="{{ url_for('cashier.orders') }}"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-charcoal-300 hover:text-cream-100 {{ 'active' if request.endpoint == 'cashier.orders' else '' }}">
-                <span class="text-lg opacity-70">🗂️</span> Live Orders
-            </a>
-            <a href="{{ url_for('cashier.manual_order') }}"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-charcoal-300 hover:text-cream-100 {{ 'active' if request.endpoint == 'cashier.manual_order' else '' }}">
-                <span class="text-lg opacity-70">✏️</span> Manual Entry
-            </a>
-            <a href="{{ url_for('cashier.profile') }}"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-charcoal-300 hover:text-cream-100 {{ 'active' if request.endpoint == 'cashier.profile' else '' }}">
-                <span class="text-lg opacity-70">👤</span> Profile
-            </a>
-        </nav>
-
-        <div class="mt-auto border-t border-charcoal-800/60 pt-6 px-8">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-8 h-8 border border-charcoal-700 bg-charcoal-800 flex items-center justify-center text-cream-100 text-xs font-display italic">
-                    {{ current_user.name[0]|upper }}
+<body class="min-h-screen">
+    <div class="min-h-screen lg:grid lg:grid-cols-[17rem_1fr]">
+        <aside class="staff-sidebar border-b lg:border-b-0 lg:border-r p-5 lg:min-h-screen lg:sticky lg:top-0 lg:flex lg:flex-col">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="staff-mark w-11 h-11 flex items-center justify-center font-display italic text-xl shrink-0">T</div>
+                    <div class="min-w-0">
+                        <p class="font-display italic text-xl leading-tight truncate">{{ restaurant.name }}</p>
+                        <p class="text-[9px] uppercase tracking-[0.14em] font-bold" style="color: var(--staff-muted);">Cashier Console</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-xs font-semibold text-cream-100">{{ current_user.name }}</p>
-                    <p class="text-[9px] uppercase tracking-widest text-amber-600/80">Cashier</p>
-                </div>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="text-[10px] inline-block uppercase tracking-widest font-bold text-ruby-400 hover:text-ruby-300 transition-colors">Sign Out →</a>
-        </div>
-    </aside>
-
-    <!-- Main -->
-    <div class="flex-1 flex flex-col overflow-hidden relative z-10">
-        <!-- Top bar -->
-        <header class="bg-charcoal-900/90 backdrop-blur-md border-b border-charcoal-800/60 h-16 flex items-center justify-between px-8 shadow-sm">
-            <h1 class="font-display italic text-xl tracking-wide text-cream-50">{% block page_title %}Cashier{% endblock %}</h1>
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center gap-2 bg-charcoal-800 border border-emerald-900/30 text-emerald-400 text-[10px] uppercase font-bold tracking-widest px-3 py-1.5 shadow-inner-glow">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                <span class="staff-chip shrink-0" style="background: rgba(197,212,200,0.18); color: var(--staff-green);">
+                    <span class="staff-dot" style="background: var(--staff-green);"></span>
+                    Online
                 </span>
             </div>
-        </header>
 
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=True) %}
-        {% if messages %}
-        <div class="px-8 pt-6">
-            {% for cat, msg in messages %}
-            <div class="mb-3 px-5 py-4 text-sm font-medium border-l-2 bg-charcoal-800/80 backdrop-blur-sm shadow-dark
-                {{ 'border-emerald-500 text-emerald-100' if cat == 'success'
-                   else 'border-ruby-500 text-ruby-100' if cat == 'error'
-                   else 'border-sapphire-500 text-sapphire-100' }}">
-                <span class="font-light tracking-wide">{{ msg }}</span>
+            <nav class="staff-nav mt-5 lg:mt-8 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+                <a href="{{ url_for('cashier.orders') }}" class="staff-link {{ 'active' if request.endpoint == 'cashier.orders' else '' }} shrink-0 flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-[0.1em]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 5h8m-8 4h8m-8 4h5M6 3h12a1 1 0 0 1 1 1v16l-3-2-3 2-3-2-3 2-2-1.35V4a1 1 0 0 1 1-1Z"/></svg>
+                    Live Orders
+                </a>
+                <a href="{{ url_for('cashier.manual_order') }}" class="staff-link {{ 'active' if request.endpoint == 'cashier.manual_order' else '' }} shrink-0 flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-[0.1em]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 5v14m7-7H5"/></svg>
+                    Manual Order
+                </a>
+                <a href="{{ url_for('cashier.profile') }}" class="staff-link {{ 'active' if request.endpoint == 'cashier.profile' else '' }} shrink-0 flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-[0.1em]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"/></svg>
+                    Profile
+                </a>
+            </nav>
+
+            <div class="mt-6 lg:mt-auto pt-5 lg:border-t" style="border-color: var(--staff-border);">
+                <div class="flex items-center gap-3">
+                    <div class="staff-avatar w-10 h-10 flex items-center justify-center font-display italic shrink-0">{{ current_user.name[0]|upper }}</div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold truncate">{{ current_user.name }}</p>
+                        <p class="text-[9px] uppercase tracking-[0.14em] font-bold" style="color: var(--staff-accent);">Cashier</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="staff-action danger mt-4 w-full">Sign Out</a>
             </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
+        </aside>
 
-        <!-- Content -->
-        <main class="flex-1 overflow-auto p-8">
-            {% block cashier_content %}{% endblock %}
-        </main>
+        <div class="min-w-0">
+            <header class="sticky top-0 z-20 px-5 sm:px-8 py-4 flex items-center justify-between gap-4" style="background: rgba(255,253,250,0.92); border-bottom: 1px solid var(--staff-border); backdrop-filter: blur(14px);">
+                <div class="min-w-0">
+                    <p class="text-[10px] uppercase tracking-[0.16em] font-bold" style="color: var(--staff-sage-dark);">Service Desk</p>
+                    <h1 class="font-display italic text-3xl tracking-normal truncate">{% block page_title %}Cashier{% endblock %}</h1>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+            <div class="px-5 sm:px-8 pt-5 space-y-3">
+                {% for cat, msg in messages %}
+                <div class="staff-panel px-5 py-4 text-sm font-medium" style="{% if cat == 'success' %}background: rgba(197,212,200,0.16); color: var(--staff-green);{% elif cat == 'error' %}background: rgba(184,95,59,0.1); color: var(--staff-accent);{% else %}color: var(--staff-text);{% endif %}" role="alert">
+                    {{ msg }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <main class="p-5 sm:p-8">
+                {% block cashier_content %}{% endblock %}
+            </main>
+        </div>
     </div>
 
     {% block scripts %}{% endblock %}
 
-    <!-- WebSocket -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/socket.js') }}"></script>
     {% if restaurant %}
     <script>
-        // Connect cashier to their rooms
         connectAsCashier({{ restaurant.id }});
 
-        // New order → add to board + sound
         onEvent('new_order', function (data) {
             if (typeof addOrderToBoard === 'function') {
                 addOrderToBoard(data);
@@ -120,7 +296,6 @@
             playSound('new_order');
         });
 
-        // Status change → move or remove card
         onEvent('order_status_update', function (data) {
             if (typeof moveOrderCard === 'function') {
                 const terminal = ['served', 'completed', 'cancelled'];

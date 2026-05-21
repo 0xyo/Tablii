@@ -4,161 +4,265 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Service Floor — {{ restaurant.name }}</title>
-    
-    <!-- Google Fonts -->
+    <title>Service Floor - {{ restaurant.name }}</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
-    
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+
+    <style>
+        :root {
+            --staff-cream: #faf8f6;
+            --staff-peach: #f5ede7;
+            --staff-sage: #c5d4c8;
+            --staff-sage-dark: #7f987f;
+            --staff-border: #e8dfd8;
+            --staff-text: #514b46;
+            --staff-muted: #766f68;
+            --staff-dark: #29231e;
+            --staff-accent: #b85f3b;
+            --staff-blue: #517a8a;
+            --staff-green: #667f69;
+            --staff-white: #fffdfa;
+        }
+
+        body {
+            font-family: "DM Sans", sans-serif;
+            background:
+                linear-gradient(90deg, rgba(232, 223, 216, 0.44) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(232, 223, 216, 0.34) 1px, transparent 1px),
+                var(--staff-cream);
+            background-size: 72px 72px;
+            color: var(--staff-dark);
+        }
+
+        h1, h2, h3 { font-family: "Playfair Display", serif; }
+
+        .staff-panel,
+        .staff-card {
+            border: 1px solid var(--staff-border);
+            border-radius: 8px;
+            background: rgba(255, 253, 250, 0.92);
+        }
+
+        .staff-card { box-shadow: 0 18px 44px rgba(76, 57, 45, 0.07); }
+
+        .staff-action {
+            min-height: 44px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            padding: 0.65rem 0.95rem;
+            border: 1px solid var(--staff-accent);
+            color: var(--staff-accent);
+            background: rgba(184, 95, 59, 0.06);
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: transform 180ms ease, background-color 180ms ease;
+        }
+
+        .staff-action:hover { transform: translateY(-1px); background: rgba(184, 95, 59, 0.1); }
+        .staff-action.primary { background: var(--staff-accent); color: #fff8f2; }
+        .staff-action.success { background: var(--staff-green); border-color: var(--staff-green); color: #fff8f2; }
+        .staff-action.danger { color: var(--staff-accent); background: rgba(184, 95, 59, 0.08); }
+
+        .staff-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            border-radius: 999px;
+            padding: 0.35rem 0.72rem;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .staff-dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; flex: 0 0 0.5rem; }
+        .table-card { transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+        .table-card:hover { transform: translateY(-2px); box-shadow: 0 18px 44px rgba(76, 57, 45, 0.1); }
+        .call-badge {
+            position: absolute;
+            top: -0.7rem;
+            right: -0.7rem;
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--staff-accent);
+            color: #fff8f2;
+            border: 2px solid var(--staff-white);
+            font-size: 0.72rem;
+            font-weight: 900;
+            box-shadow: 0 10px 24px rgba(184, 95, 59, 0.24);
+            z-index: 10;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-charcoal-950 font-body text-cream-50 selection:bg-amber-500/30 selection:text-amber-100">
+<body class="min-h-screen">
+    {% set counts = namespace(free=0, occupied=0, calls=0) %}
+    {% for table in tables %}
+        {% if table.status == 'free' %}{% set counts.free = counts.free + 1 %}{% endif %}
+        {% if table.status == 'occupied' %}{% set counts.occupied = counts.occupied + 1 %}{% endif %}
+        {% set counts.calls = counts.calls + call_counts.get(table.id, 0) %}
+    {% endfor %}
 
-    <!-- Global Background Texture -->
-    <div class="fixed inset-0 pointer-events-none z-0 opacity-50 mix-blend-overlay bg-grain"></div>
-
-    <!-- Top bar -->
-    <header class="bg-charcoal-900/90 backdrop-blur-md border-b border-charcoal-800/60 h-16 flex items-center justify-between px-8 shadow-sm relative z-10">
-        <div class="flex items-center gap-4">
-            <h1 class="font-display italic text-amber-500 text-xl tracking-wide">Service Floor</h1>
-            <span class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold border-l border-charcoal-700 pl-4">{{ restaurant.name }}</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-3">
-                <div class="w-6 h-6 border border-amber-900/50 bg-charcoal-800 flex items-center justify-center text-amber-500 font-display italic text-xs shadow-inner-glow">
-                    {{ current_user.name[0]|upper }}
+    <header class="sticky top-0 z-30 px-5 sm:px-8 py-4" style="background: rgba(255,253,250,0.92); border-bottom: 1px solid var(--staff-border); backdrop-filter: blur(14px);">
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 flex items-center justify-center font-display italic text-xl shrink-0" style="border: 1px solid var(--staff-border); border-radius: 8px; background: var(--staff-peach); color: var(--staff-accent);">T</div>
+                <div class="min-w-0">
+                    <h1 class="font-display italic text-3xl tracking-normal truncate">Service Floor</h1>
+                    <p class="text-[10px] uppercase tracking-[0.14em] font-bold truncate" style="color: var(--staff-muted);">{{ restaurant.name }}</p>
                 </div>
-                <span class="font-medium text-xs text-cream-100 tracking-wide">{{ current_user.name }}</span>
             </div>
-            <a href="{{ url_for('waiter.profile') }}" class="text-[10px] uppercase tracking-widest font-bold text-amber-500 hover:text-amber-400 transition-colors">Profile</a>
-            <a href="{{ url_for('auth.logout') }}" class="text-[10px] uppercase tracking-widest font-bold text-ruby-400 hover:text-ruby-300 transition-colors">Sign Out →</a>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="staff-chip" style="background: rgba(197,212,200,0.18); color: var(--staff-green);">
+                    <span class="staff-dot" style="background: var(--staff-green);"></span>
+                    {{ current_user.name }}
+                </span>
+                <a href="{{ url_for('waiter.profile') }}" class="staff-action">Profile</a>
+                <a href="{{ url_for('auth.logout') }}" class="staff-action danger">Sign Out</a>
+            </div>
         </div>
     </header>
 
-    <main class="p-8 max-w-7xl mx-auto relative z-10">
-        <!-- Table grid -->
-        <div class="flex items-center justify-between mb-6 border-b border-charcoal-700/60 pb-3">
-            <h2 class="font-display italic text-xl text-cream-50 tracking-wide">Assigned Stations</h2>
-            <div class="flex gap-4 text-[10px] uppercase font-bold tracking-widest text-charcoal-400">
-                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-charcoal-700 block"></span> Free</span>
-                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-amber-500/50 block border border-amber-500"></span> Occupied</span>
+    <main class="max-w-7xl mx-auto p-5 sm:p-8 space-y-6">
+        <section class="staff-panel p-5 sm:p-6">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-2" style="color: var(--staff-sage-dark);">Assigned Stations</p>
+                    <h2 class="font-display italic text-4xl sm:text-5xl tracking-normal leading-tight">Tables that need your attention.</h2>
+                    <p class="text-sm leading-6 mt-3 max-w-2xl" style="color: var(--staff-text);">Serve ready orders, collect unpaid tickets, and close tables as soon as the room resets.</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3 min-w-full sm:min-w-[24rem]">
+                    <div class="staff-card p-4">
+                        <p class="text-[9px] uppercase tracking-[0.14em] font-bold" style="color: var(--staff-muted);">Free</p>
+                        <p class="font-display italic text-3xl mt-2">{{ counts.free }}</p>
+                    </div>
+                    <div class="staff-card p-4">
+                        <p class="text-[9px] uppercase tracking-[0.14em] font-bold" style="color: var(--staff-muted);">Occupied</p>
+                        <p class="font-display italic text-3xl mt-2" style="color: var(--staff-accent);">{{ counts.occupied }}</p>
+                    </div>
+                    <div class="staff-card p-4">
+                        <p class="text-[9px] uppercase tracking-[0.14em] font-bold" style="color: var(--staff-muted);">Calls</p>
+                        <p class="font-display italic text-3xl mt-2" style="color: var(--staff-blue);">{{ counts.calls }}</p>
+                    </div>
+                </div>
             </div>
-        </div>
+        </section>
 
         {% if tables %}
-        <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <section class="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
             {% for table in tables %}
             {% set calls = call_counts.get(table.id, 0) %}
-            <div data-table-id="{{ table.id }}" class="bg-charcoal-800/40 backdrop-blur-sm p-6 flex flex-col gap-4 shadow-dark relative transition-all duration-300 hover:bg-charcoal-800 border-t-2
-                        {{ 'border-t-charcoal-600 border-x border-b border-x-charcoal-700/50 border-b-charcoal-700/50' if table.status == 'free'
-                           else 'border-t-amber-500 border-x border-b border-x-amber-500/30 border-b-amber-500/30 bg-amber-900/5' if table.status == 'occupied'
-                           else 'border-t-sapphire-500 border-x border-b border-x-sapphire-500/30 border-b-sapphire-500/30' }}">
-                
+            <article
+                data-table-id="{{ table.id }}"
+                class="table-card staff-card p-5 flex flex-col gap-4 relative"
+                style="border-top: 3px solid {% if table.status == 'free' %}var(--staff-sage-dark){% elif table.status == 'occupied' %}var(--staff-accent){% else %}var(--staff-blue){% endif %};"
+            >
                 {% if calls > 0 %}
-                <span class="absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10 call-badge">
-                    {{ calls }}
-                </span>
+                <span class="call-badge">{{ calls }}</span>
                 {% endif %}
 
-                <div class="flex items-center justify-between">
-                    <span class="font-display italic text-2xl text-cream-50">T-{{ table.table_number }}</span>
-                    <span class="text-[9px] px-2 py-1 uppercase tracking-widest font-bold border
-                                 {{ 'bg-charcoal-700/50 text-charcoal-300 border-charcoal-600' if table.status == 'free'
-                                    else 'bg-amber-900/30 text-amber-500 border-amber-500/30' if table.status == 'occupied'
-                                    else 'bg-sapphire-900/30 text-sapphire-400 border-sapphire-500/30' }}">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h3 class="font-display italic text-3xl tracking-normal">T-{{ table.table_number }}</h3>
+                        <p class="text-[10px] uppercase tracking-[0.14em] font-bold mt-1" style="color: var(--staff-muted);">Capacity {{ table.capacity }}</p>
+                    </div>
+                    <span class="staff-chip" style="{% if table.status == 'free' %}background: rgba(197,212,200,0.18); color: var(--staff-green);{% elif table.status == 'occupied' %}background: rgba(184,95,59,0.1); color: var(--staff-accent);{% else %}background: rgba(81,122,138,0.12); color: var(--staff-blue);{% endif %}">
                         {{ table.status|title }}
                     </span>
                 </div>
 
-                <div class="text-[10px] uppercase font-bold tracking-widest text-charcoal-400 pt-3 border-t border-charcoal-700/40">Capacity: {{ table.capacity }} pax</div>
-
                 {% if table.status == 'occupied' %}
-                <!-- Active orders -->
                 {% set active_session = table.sessions.filter_by(is_active=True).first() %}
                 {% if active_session %}
                     {% if active_session.guest_name %}
-                    <div class="text-xs text-amber-400/70 flex items-center gap-1 -mt-1">
-                        <span>👤</span> {{ active_session.guest_name }}
-                    </div>
+                    <p class="text-xs font-semibold" style="color: var(--staff-accent);">Guest: {{ active_session.guest_name }}</p>
                     {% endif %}
-                    <div class="mt-2 space-y-3" id="orders-table-{{ table.id }}">
 
-                    {# Orders in progress (new / accepted / preparing) #}
-                    {% for order in active_session.orders.filter_by(status='new').all() %}
-                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
-                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
-                            <span class="text-[9px] uppercase tracking-widest font-bold text-amber-400 bg-amber-900/30 px-2 py-0.5 border border-amber-500/30">New</span>
+                    <div class="space-y-3" id="orders-table-{{ table.id }}">
+                        {% for order in active_session.orders.filter_by(status='new').all() %}
+                        <div class="staff-panel p-3 flex items-center justify-between gap-3">
+                            <span class="font-mono text-xs font-bold">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %} <span style="color: var(--staff-accent);">Gift</span>{% endif %}</span>
+                            <span class="staff-chip" style="background: rgba(184,95,59,0.08); color: var(--staff-accent);">New</span>
                         </div>
-                    {% endfor %}
-                    {% for order in active_session.orders.filter_by(status='accepted').all() %}
-                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
-                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
-                            <span class="text-[9px] uppercase tracking-widest font-bold text-sapphire-400 bg-sapphire-900/30 px-2 py-0.5 border border-sapphire-500/30">Accepted</span>
+                        {% endfor %}
+                        {% for order in active_session.orders.filter_by(status='accepted').all() %}
+                        <div class="staff-panel p-3 flex items-center justify-between gap-3">
+                            <span class="font-mono text-xs font-bold">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %} <span style="color: var(--staff-accent);">Gift</span>{% endif %}</span>
+                            <span class="staff-chip" style="background: rgba(81,122,138,0.12); color: var(--staff-blue);">Accepted</span>
                         </div>
-                    {% endfor %}
-                    {% for order in active_session.orders.filter_by(status='preparing').all() %}
-                        <div class="bg-charcoal-700/30 border border-charcoal-600/50 p-2.5 flex items-center justify-between">
-                            <span class="font-mono text-xs font-bold text-charcoal-300 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
-                            <span class="text-[9px] uppercase tracking-widest font-bold text-orange-400 bg-orange-900/30 px-2 py-0.5 border border-orange-500/30">Preparing</span>
+                        {% endfor %}
+                        {% for order in active_session.orders.filter_by(status='preparing').all() %}
+                        <div class="staff-panel p-3 flex items-center justify-between gap-3">
+                            <span class="font-mono text-xs font-bold">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %} <span style="color: var(--staff-accent);">Gift</span>{% endif %}</span>
+                            <span class="staff-chip" style="background: rgba(199,148,91,0.13); color: #986a34;">Preparing</span>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
 
-                    {# Ready orders — actionable #}
-                    {% for order in active_session.orders.filter_by(status='ready').all() %}
-                        <div class="bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2" data-order-id="{{ order.id }}">
-                            <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
-                                <span class="font-mono text-xs font-bold text-emerald-400 flex items-center gap-1.5">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %}<span class="text-pink-400" title="Gift from T-{{ order.gift_from_table }}">🎁</span>{% endif %}</span>
-                                <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
+                        {% for order in active_session.orders.filter_by(status='ready').all() %}
+                        <div class="ready-ticket staff-panel p-3 flex flex-col gap-3" data-order-id="{{ order.id }}" style="background: rgba(197,212,200,0.16);">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="font-mono text-xs font-bold" style="color: var(--staff-green);">#{{ order.order_number.lstrip('#') }}{% if order.is_gift %} <span>Gift</span>{% endif %}</span>
+                                <span class="staff-chip" style="background: rgba(197,212,200,0.24); color: var(--staff-green);">Ready</span>
                             </div>
-                            <button onclick="serveOrder('{{ order.id }}', this)"
-                                    class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
-                                Serve Order →
-                            </button>
+                            <button type="button" onclick="serveOrder('{{ order.id }}', this)" class="staff-action success w-full">Serve Order</button>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
 
-                    {# Served orders — show payment status + collect button #}
-                    {% for order in active_session.orders.filter_by(status='served').all() %}
-                        <div class="border p-3 flex flex-col gap-2
-                            {{ 'bg-emerald-900/10 border-emerald-500/20' if order.payment_status == 'paid' else 'bg-ruby-900/10 border-ruby-500/20' }}"
-                             data-order-id="{{ order.id }}">
-                            <div class="flex items-center justify-between">
-                                <span class="font-mono text-xs font-bold text-charcoal-300">#{{ order.order_number.lstrip('#') }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border
-                                        {{ 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30' if order.payment_status == 'paid'
-                                           else 'bg-ruby-900/30 text-ruby-400 border-ruby-500/30' }}">
-                                        {{ '💵 Paid' if order.payment_status == 'paid' else '⚠ Unpaid' }}
-                                    </span>
-                                    <span class="text-[9px] uppercase tracking-widest font-bold text-cream-300/60">Served</span>
+                        {% for order in active_session.orders.filter_by(status='served').all() %}
+                        <div
+                            class="served-ticket staff-panel p-3 flex flex-col gap-3"
+                            data-order-id="{{ order.id }}"
+                            data-payment-state="{{ order.payment_status }}"
+                            style="{% if order.payment_status == 'paid' %}background: rgba(197,212,200,0.12);{% else %}background: rgba(184,95,59,0.07);{% endif %}"
+                        >
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="font-mono text-xs font-bold">#{{ order.order_number.lstrip('#') }}</span>
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    <span data-payment-badge class="staff-chip" style="{% if order.payment_status == 'paid' %}background: rgba(197,212,200,0.2); color: var(--staff-green);{% else %}background: rgba(184,95,59,0.1); color: var(--staff-accent);{% endif %}">{{ 'Paid' if order.payment_status == 'paid' else 'Unpaid' }}</span>
+                                    <span class="staff-chip" style="background: rgba(245,237,231,0.84); color: var(--staff-muted);">Served</span>
                                 </div>
                             </div>
                             {% if order.payment_status != 'paid' %}
-                            <button onclick="collectPayment({{ order.id }}, this)"
-                                    class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
-                                💵 Collect Payment
-                            </button>
+                            <button type="button" onclick="collectPayment({{ order.id }}, this)" class="staff-action success w-full">Collect Payment</button>
                             {% endif %}
                         </div>
-                    {% endfor %}
-
+                        {% endfor %}
                     </div>
 
-                    {# Close table button #}
-                    <button onclick="closeTable({{ table.id }}, this)"
-                            class="w-full mt-3 text-center bg-ruby-900/20 hover:bg-ruby-900/40 text-ruby-400 border border-ruby-500/30 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors">
-                        Close Table ✕
-                    </button>
+                    <button type="button" onclick="closeTable({{ table.id }}, this)" class="staff-action danger w-full mt-auto">Close Table</button>
                 {% endif %}
+                {% else %}
+                <div class="mt-auto pt-4" style="border-top: 1px solid var(--staff-border);">
+                    <p class="text-sm" style="color: var(--staff-text);">Ready for the next guest.</p>
+                </div>
                 {% endif %}
-            </div>
+            </article>
             {% endfor %}
-        </div>
+        </section>
         {% else %}
-        <div class="bg-charcoal-800/40 border border-charcoal-700/60 p-12 text-center text-charcoal-400 flex flex-col items-center justify-center">
-            <span class="font-display italic text-2xl mb-2 text-cream-100">No Assignments</span>
-            <p class="text-xs uppercase tracking-widest">You have no tables assigned to your station.</p>
+        <div class="staff-panel p-12 text-center">
+            <p class="font-display italic text-3xl">No assignments.</p>
+            <p class="text-sm mt-3" style="color: var(--staff-text);">You have no tables assigned to your station.</p>
         </div>
         {% endif %}
     </main>
@@ -192,12 +296,14 @@
             if (data.success) {
                 const card = btn.closest('[data-order-id]');
                 if (card) {
-                    card.className = card.className.replace('bg-ruby-900/10 border-ruby-500/20', 'bg-emerald-900/10 border-emerald-500/20');
+                    card.dataset.paymentState = 'paid';
+                    card.style.background = 'rgba(197,212,200,0.12)';
                     btn.remove();
-                    const badgeEl = card.querySelector('[class*="bg-ruby-900/30"]');
+                    const badgeEl = card.querySelector('[data-payment-badge]');
                     if (badgeEl) {
-                        badgeEl.className = badgeEl.className.replace('bg-ruby-900/30 text-ruby-400 border-ruby-500/30', 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30');
-                        badgeEl.textContent = '💵 Paid';
+                        badgeEl.textContent = 'Paid';
+                        badgeEl.style.background = 'rgba(197,212,200,0.2)';
+                        badgeEl.style.color = 'var(--staff-green)';
                     }
                 }
             } else {
@@ -233,47 +339,40 @@
                 }
             } else if (delta > 0) {
                 badge = document.createElement('span');
-                badge.className = 'absolute -top-3 -right-3 bg-ruby-600 border border-ruby-400 text-cream-50 text-[10px] font-bold w-6 h-6 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)] z-10 call-badge';
+                badge.className = 'call-badge';
                 badge.textContent = delta;
                 card.appendChild(badge);
             }
         }
 
-        // Connect via WebSocket (instant calls, no polling)
         connectAsWaiter("{{ restaurant.id }}", "{{ current_user.id }}");
 
         onEvent('waiter_call', function (data) {
             showWaiterCall(data);
-            // Increment badge on the table card
             updateCallBadge(data.table_id, 1);
         });
 
         onEvent('order_ready', function (data) {
             playSound('order_ready');
-            // Inject the ready order card into the correct table
             const container = document.getElementById('orders-table-' + data.table_id);
             if (container) {
                 const card = document.createElement('div');
-                card.className = 'bg-emerald-900/20 border border-emerald-500/30 p-3 flex flex-col gap-2';
+                card.className = 'ready-ticket staff-panel p-3 flex flex-col gap-3';
+                card.style.background = 'rgba(197,212,200,0.16)';
                 card.dataset.orderId = data.order_id;
                 card.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
-                        <span class="font-mono text-xs font-bold text-emerald-400">#${(data.order_number || '').replace('#','')}</span>
-                        <span class="text-[9px] uppercase tracking-widest font-bold text-emerald-300">Ready</span>
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="font-mono text-xs font-bold" style="color: var(--staff-green);">#${(data.order_number || '').replace('#','')}</span>
+                        <span class="staff-chip" style="background: rgba(197,212,200,0.24); color: var(--staff-green);">Ready</span>
                     </div>
-                    <button onclick="serveOrder('${data.order_id}', this)"
-                            class="w-full text-center bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/50 py-2 text-[10px] font-bold uppercase tracking-widest transition-colors mt-1">
-                        Serve Order →
-                    </button>`;
+                    <button type="button" onclick="serveOrder('${data.order_id}', this)" class="staff-action success w-full">Serve Order</button>`;
                 container.appendChild(card);
             } else {
-                // Table not on screen — full reload to pick it up
                 location.reload();
             }
         });
 
-        onEvent('table_status_change', function (data) {
-            // Reload when a table status changes (e.g. freed)
+        onEvent('table_status_change', function () {
             location.reload();
         });
     </script>

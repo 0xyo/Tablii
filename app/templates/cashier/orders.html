@@ -1,113 +1,123 @@
 {% extends 'cashier/base_cashier.html' %}
 {% block title %}Orders{% endblock %}
-{% block page_title %}Service Queue{% endblock %}
+{% block page_title %}Live Order Queue{% endblock %}
 
 {% block cashier_content %}
 {% set columns = [
-    ('new',      'New',       'accepted',  'Accept',    'bg-charcoal-800/30 border-ruby-900/30 text-ruby-400 group-hover:border-ruby-500/50'),
-    ('accepted', 'Accepted',  'preparing', 'Prepare',   'bg-charcoal-800/30 border-blue-900/30 text-blue-400 group-hover:border-blue-500/50'),
-    ('preparing','Preparing', 'ready',     'Ready',     'bg-charcoal-800/30 border-amber-900/40 text-amber-500 group-hover:border-amber-500/50'),
-    ('ready',    'Ready',     'served',    'Served',    'bg-charcoal-800/30 border-emerald-900/30 text-emerald-400 group-hover:border-emerald-500/50'),
-    ('served',   'Served',    'completed', 'Complete',  'bg-charcoal-800/30 border-cream-900/30 text-cream-400 group-hover:border-cream-500/50'),
+    ('new', 'New', 'accepted', 'Accept', 'var(--staff-accent)'),
+    ('accepted', 'Accepted', 'preparing', 'Prepare', 'var(--staff-blue)'),
+    ('preparing', 'Preparing', 'ready', 'Ready', '#c7945b'),
+    ('ready', 'Ready', 'served', 'Served', 'var(--staff-green)'),
+    ('served', 'Served', 'completed', 'Complete', 'var(--staff-dark)')
 ] %}
 
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 h-full" id="kanban-board">
-    {% for status, label, next_status, next_label, color in columns %}
-    <div class="flex flex-col gap-4 group" id="col-{{ status }}">
-        <!-- Column header -->
-        <div class="flex items-center justify-between px-2 pb-2 border-b border-charcoal-700/60">
-            <h2 class="font-display italic text-lg tracking-wide text-cream-50">{{ label }}</h2>
-            <span class="bg-charcoal-800 border border-charcoal-700/60 text-amber-500 font-mono text-[10px] w-6 h-6 flex items-center justify-center col-count"
-                  id="count-{{ status }}">{{ grouped[status]|length }}</span>
-        </div>
-
-        <!-- Cards Container -->
-        <div class="flex flex-col gap-4 min-h-[300px] border border-dashed {{ color }} p-3 transition-colors duration-300"
-             id="cards-{{ status }}">
-            {% for order in grouped[status] %}
-            <div class="order-card bg-charcoal-800/60 backdrop-blur-sm border-l-2 border-y border-r border-y-charcoal-700/40 border-r-charcoal-700/40 border-l-amber-500 p-5 flex flex-col gap-4 shadow-dark hover:bg-charcoal-800 transition-colors group/card"
-                 id="order-card-{{ order.id }}"
-                 data-order-id="{{ order.id }}"
-                 data-status="{{ order.status }}"
-                 data-created="{{ order.created_at.isoformat() }}">
-
-                <div class="flex items-start justify-between">
-                    <div>
-                        <span class="font-mono text-xs font-semibold text-amber-500/80">#{{ order.order_number.lstrip('#') }}</span>
-                        <div class="text-[10px] uppercase tracking-widest text-charcoal-400 font-bold mt-1">Transaction</div>
-                    </div>
-                    <span class="border border-charcoal-600 bg-charcoal-900/50 text-[10px] uppercase tracking-widest font-bold px-2 py-1 text-cream-100">
-                        {% if order.table_id %}T-{{ order.table_id }}{% else %}—{% endif %}
-                    </span>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <span class="text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border
-                        {{ 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30' if order.payment_status == 'paid'
-                           else 'bg-ruby-900/30 text-ruby-400 border-ruby-500/30' }}">
-                        {{ '💵 Paid' if order.payment_status == 'paid' else '⚠ Unpaid' }}
-                    </span>
-                    <span class="text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border border-charcoal-600 text-charcoal-400">
-                        {{ order.payment_method or 'cash' }}
-                    </span>
-                </div>
-
-                <div class="text-sm font-light text-cream-50 space-y-1.5 py-2 border-y border-charcoal-700/40">
-                    {% for oi in order.items %}
-                    <div class="flex gap-2 items-start leading-tight">
-                        <span class="font-mono font-medium text-amber-500">{{ oi.quantity }}<span class="text-charcoal-500 text-[10px]">x</span></span>
-                        <div class="flex-1">
-                            <span class="text-cream-100">{{ oi.menu_item.name_fr if oi.menu_item else '?' }}</span>
-                            {% if oi.notes %}<p class="text-[11px] text-charcoal-400 italic mt-0.5">Note: {{ oi.notes }}</p>{% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% if order.special_notes %}
-                    <div class="bg-ruby-900/10 border border-ruby-900/30 p-2 mt-2">
-                        <span class="text-ruby-400 text-[10px] uppercase tracking-widest font-bold block mb-0.5">Urgent Note</span>
-                        <p class="text-[11px] text-ruby-200 indent-2">{{ order.special_notes }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold tracking-wide text-cream-50">
-                        {{ '%.3f'|format(order.total_amount) }} <span class="text-[9px] uppercase tracking-widest text-charcoal-400 font-normal ml-0.5">{{ restaurant.currency }}</span>
-                    </span>
-                    <span class="order-timer text-xs font-mono text-amber-500/80 tracking-widest"
-                          data-start="{{ order.created_at.isoformat() }}">00:00</span>
-                </div>
-
-                <div class="flex gap-2 mt-2">
-                    {% if order.payment_status != 'paid' %}
-                    <button onclick="confirmPayment({{ order.id }})"
-                            class="flex-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-600 text-cream-50 hover:bg-emerald-500 py-2 transition-colors border border-emerald-500 flex items-center justify-center gap-1.5">
-                        💵 Collect Payment
-                    </button>
-                    {% endif %}
-                    <button onclick="changeOrderStatus({{ order.id }}, '{{ next_status }}')"
-                            class="flex-1 text-[10px] font-bold uppercase tracking-widest bg-amber-500 text-charcoal-900 hover:bg-amber-400 py-2 transition-colors border border-amber-400 flex items-center justify-center gap-1.5 shadow-gold">
-                        {{ next_label }} →
-                    </button>
-                    {% if status in ['new', 'accepted'] %}
-                    <button onclick="changeOrderStatus({{ order.id }}, 'cancelled')"
-                            class="w-10 text-[10px] font-bold uppercase py-2 bg-charcoal-800 text-ruby-400 hover:text-ruby-300 hover:bg-charcoal-700 transition-colors border border-ruby-900/50 flex items-center justify-center" title="Cancel Order">
-                        ✕
-                    </button>
-                    {% endif %}
-                </div>
+<section class="space-y-6">
+    <div class="staff-panel p-5 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div>
+                <p class="text-[10px] uppercase tracking-[0.16em] font-bold mb-2" style="color: var(--staff-sage-dark);">Cashier Board</p>
+                <h2 class="font-display italic text-4xl tracking-normal">Move orders without losing the room.</h2>
+                <p class="mt-3 max-w-2xl text-sm leading-6" style="color: var(--staff-text);">Accept, collect, prepare, and close transactions from one live queue.</p>
             </div>
-            {% endfor %}
+            <a href="{{ url_for('cashier.manual_order') }}" class="staff-action primary self-start lg:self-auto">Create Manual Order</a>
         </div>
     </div>
-    {% endfor %}
-</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-5 gap-5" id="kanban-board">
+        {% for status, label, next_status, next_label, color in columns %}
+        <div class="staff-panel p-4 flex flex-col gap-4 min-h-[28rem]" id="col-{{ status }}">
+            <div class="flex items-center justify-between gap-3 pb-3" style="border-bottom: 1px solid var(--staff-border);">
+                <div>
+                    <h3 class="font-display italic text-2xl tracking-normal">{{ label }}</h3>
+                    <p class="text-[9px] uppercase tracking-[0.14em] font-bold mt-1" style="color: var(--staff-muted);">Service state</p>
+                </div>
+                <span class="w-8 h-8 flex items-center justify-center font-mono text-xs font-bold" style="border: 1px solid {{ color }}; border-radius: 8px; color: {{ color }}; background: rgba(255,253,250,0.82);" id="count-{{ status }}">{{ grouped[status]|length }}</span>
+            </div>
+
+            <div class="flex flex-col gap-3 min-h-[18rem]" id="cards-{{ status }}">
+                {% for order in grouped[status] %}
+                <article
+                    class="order-card staff-card p-4 flex flex-col gap-4"
+                    id="order-card-{{ order.id }}"
+                    data-order-id="{{ order.id }}"
+                    data-status="{{ order.status }}"
+                    data-created="{{ order.created_at.isoformat() }}"
+                    style="border-left: 3px solid {{ color }};"
+                >
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-mono text-sm font-bold" style="color: {{ color }};">#{{ order.order_number.lstrip('#') }}</p>
+                            <p class="text-[9px] uppercase tracking-[0.14em] font-bold mt-1" style="color: var(--staff-muted);">Transaction</p>
+                        </div>
+                        <span class="staff-chip" style="background: rgba(245,237,231,0.84); color: var(--staff-dark);">
+                            {% if order.table_id %}T-{{ order.table_id }}{% else %}Takeaway{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <span class="staff-chip" style="{% if order.payment_status == 'paid' %}background: rgba(197,212,200,0.18); color: var(--staff-green);{% else %}background: rgba(184,95,59,0.1); color: var(--staff-accent);{% endif %}">
+                            {{ 'Paid' if order.payment_status == 'paid' else 'Unpaid' }}
+                        </span>
+                        <span class="staff-chip" style="background: rgba(245,237,231,0.84); color: var(--staff-muted);">{{ order.payment_method or 'cash' }}</span>
+                    </div>
+
+                    <div class="space-y-2 py-3" style="border-top: 1px solid var(--staff-border); border-bottom: 1px solid var(--staff-border);">
+                        {% for oi in order.items %}
+                        <div class="flex gap-3 items-start text-sm leading-tight">
+                            <span class="font-mono font-bold shrink-0" style="color: {{ color }};">{{ oi.quantity }}x</span>
+                            <div class="min-w-0">
+                                <p class="font-medium" style="color: var(--staff-dark);">{{ oi.menu_item.name_fr if oi.menu_item else '?' }}</p>
+                                {% if oi.notes %}
+                                <p class="text-xs italic mt-1" style="color: var(--staff-muted);">Note: {{ oi.notes }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if order.special_notes %}
+                        <div class="p-3 text-xs leading-5" style="border: 1px solid rgba(184,95,59,0.2); border-radius: 8px; background: rgba(184,95,59,0.07); color: var(--staff-accent);">
+                            <span class="block text-[9px] uppercase tracking-[0.14em] font-bold mb-1">Service Note</span>
+                            {{ order.special_notes }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="font-semibold" style="color: var(--staff-dark);">
+                            {{ '%.3f'|format(order.total_amount) }}
+                            <span class="text-[9px] uppercase tracking-[0.12em] font-bold" style="color: var(--staff-muted);">{{ restaurant.currency }}</span>
+                        </span>
+                        <span class="order-timer font-mono text-xs" style="color: var(--staff-muted);" data-start="{{ order.created_at.isoformat() }}">00:00</span>
+                    </div>
+
+                    <div class="grid gap-2 mt-auto">
+                        {% if order.payment_status != 'paid' %}
+                        <button type="button" onclick="confirmPayment({{ order.id }})" class="staff-action success w-full">
+                            Collect Payment
+                        </button>
+                        {% endif %}
+                        <div class="flex gap-2">
+                            <button type="button" data-advance onclick="changeOrderStatus({{ order.id }}, '{{ next_status }}')" class="staff-action primary flex-1">
+                                {{ next_label }}
+                            </button>
+                            {% if status in ['new', 'accepted'] %}
+                            <button type="button" data-cancel onclick="changeOrderStatus({{ order.id }}, 'cancelled')" class="staff-action danger w-12" title="Cancel Order" aria-label="Cancel order">
+                                X
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/cashier_board.js') }}"></script>
 <script>
-    // Start timers
     document.querySelectorAll('.order-timer[data-start]').forEach(el => {
         startCardTimer(el);
     });

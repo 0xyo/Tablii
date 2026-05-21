@@ -21,11 +21,13 @@
     />
 
     <!-- PWA -->
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}" />
     <link
       rel="manifest"
       href="{{ url_for('static', filename='manifest.json') }}"
     />
     <meta name="theme-color" content="#0F0D0B" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"

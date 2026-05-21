@@ -1,5 +1,5 @@
 /**
- * kitchen_display.js — Timer logic and status updates for the kitchen screen.
+ * kitchen_display.js - Timer logic and status updates for the kitchen screen.
  */
 
 const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
@@ -25,7 +25,7 @@ function formatOrderNumber(value) {
 
 /**
  * Start a live timer on a kitchen-timer element.
- * Colors: normal → yellow after 10 min → red after 20 min.
+ * Colors: normal to yellow after 10 min to red after 20 min.
  * @param {HTMLElement} el - Element with data-start ISO timestamp.
  */
 function startTimer(el) {
@@ -37,7 +37,7 @@ function startTimer(el) {
         const secs = totalSecs % 60;
         el.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
 
-        el.className = 'kitchen-timer text-sm font-mono ';
+        el.className = 'kitchen-timer font-mono text-sm ';
         if (mins >= 20) {
             el.className += 'timer-urgent';
         } else if (mins >= 10) {
@@ -56,7 +56,7 @@ function startTimer(el) {
 // ---------------------------------------------------------------------------
 
 /**
- * Move an order to 'preparing' — card moves from Queue→Cooking column.
+ * Move an order to 'preparing' - card moves from queue to cooking.
  * @param {number} id
  */
 async function markAsPreparing(id) {
@@ -67,7 +67,7 @@ async function markAsPreparing(id) {
 }
 
 /**
- * Mark an order as 'ready' — card removed from kitchen display.
+ * Mark an order as 'ready' - card removed from kitchen display.
  * @param {number} id
  */
 async function markAsReady(id) {
@@ -115,12 +115,18 @@ function _moveKitchenCard(id, fromStatus, toStatus) {
     card.classList.add('removing');
     setTimeout(() => {
         card.classList.remove('removing');
-        card.style.borderColor = '#ca8a04'; // yellow border for cooking
+        card.style.borderLeft = '3px solid var(--staff-gold)';
+        const orderNumber = card.querySelector('.font-mono');
+        if (orderNumber) orderNumber.style.color = 'var(--staff-gold)';
+        const stateLabel = card.querySelector('p.text-\\[10px\\]');
+        if (stateLabel) stateLabel.textContent = 'Cooking';
+        const qtyLabels = card.querySelectorAll('li .font-mono');
+        qtyLabels.forEach(label => { label.style.color = 'var(--staff-gold)'; });
         // Update button to "Ready"
         const btn = card.querySelector('button');
         if (btn) {
-            btn.textContent = '✓ Ready';
-            btn.className = 'bg-green-600 hover:bg-green-500 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors';
+            btn.textContent = 'Ready to Serve';
+            btn.className = 'staff-action gold';
             btn.setAttribute('onclick', `markAsReady(${id})`);
         }
         // Update timer to now
@@ -156,31 +162,35 @@ function addToKitchenBoard(data) {
     const col = document.getElementById('col-accepted');
     if (!col) return;
 
-    const card = document.createElement('div');
-    card.className = 'kitchen-card bg-gray-800 rounded-2xl p-5 border border-gray-700 shadow-lg';
+    const card = document.createElement('article');
+    card.className = 'kitchen-card p-5 flex flex-col gap-4';
+    card.style.borderLeft = '3px solid var(--staff-blue)';
     card.id = `kcard-${data.id}`;
     card.dataset.orderId = data.id;
     card.dataset.created = data.created_at;
 
     const itemsHtml = (data.items || []).map(i =>
-        `<li class="text-lg font-semibold text-gray-100">
-            ${i.quantity}× ${i.name}
-            ${i.notes ? `<span class="text-yellow-400 text-sm ml-1">(${i.notes})</span>` : ''}
+        `<li class="flex items-start gap-3">
+            <span class="font-mono text-xl font-bold shrink-0" style="color: var(--staff-blue);">${i.quantity}x</span>
+            <div class="min-w-0">
+                <p class="text-lg font-semibold leading-tight">${i.name}</p>
+                ${i.notes ? `<p class="text-xs italic mt-1" style="color: var(--staff-muted);">Note: ${i.notes}</p>` : ''}
+            </div>
          </li>`
     ).join('');
 
     card.innerHTML = `
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-2xl font-black text-white">${formatOrderNumber(data.order_number)}</span>
-            <span class="text-indigo-400 font-bold text-lg">${data.table_id ? 'T' + data.table_id : '—'}</span>
+        <div class="flex items-start justify-between gap-3 pb-3" style="border-bottom: 1px solid var(--staff-border);">
+            <div>
+                <p class="font-mono text-sm font-bold" style="color: var(--staff-blue);">${formatOrderNumber(data.order_number)}</p>
+                <p class="text-[10px] uppercase tracking-[0.14em] font-bold mt-1" style="color: var(--staff-muted);">Pending</p>
+            </div>
+            <span class="staff-chip" style="background: rgba(245,237,231,0.84); color: var(--staff-dark);">${data.table_id ? 'T-' + data.table_id : 'Takeaway'}</span>
         </div>
-        <ul class="space-y-1 mb-4">${itemsHtml}</ul>
-        <div class="flex items-center justify-between">
-            <span class="kitchen-timer text-sm font-mono timer-normal" data-start="${data.created_at}">…</span>
-            <button onclick="markAsPreparing(${data.id})"
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors">
-                Start Cooking →
-            </button>
+        <ul class="space-y-3">${itemsHtml}</ul>
+        <div class="flex items-center justify-between gap-3 pt-3 mt-auto" style="border-top: 1px solid var(--staff-border);">
+            <span class="kitchen-timer text-sm font-mono timer-normal" data-start="${data.created_at}">...</span>
+            <button type="button" onclick="markAsPreparing(${data.id})" class="staff-action blue">Begin Prep</button>
         </div>`;
 
     col.appendChild(card);

@@ -49,24 +49,24 @@ async function callWaiter(slug, tableId, type, message = '') {
     });
     const data = await res.json();
     if (data.success) {
-      _showToast('Waiter has been called ✓');
+      _showToast('Waiter has been called');
     } else {
       _showToast(data.error || 'Failed to call waiter', 'error');
     }
     return data;
   } catch (err) {
     console.error('callWaiter error:', err);
-    _showToast('Network error — please try again.', 'error');
+    _showToast('Network error - please try again.', 'error');
   }
 }
 
 // ── 2. showWaiterCall ──────────────────────────────────────────────────────
 
 const CALL_TYPE_ICONS = {
-  water:  '💧',
-  bill:   '💳',
-  help:   '🆘',
-  custom: '📝',
+  water:  'Water',
+  bill:   'Bill',
+  help:   'Help',
+  custom: 'Note',
 };
 
 /**
@@ -80,26 +80,28 @@ function showWaiterCall(data) {
   const existing = document.getElementById(`wc-${callId}`);
   if (existing) existing.remove();
 
-  const icon = CALL_TYPE_ICONS[data.call_type] || '🔔';
+  const label = CALL_TYPE_ICONS[data.call_type] || 'Call';
 
   const banner = document.createElement('div');
   banner.id = `wc-${callId}`;
   banner.className = [
-    'fixed top-4 right-4 z-50 max-w-xs w-full',
-    'bg-orange-500 text-white rounded-xl shadow-2xl p-4',
-    'flex items-start gap-3 animate-bounce',
+    'fixed top-4 right-4 z-50 max-w-xs w-[calc(100%-2rem)]',
+    'rounded-lg shadow-2xl p-4',
+    'flex items-start gap-3',
   ].join(' ');
+  banner.style.background = '#fffdfa';
+  banner.style.border = '1px solid rgba(184,95,59,0.32)';
+  banner.style.color = '#29231e';
   banner.innerHTML = `
-    <span class="text-2xl">${icon}</span>
+    <span class="text-[10px] uppercase tracking-[0.14em] font-bold px-2 py-1 rounded-full shrink-0" style="background: rgba(184,95,59,0.1); color: #b85f3b;">${label}</span>
     <div class="flex-1 min-w-0">
       <p class="font-bold text-sm">Table ${data.table_number || data.table_id}</p>
-      <p class="text-xs capitalize">${(data.call_type || '').replace('_', ' ')}${data.message ? ' — ' + data.message : ''}</p>
+      <p class="text-xs capitalize" style="color: #514b46;">${(data.call_type || '').replace('_', ' ')}${data.message ? ' - ' + data.message : ''}</p>
     </div>
     <button onclick="resolveCall(${callId})"
-            class="text-white/70 hover:text-white text-xs shrink-0">✕</button>
+            class="text-xs font-bold uppercase tracking-[0.12em] shrink-0" style="color: #b85f3b;">Dismiss</button>
   `;
   document.body.appendChild(banner);
-  banner.style.animation = 'none';
 
   // Haptic feedback
   if ('vibrate' in navigator) {

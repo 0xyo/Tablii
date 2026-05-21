@@ -12,6 +12,7 @@ Table users {
   password_hash varchar(256) [not null]
   name varchar(100) [not null]
   phone varchar(20)
+  avatar_url varchar(300)
   role varchar(20) [not null, default: 'owner']
   is_active boolean [default: true]
   created_at timestamp
@@ -23,6 +24,7 @@ Table staff_users {
   username varchar(50) [not null]
   password_hash varchar(256) [not null]
   name varchar(100) [not null]
+  avatar_url varchar(300)
   role varchar(20) [not null]
   is_active boolean [default: true]
   created_at timestamp
@@ -63,6 +65,7 @@ Table restaurants {
   online_payment boolean [default: false]
   default_language varchar(5) [default: 'fr']
   ramadan_mode boolean [default: false]
+  ramadan_iftar_time time
   loyalty_enabled boolean [default: false]
   loyalty_points_per_unit integer [default: 10]
   loyalty_redemption_value float [default: 0.1]
@@ -80,6 +83,7 @@ Table subscriptions {
   started_at timestamp
   expires_at timestamp
   is_active boolean [default: true]
+  payment_completed boolean [default: false]
 }
 
 Table operating_hours {

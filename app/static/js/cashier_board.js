@@ -1,5 +1,5 @@
 /**
- * cashier_board.js — Live Kanban board logic for the cashier interface.
+ * cashier_board.js - Live Kanban board logic for the cashier interface.
  */
 
 const CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
@@ -34,12 +34,16 @@ function startCardTimer(el) {
         if (Number.isNaN(start.getTime())) return;
         const mins = Math.max(0, Math.floor((Date.now() - start.getTime()) / 60000));
         el.textContent = `${mins}m`;
+        el.className = 'order-timer font-mono text-xs';
         if (mins >= 20) {
-            el.className = 'order-timer text-xs text-red-500 font-semibold';
+            el.style.color = 'var(--staff-accent)';
+            el.style.fontWeight = '800';
         } else if (mins >= 10) {
-            el.className = 'order-timer text-xs text-yellow-500 font-semibold';
+            el.style.color = '#c7945b';
+            el.style.fontWeight = '800';
         } else {
-            el.className = 'order-timer text-xs text-gray-400';
+            el.style.color = 'var(--staff-muted)';
+            el.style.fontWeight = '500';
         }
     }
     update();
@@ -119,7 +123,7 @@ function moveOrderCard(id, newStatus) {
     setTimeout(() => {
         const targetCol = document.getElementById(`cards-${newStatus}`);
         if (!targetCol) {
-            // Status not shown (e.g. 'served') — just remove
+            // Status not shown (e.g. 'served') - just remove
             card.remove();
             updateColumnCount(oldStatus);
         } else {
@@ -129,19 +133,17 @@ function moveOrderCard(id, newStatus) {
             // Update action buttons
             const next = NEXT_STATUS[newStatus];
             const nextLabel = NEXT_LABEL[next] || next;
-            const advanceBtn = card.querySelector('button:first-of-type');
+            const advanceBtn = card.querySelector('[data-advance]');
             if (advanceBtn && next) {
-                advanceBtn.textContent = `→ ${nextLabel}`;
+                advanceBtn.textContent = nextLabel;
                 advanceBtn.setAttribute('onclick', `changeOrderStatus(${id}, '${next}')`);
             } else if (advanceBtn) {
                 advanceBtn.remove();
             }
             // Hide cancel button for statuses that don't allow it
-            const cancelBtn = card.querySelector('button:last-of-type');
-            if (cancelBtn && cancelBtn.textContent.trim() === 'Cancel') {
-                if (!['new', 'accepted'].includes(newStatus)) {
-                    cancelBtn.remove();
-                }
+            const cancelBtn = card.querySelector('[data-cancel]');
+            if (cancelBtn && !['new', 'accepted'].includes(newStatus)) {
+                cancelBtn.remove();
             }
 
             targetCol.appendChild(card);
@@ -194,39 +196,59 @@ function addOrderToBoard(data) {
     const next = NEXT_STATUS[data.status];
     const nextLabel = NEXT_LABEL[next] || next;
 
-    const card = document.createElement('div');
-    card.className = 'order-card bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col gap-2';
+    const accent = 'var(--staff-accent)';
+    const paymentStatus = data.payment_status || 'unpaid';
+    const paymentMethod = data.payment_method || 'cash';
+
+    const card = document.createElement('article');
+    card.className = 'order-card staff-card p-4 flex flex-col gap-4';
+    card.style.borderLeft = `3px solid ${accent}`;
     card.id = `order-card-${data.id}`;
     card.dataset.orderId = data.id;
     card.dataset.status = data.status;
     card.dataset.created = data.created_at;
 
     const itemsHtml = (data.items || []).map(i =>
-        `<div class="flex gap-1">
-            <span class="font-medium">${i.quantity}×</span>
-            <span>${i.name}</span>
-            ${i.notes ? `<span class="text-gray-400 italic">(${i.notes})</span>` : ''}
+        `<div class="flex gap-3 items-start text-sm leading-tight">
+            <span class="font-mono font-bold shrink-0" style="color: ${accent};">${i.quantity}x</span>
+            <div class="min-w-0">
+                <p class="font-medium" style="color: var(--staff-dark);">${i.name}</p>
+                ${i.notes ? `<p class="text-xs italic mt-1" style="color: var(--staff-muted);">Note: ${i.notes}</p>` : ''}
+            </div>
          </div>`
     ).join('');
 
     card.innerHTML = `
-        <div class="flex items-center justify-between">
-            <span class="font-bold text-gray-800 font-mono text-sm">${formatOrderNumber(data.order_number)}</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
-                ${data.table_id ? 'T' + data.table_id : '—'}
+        <div class="flex items-start justify-between gap-3">
+            <div>
+                <p class="font-mono text-sm font-bold" style="color: ${accent};">${formatOrderNumber(data.order_number)}</p>
+                <p class="text-[9px] uppercase tracking-[0.14em] font-bold mt-1" style="color: var(--staff-muted);">Transaction</p>
+            </div>
+            <span class="staff-chip" style="background: rgba(245,237,231,0.84); color: var(--staff-dark);">
+                ${data.table_id ? 'T-' + data.table_id : 'Takeaway'}
             </span>
         </div>
-        <div class="text-xs text-gray-600 space-y-0.5">${itemsHtml}</div>
-        <div class="flex items-center justify-between pt-1 border-t border-gray-50">
-            <span class="text-sm font-semibold">${Number(data.total_amount).toFixed(3)} ${data.currency || ''}</span>
-            <span class="order-timer text-xs text-gray-400" data-start="${data.created_at}">…</span>
+        <div class="flex flex-wrap gap-2">
+            <span class="staff-chip" style="${paymentStatus === 'paid' ? 'background: rgba(197,212,200,0.18); color: var(--staff-green);' : 'background: rgba(184,95,59,0.1); color: var(--staff-accent);'}">
+                ${paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+            </span>
+            <span class="staff-chip" style="background: rgba(245,237,231,0.84); color: var(--staff-muted);">${paymentMethod}</span>
         </div>
-        ${next ? `<button onclick="changeOrderStatus(${data.id}, '${next}')"
-                class="w-full text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white py-1.5 rounded-lg transition-colors">
-                → ${nextLabel}</button>` : ''}
-        ${['new', 'accepted'].includes(data.status) ? `<button onclick="changeOrderStatus(${data.id}, 'cancelled')"
-                class="w-full text-xs border border-red-200 text-red-400 hover:bg-red-50 py-1 rounded-lg transition-colors">
-                Cancel</button>` : ''}`;
+        <div class="space-y-2 py-3" style="border-top: 1px solid var(--staff-border); border-bottom: 1px solid var(--staff-border);">${itemsHtml}</div>
+        <div class="flex items-center justify-between gap-3">
+            <span class="font-semibold" style="color: var(--staff-dark);">
+                ${Number(data.total_amount).toFixed(3)}
+                <span class="text-[9px] uppercase tracking-[0.12em] font-bold" style="color: var(--staff-muted);">${data.currency || ''}</span>
+            </span>
+            <span class="order-timer font-mono text-xs" style="color: var(--staff-muted);" data-start="${data.created_at}">00:00</span>
+        </div>
+        <div class="grid gap-2 mt-auto">
+            ${paymentStatus !== 'paid' ? `<button type="button" onclick="confirmPayment(${data.id})" class="staff-action success w-full">Collect Payment</button>` : ''}
+            <div class="flex gap-2">
+                ${next ? `<button type="button" data-advance onclick="changeOrderStatus(${data.id}, '${next}')" class="staff-action primary flex-1">${nextLabel}</button>` : ''}
+                ${['new', 'accepted'].includes(data.status) ? `<button type="button" data-cancel onclick="changeOrderStatus(${data.id}, 'cancelled')" class="staff-action danger w-12" title="Cancel Order" aria-label="Cancel order">X</button>` : ''}
+            </div>
+        </div>`;
 
     col.appendChild(card);
     startCardTimer(card.querySelector('.order-timer'));
