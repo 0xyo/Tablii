@@ -3,68 +3,91 @@
 {% block title %}{{ t('checkout', lang) }} — {{ restaurant.name }}{% endblock %}
 
 {% block customer_content %}
-<section class="px-4 pt-4">
-    <h2 class="text-xl font-bold mb-4">{{ t('confirm_order', lang) }}</h2>
+<section class="px-4 pt-5">
+    <div class="mb-5">
+        <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">{{ t('checkout', lang) }}</p>
+        <h2 class="font-body text-2xl font-extrabold text-charcoal-900">{{ t('confirm_order', lang) }}</h2>
+    </div>
 
-    <!-- Order summary (rendered by JS) -->
-    <div id="checkout-items" class="space-y-2 mb-6"></div>
+    <div class="customer-card mb-5">
+        <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-charcoal-800">{{ t('order_items', lang) }}</h3>
+            <span class="customer-pill bg-cream-100">{{ t('table', lang) }} {{ table.table_number }}</span>
+        </div>
+        <div id="checkout-items" class="space-y-3"></div>
+    </div>
 
-    <!-- Totals -->
-    <div class="card mb-6">
-        <div class="flex justify-between text-sm text-gray-600 mb-2">
+    <div class="customer-card mb-5 bg-white/90">
+        <div class="flex justify-between text-sm text-charcoal-500">
             <span>{{ t('subtotal', lang) }}</span>
-            <span id="co-subtotal">0.000</span>
+            <span id="co-subtotal" class="font-mono font-bold text-charcoal-800">0.000</span>
         </div>
         {% if restaurant.tax_rate > 0 %}
-        <div class="flex justify-between text-sm text-gray-600 mb-2">
+        <div class="mt-2 flex justify-between text-sm text-charcoal-500">
             <span>{{ t('tax', lang) }} ({{ restaurant.tax_rate }}%)</span>
-            <span id="co-tax">0.000</span>
+            <span id="co-tax" class="font-mono font-bold text-charcoal-800">0.000</span>
         </div>
         {% endif %}
         {% if restaurant.service_charge > 0 %}
-        <div class="flex justify-between text-sm text-gray-600 mb-2">
+        <div class="mt-2 flex justify-between text-sm text-charcoal-500">
             <span>{{ t('service_charge', lang) }} ({{ restaurant.service_charge }}%)</span>
-            <span id="co-service-charge">0.000</span>
+            <span id="co-service-charge" class="font-mono font-bold text-charcoal-800">0.000</span>
         </div>
         {% endif %}
-        <div class="flex justify-between font-bold text-base border-t pt-2 mt-2">
+        <div class="mt-4 flex justify-between border-t border-cream-300 pt-4 text-base font-black text-charcoal-900">
             <span>{{ t('total', lang) }}</span>
-            <span id="co-total">0.000</span>
+            <span id="co-total" class="font-mono">0.000</span>
         </div>
     </div>
 
-    <!-- Payment method -->
-    <div class="card mb-6">
-        <h3 class="font-semibold text-sm mb-3">{{ t('payment_method', lang) }}</h3>
-        <label class="flex items-center gap-3 py-2 cursor-pointer">
-            <input type="radio" name="payment_method" value="cash" checked class="accent-orange-500">
-            <span class="text-sm">💵 {{ t('pay_cash', lang) }}</span>
-        </label>
-        {% if restaurant.online_payment %}
-        <label class="flex items-center gap-3 py-2 cursor-pointer">
-            <input type="radio" name="payment_method" value="online" class="accent-orange-500">
-            <span class="text-sm">💳 {{ t('pay_online', lang) }}</span>
-        </label>
-        {% endif %}
+    <div class="customer-card mb-5">
+        <h3 class="mb-3 text-sm font-extrabold text-charcoal-800">{{ t('payment_method', lang) }}</h3>
+        <div class="grid gap-2">
+            <label class="flex cursor-pointer items-center gap-3 border border-cream-300 bg-cream-50 px-3 py-3 transition-colors hover:border-amber-300" style="border-radius: 8px;">
+                <input type="radio" name="payment_method" value="cash" checked class="accent-charcoal-800">
+                <span class="flex h-9 w-9 items-center justify-center border border-cream-300 bg-white text-charcoal-600" style="border-radius: 8px;">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-2m0-6h2a2 2 0 012 2v2a2 2 0 01-2 2h-2m0-6v6"/>
+                    </svg>
+                </span>
+                <span class="text-sm font-bold text-charcoal-700">{{ t('pay_cash', lang) }}</span>
+            </label>
+            {% if restaurant.online_payment %}
+            <label class="flex cursor-pointer items-center gap-3 border border-cream-300 bg-cream-50 px-3 py-3 transition-colors hover:border-amber-300" style="border-radius: 8px;">
+                <input type="radio" name="payment_method" value="online" class="accent-charcoal-800">
+                <span class="flex h-9 w-9 items-center justify-center border border-cream-300 bg-white text-charcoal-600" style="border-radius: 8px;">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm2 9h4"/>
+                    </svg>
+                </span>
+                <span class="text-sm font-bold text-charcoal-700">{{ t('pay_online', lang) }}</span>
+            </label>
+            {% endif %}
+        </div>
     </div>
 
-    <!-- Gift ordering -->
-    <div class="card mb-6">
-        <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" id="gift-toggle" class="accent-pink-500 w-4 h-4" onchange="toggleGift(this.checked)">
-            <span class="text-sm font-semibold">🎁 {{ t('send_as_gift', lang) }}</span>
+    <div class="customer-card mb-6">
+        <label class="flex cursor-pointer items-center justify-between gap-3">
+            <span class="flex items-center gap-3">
+                <span class="flex h-9 w-9 items-center justify-center border border-cream-300 bg-cream-100 text-amber-700" style="border-radius: 8px;">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7m16 0H4m16 0v-2a2 2 0 00-2-2h-2.5M4 12v-2a2 2 0 012-2h2.5m3.5 4V5m0 0C10 3 7 3 7 5s3 3 5 0zm0 0c2-3 5-3 5-1s-3 3-5 1z"/>
+                    </svg>
+                </span>
+                <span class="text-sm font-extrabold text-charcoal-800">{{ t('send_as_gift', lang) }}</span>
+            </span>
+            <input type="checkbox" id="gift-toggle" class="h-5 w-5 accent-charcoal-800" onchange="toggleGift(this.checked)">
         </label>
-        <div id="gift-section" class="hidden mt-4 space-y-3">
+        <div id="gift-section" class="mt-4 hidden space-y-3 border-t border-cream-300 pt-4">
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">{{ t('gift_to_table', lang) }}</label>
-                <select id="gift-table" class="w-full border border-gray-200 rounded px-3 py-2 text-sm">
+                <label class="mb-1 block text-xs font-black uppercase tracking-wider text-charcoal-500">{{ t('gift_to_table', lang) }}</label>
+                <select id="gift-table" class="customer-input">
                     <option value="">{{ t('select_table', lang) }}</option>
                 </select>
             </div>
             <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1 block">{{ t('gift_message', lang) }}</label>
-                <textarea id="gift-message" maxlength="300" rows="2" class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
-                          placeholder="{{ t('gift_message_placeholder', lang) }}"></textarea>
+                <label class="mb-1 block text-xs font-black uppercase tracking-wider text-charcoal-500">{{ t('gift_message', lang) }}</label>
+                <textarea id="gift-message" maxlength="300" rows="3" class="customer-input" placeholder="{{ t('gift_message_placeholder', lang) }}"></textarea>
             </div>
         </div>
     </div>
@@ -72,10 +95,13 @@
 {% endblock %}
 
 {% block bottom_bar %}
-<a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
-    {{ t('back_to_cart', lang) }}
+<a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" class="customer-btn-secondary px-3 py-2.5">
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7"/>
+    </svg>
+    <span class="hidden sm:inline">{{ t('back_to_cart', lang)|replace('← ', '') }}</span>
 </a>
-<button id="confirm-order-btn" onclick="confirmOrder()" class="btn-primary">
+<button id="confirm-order-btn" onclick="confirmOrder()" class="customer-btn-primary flex-1">
     {{ t('confirm_order', lang) }}
 </button>
 {% endblock %}
@@ -90,17 +116,22 @@
     const slug = "{{ restaurant.slug }}";
     const tableId = {{ table.id }};
 
-    // Render checkout summary
     function renderCheckout() {
         const items = cart.getItems();
         let html = "";
+        if (items.length === 0) {
+            html = `<div class="border border-cream-300 bg-cream-50 px-3 py-4 text-center text-sm font-semibold text-charcoal-500" style="border-radius: 8px;">{{ t('cart_empty', lang) }}</div>`;
+        }
         items.forEach(item => {
             const optExtra = item.options.reduce((s, o) => s + o.extra_price, 0);
             const lineTotal = (item.price + optExtra) * item.quantity;
             html += `
-                <div class="flex justify-between items-center text-sm">
-                    <span>${item.quantity}× ${item.name}</span>
-                    <span class="font-medium">${lineTotal.toFixed(3)} ${currency}</span>
+                <div class="flex items-start justify-between gap-3 border-b border-cream-200 pb-3 last:border-0 last:pb-0">
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-charcoal-800">${item.quantity} x ${item.name}</p>
+                        ${item.options.length ? `<p class="mt-0.5 line-clamp-2 text-xs text-charcoal-500">${item.options.map(o => o.name || '').filter(n => n).join(", ")}</p>` : ""}
+                    </div>
+                    <span class="shrink-0 font-mono text-sm font-black text-amber-700">${lineTotal.toFixed(3)} ${currency}</span>
                 </div>
             `;
         });
@@ -127,7 +158,6 @@
         select_table: {{ t('select_table', lang) | tojson }},
     };
 
-    // Gift toggle
     function toggleGift(on) {
         document.getElementById('gift-section').classList.toggle('hidden', !on);
         if (on) loadOccupiedTables();

@@ -3,148 +3,152 @@
 {% block title %}{{ restaurant.name }} — Menu{% endblock %}
 
 {% block customer_content %}
-
 {% if not restaurant.is_currently_open() %}
-<div class="mx-5 mt-6 p-5 bg-ruby-900/20 border border-ruby-500/30 flex items-center gap-4">
-    <div class="w-10 h-10 border border-ruby-500/50 bg-ruby-900/40 flex items-center justify-center text-ruby-400">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-    </div>
-    <div>
-        <p class="font-display italic text-lg text-ruby-300">{{ t('closed_title', lang) }}</p>
-        <p class="text-xs text-ruby-400/80 mt-1">{{ t('closed_body', lang) }}</p>
+<div class="mx-4 mt-4 customer-card border-ruby-200 bg-ruby-50 text-ruby-700">
+    <div class="flex items-start gap-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center border border-ruby-200 bg-white" style="border-radius: 8px;">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z" />
+            </svg>
+        </div>
+        <div>
+            <p class="font-body text-sm font-extrabold">{{ t('closed_title', lang) }}</p>
+            <p class="mt-1 text-sm text-ruby-600">{{ t('closed_body', lang) }}</p>
+        </div>
     </div>
 </div>
 {% endif %}
 
-<!-- Hero / Cover -->
 {% if restaurant.cover_url or restaurant.description %}
-<div class="relative">
+<section class="relative overflow-hidden">
     {% if restaurant.cover_url %}
-    <div class="w-full h-44 overflow-hidden">
-        <img src="{{ restaurant.cover_url }}" alt="{{ restaurant.name }}" class="w-full h-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-charcoal-950 via-charcoal-950/40 to-transparent"></div>
+    <div class="h-52 w-full overflow-hidden">
+        <img src="{{ restaurant.cover_url }}" alt="{{ restaurant.name }}" class="h-full w-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-charcoal-900/65 via-charcoal-900/10 to-transparent"></div>
     </div>
     {% endif %}
-    <div class="{% if restaurant.cover_url %}absolute bottom-0 left-0 right-0{% endif %} px-5 pb-4 pt-2">
+    <div class="{% if restaurant.cover_url %}absolute inset-x-0 bottom-0{% endif %} px-4 pb-4 pt-5">
         {% if restaurant.description %}
-        <p class="text-cream-100/80 text-sm font-light leading-relaxed line-clamp-2">{{ restaurant.description }}</p>
+        <p class="{% if restaurant.cover_url %}text-cream-50 drop-shadow{% else %}text-charcoal-700{% endif %} max-w-md text-sm font-medium leading-relaxed line-clamp-2">
+            {{ restaurant.description }}
+        </p>
         {% endif %}
         {% if restaurant.address or restaurant.city %}
-        <p class="text-charcoal-400 text-xs mt-1 flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 text-amber-600/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        <p class="{% if restaurant.cover_url %}text-cream-100/85{% else %}text-charcoal-500{% endif %} mt-2 flex items-center gap-1.5 text-xs font-semibold">
+            <svg class="h-3.5 w-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21s7-4.6 7-11a7 7 0 10-14 0c0 6.4 7 11 7 11z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 10.5a2 2 0 100-4 2 2 0 000 4z"/>
             </svg>
             {{ restaurant.address }}{% if restaurant.address and restaurant.city %}, {% endif %}{{ restaurant.city }}
         </p>
         {% endif %}
     </div>
-</div>
+</section>
 {% endif %}
 
-<!-- Greeting -->
 {% if guest_name %}
-<div class="mx-5 mt-4 px-4 py-2.5 bg-amber-900/10 border border-amber-500/20 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-        <span class="text-amber-500 text-sm">👋</span>
-        <span class="text-cream-100/80 text-sm font-light">{{ t('welcome_back', lang) }}, <strong class="font-medium text-amber-400">{{ guest_name }}</strong></span>
+<div class="mx-4 mt-4 customer-card bg-white/80">
+    <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">{{ t('welcome_back', lang) }}</p>
+            <p class="truncate text-sm font-bold text-charcoal-800">{{ guest_name }}</p>
+        </div>
+        {% if loyalty_points > 0 %}
+        <span class="customer-pill bg-amber-50 text-amber-800">{{ loyalty_points }} pts</span>
+        {% endif %}
     </div>
-    {% if loyalty_points > 0 %}
-    <span class="text-[10px] uppercase tracking-widest font-bold text-amber-500 bg-amber-900/30 px-2 py-1 border border-amber-500/30">⭐ {{ loyalty_points }} pts</span>
-    {% endif %}
 </div>
 {% endif %}
 
 {% if ramadan_service %}
-<div class="mx-5 mt-4 px-4 py-3 bg-amber-900/10 border border-amber-500/20 flex items-center justify-between gap-3">
-    <div>
-        <p class="text-[10px] uppercase tracking-widest font-bold text-amber-500">{{ t('ramadan.mode', lang) }}</p>
-        <p class="text-sm text-cream-100/90 mt-1">{{ t('ramadan.showing_menu', lang).format(service=ramadan_service|title) }}</p>
+<div class="mx-4 mt-4 customer-card bg-amber-50">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-800">{{ t('ramadan.mode', lang) }}</p>
+            <p class="mt-1 text-sm font-semibold text-charcoal-700">{{ t('ramadan.showing_menu', lang).format(service=ramadan_service|title) }}</p>
+        </div>
+        <span class="customer-pill bg-white text-charcoal-700">
+            {{ t('ramadan.iftar_at', lang) }}
+            {{ ramadan_iftar_time.strftime('%H:%M') if ramadan_iftar_time else t('ramadan.iftar_time_unavailable', lang) }}
+        </span>
     </div>
-    <span class="text-[10px] uppercase tracking-widest font-bold text-charcoal-300 bg-charcoal-900/70 px-3 py-1 border border-charcoal-700/60">
-        {{ t('ramadan.iftar_at', lang) }}
-        {{ ramadan_iftar_time.strftime('%H:%M') if ramadan_iftar_time else t('ramadan.iftar_time_unavailable', lang) }}
-    </span>
 </div>
 {% endif %}
 
-<!-- Search bar -->
-<section class="px-5 pt-6 pb-2 relative z-10">
-    <div class="relative group">
-        <input id="menu-search" type="text" placeholder="{{ t('search_placeholder', lang) }}" 
-               class="w-full pl-12 pr-4 py-3.5 bg-charcoal-800/60 border border-charcoal-700/80 rounded-none text-cream-50 font-light text-sm focus:outline-none focus:border-amber-500 focus:bg-charcoal-800 transition-all placeholder:text-charcoal-400 shadow-inner">
-        <svg class="absolute left-4 top-3.5 w-5 h-5 text-amber-600/60 group-focus-within:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+<section class="sticky top-[69px] z-30 border-b border-cream-300 bg-cream-50/95 px-4 py-3 backdrop-blur-xl">
+    <div class="relative">
+        <input id="menu-search" type="text" placeholder="{{ t('search_placeholder', lang) }}" class="customer-input pl-11">
+        <svg class="absolute left-4 top-3.5 h-5 w-5 text-charcoal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
     </div>
-</section>
-
-<!-- Category tabs -->
-<section class="px-5 pt-3 pb-2 sticky top-[73px] z-30 bg-charcoal-900/95 backdrop-blur-xl border-b border-charcoal-800/50 shadow-sm -mx-5">
-    <div class="flex gap-3 overflow-x-auto pb-3 pt-1 scrollbar-hide" id="category-tabs">
-        <button onclick="filterCategory('all', this)" data-category-target="all" class="category-tab active shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-amber-600/10 text-amber-500 border-amber-500/50 shadow-inner-glow">
+    <div class="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide" id="category-tabs">
+        <button onclick="filterCategory('all', this)" data-category-target="all" class="category-tab customer-category-tab active">
             {{ t('all_collections', lang) }}
         </button>
         {% for category in categories %}
-        <button onclick="filterCategory('cat-{{ category.id }}', this)" data-category-target="cat-{{ category.id }}" class="category-tab shrink-0 px-5 py-2 rounded-none text-[11px] font-bold uppercase tracking-widest border transition-all duration-300 bg-charcoal-800/30 text-charcoal-400 border-charcoal-700/50 hover:bg-charcoal-800 hover:text-cream-100">
+        <button onclick="filterCategory('cat-{{ category.id }}', this)" data-category-target="cat-{{ category.id }}" class="category-tab customer-category-tab">
             {{ localized(category, 'name', lang) }}
         </button>
         {% endfor %}
     </div>
 </section>
 
-<!-- Menu items flex/grid -->
-<div class="px-5 pb-6">
+<div class="px-4 pb-8">
     {% for category in categories %}
     {% if category.active_items %}
-    <section class="pt-10 menu-category" data-category="cat-{{ category.id }}">
-        <div class="flex items-center gap-4 mb-6">
-            <h2 class="text-2xl font-display text-cream-50 tracking-wide italic">{{ localized(category, 'name', lang) }}</h2>
+    <section class="menu-category pt-7" data-category="cat-{{ category.id }}">
+        <div class="mb-4 flex items-end justify-between gap-3">
+            <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">{{ t('digital_menu', lang) }}</p>
+                <h2 class="truncate font-body text-xl font-extrabold text-charcoal-800">{{ localized(category, 'name', lang) }}</h2>
+            </div>
             {% if not category.is_time_available %}
-            <span class="text-[10px] uppercase tracking-widest font-bold text-charcoal-400 bg-charcoal-800 px-2 py-1 border border-charcoal-700/50">
-                {{ t('available', lang) }} {{ category.available_from.strftime('%H:%M') }}–{{ category.available_until.strftime('%H:%M') }}
+            <span class="customer-pill shrink-0 bg-white text-charcoal-500">
+                {{ category.available_from.strftime('%H:%M') }}-{{ category.available_until.strftime('%H:%M') }}
             </span>
             {% endif %}
-            <div class="flex-1 h-px bg-gradient-to-r from-amber-900/40 to-transparent"></div>
         </div>
-        
-        <div class="grid grid-cols-1 gap-6">
+
+        <div class="grid grid-cols-1 gap-3">
             {% for item in category.active_items %}
-            <article class="menu-item-card group flex gap-4 bg-charcoal-800/20 hover:bg-charcoal-800/40 border border-transparent hover:border-charcoal-700/50 transition-all p-3 -mx-3 {{ 'opacity-50 pointer-events-none' if not category.is_time_available else 'cursor-pointer' }}" 
+            <article class="menu-item-card customer-card group flex gap-3 {{ 'opacity-50 pointer-events-none' if not category.is_time_available else 'cursor-pointer' }}"
                      data-name="{{ localized(item, 'name', lang)|lower }}"
                      data-desc="{{ (localized(item, 'description', lang) or '')|lower }}"
                      {% if category.is_time_available %}onclick="openItemModal({{ item.id }})"{% endif %}>
-                
-                <div class="w-28 h-28 flex-shrink-0 relative overflow-hidden bg-charcoal-800 border border-charcoal-700/50 p-0.5">
+                <div class="relative h-24 w-24 shrink-0 overflow-hidden bg-cream-200" style="border-radius: 8px;">
                     {% if item.image_url %}
-                    <img src="{{ item.image_url }}" alt="{{ localized(item, 'name', lang) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out">
+                    <img src="{{ item.image_url }}" alt="{{ localized(item, 'name', lang) }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
                     {% else %}
-                    <div class="w-full h-full bg-gradient-to-br from-charcoal-800 to-charcoal-900 flex items-center justify-center">
-                        <span class="text-amber-900/30 text-3xl font-display italic">T</span>
+                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-cream-100 to-amber-100 text-lg font-black text-amber-700">
+                        T
                     </div>
                     {% endif %}
                     {% if item.is_popular %}
-                    <div class="absolute top-0 right-0 bg-amber-500 text-charcoal-900 text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 shadow-sm">Pop</div>
+                    <div class="absolute right-1.5 top-1.5 border border-amber-200 bg-white/95 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-800" style="border-radius: 999px;">Pop</div>
                     {% endif %}
                 </div>
 
-                <div class="flex flex-col flex-1 py-1">
-                    <div class="flex justify-between items-start gap-2">
-                        <h3 class="font-display text-lg text-cream-50 leading-tight group-hover:text-amber-400 transition-colors">{{ localized(item, 'name', lang) }}</h3>
-                        <span class="text-amber-500 font-medium text-sm whitespace-nowrap pt-1 flex-shrink-0">{{ '%.3f'|format(item.price) }} <span class="text-[10px] uppercase text-amber-600/70">{{ restaurant.currency }}</span></span>
+                <div class="flex min-w-0 flex-1 flex-col py-0.5">
+                    <div class="flex items-start justify-between gap-2">
+                        <h3 class="line-clamp-2 text-sm font-extrabold leading-snug text-charcoal-800">{{ localized(item, 'name', lang) }}</h3>
+                        <span class="shrink-0 pt-0.5 text-sm font-black text-amber-700">{{ '%.3f'|format(item.price) }} <span class="text-[10px] uppercase">{{ restaurant.currency }}</span></span>
                     </div>
-                    
                     {% if localized(item, 'description', lang) %}
-                    <p class="text-charcoal-400 text-xs mt-2 line-clamp-2 leading-relaxed font-light">{{ localized(item, 'description', lang) }}</p>
+                    <p class="mt-1.5 line-clamp-2 text-xs leading-relaxed text-charcoal-500">{{ localized(item, 'description', lang) }}</p>
                     {% endif %}
 
-                    <div class="mt-auto pt-4 flex items-center justify-end">
+                    <div class="mt-auto flex items-center justify-between pt-3">
+                        <div class="flex gap-2 text-[10px] font-bold uppercase tracking-wider text-charcoal-400">
+                            {% if item.prep_time %}<span>{{ item.prep_time }} {{ t('min', lang) }}</span>{% endif %}
+                            {% if item.calories %}<span>{{ item.calories }} {{ t('kcal', lang) }}</span>{% endif %}
+                        </div>
                         {% if category.is_time_available %}
-                        <button onclick='event.stopPropagation(); quickAdd({{ item.id }}, {{ localized(item, "name", lang) | tojson }}, {{ item.price }}, {{ item.image_url | default("") | tojson }})' 
-                                class="w-8 h-8 rounded-none border border-amber-600/30 text-amber-500 hover:bg-amber-500 hover:text-charcoal-900 hover:shadow-[0_0_15px_rgba(196,149,106,0.3)] transition-all flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                        <button onclick='event.stopPropagation(); quickAdd({{ item.id }}, {{ localized(item, "name", lang) | tojson }}, {{ item.price }}, {{ item.image_url | default("") | tojson }})'
+                                class="customer-icon-btn h-9 w-9" aria-label="{{ t('add_to_order', lang) }}">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/>
+                            </svg>
                         </button>
                         {% endif %}
                     </div>
@@ -155,42 +159,42 @@
     </section>
     {% endif %}
     {% endfor %}
-    <div id="menu-no-results" class="hidden border border-charcoal-700/60 bg-charcoal-800/20 px-5 py-8 text-center">
-        <p class="font-display italic text-xl text-cream-100">{{ t('no_items_found', lang) }}</p>
-        <p class="mt-2 text-sm text-charcoal-400">{{ t('try_another_keyword_or_clear_search', lang) }}</p>
+
+    <div id="menu-no-results" class="customer-card mt-8 hidden text-center">
+        <svg class="mx-auto h-8 w-8 text-charcoal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 10l4 4m0-4l-4 4M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <p class="mt-3 text-sm font-extrabold text-charcoal-800">{{ t('no_items_found', lang) }}</p>
+        <p class="mt-1 text-sm text-charcoal-500">{{ t('try_another_keyword_or_clear_search', lang) }}</p>
     </div>
 </div>
 
-<!-- Item Detail Modal -->
-<div id="item-modal" class="fixed inset-0 z-[100] bg-charcoal-950/80 backdrop-blur-sm hidden items-end justify-center transition-opacity opacity-0" onclick="closeItemModal(event)">
-    <div class="bg-charcoal-900 w-full max-w-lg max-h-[90vh] overflow-y-auto border-t border-charcoal-700/50 shadow-[0_-20px_60px_rgba(0,0,0,0.5)] transition-transform translate-y-full transform-gpu duration-300 ease-out" 
-         id="modal-panel" onclick="event.stopPropagation()">
+<div id="item-modal" class="fixed inset-0 z-[100] hidden items-end justify-center bg-charcoal-900/55 opacity-0 backdrop-blur-sm transition-opacity" onclick="closeItemModal(event)">
+    <div class="customer-modal-panel max-h-[90vh] translate-y-full transform-gpu" id="modal-panel" onclick="event.stopPropagation()">
         <div id="modal-content" class="pb-safe"></div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block bottom_bar %}
-<a href="{{ url_for('customer.call_waiter_page', slug=restaurant.slug, table_id=table.id) }}" 
-   class="flex items-center gap-2.5 text-charcoal-300 hover:text-amber-400 transition-colors group px-2 py-1">
-    <div class="w-8 h-8 border border-charcoal-700 rounded-none flex items-center justify-center group-hover:border-amber-500/50 transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-    </div>
-    <span class="text-[10px] uppercase tracking-widest font-semibold hidden sm:inline-block">{{ t('service', lang) }}</span>
+<a href="{{ url_for('customer.call_waiter_page', slug=restaurant.slug, table_id=table.id) }}" class="customer-btn-secondary px-3 py-2.5">
+    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h11zm0 0a3 3 0 11-6 0"/>
+    </svg>
+    <span class="hidden text-xs uppercase tracking-wider sm:inline">{{ t('service', lang) }}</span>
 </a>
 
-<a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" 
-   class="flex items-center gap-3 bg-gradient-to-r from-amber-600 to-amber-500 text-charcoal-900 px-6 py-3 shadow-dark hover:shadow-gold hover:-translate-y-px transition-all border border-amber-400/50">
-    <div class="relative flex items-center justify-center">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-        <span id="cart-count" class="absolute -top-2 -right-2 bg-charcoal-900 text-cream-50 text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full outline outline-2 outline-amber-500">0</span>
-    </div>
-    <div class="h-4 w-px bg-charcoal-900/20 mx-1"></div>
-    <div class="flex flex-col items-start -space-y-0.5">
-        <span class="text-[9px] uppercase tracking-widest font-black opacity-80">{{ t('order_total', lang) }}</span>
-        <span id="cart-total" class="text-xs font-bold font-mono">0.000 {{ restaurant.currency }}</span>
-    </div>
+<a href="{{ url_for('customer.cart', slug=restaurant.slug, table_id=table.id) }}" class="customer-btn-primary flex-1 justify-between">
+    <span class="flex items-center gap-2">
+        <span class="relative">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 10-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+            <span id="cart-count" class="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-charcoal-900">0</span>
+        </span>
+        {{ t('order_total', lang) }}
+    </span>
+    <span id="cart-total" class="font-mono text-xs">0.000 {{ restaurant.currency }}</span>
 </a>
 {% endblock %}
 
@@ -211,38 +215,38 @@
     };
     updateCartBadge();
 
-        const menuItems = {
-        {% for category in categories %}
-            {% for item in category.active_items %}
-            {{ item.id }}: {
-                id: {{ item.id }},
-                name: {{ localized(item, 'name', lang) | tojson }},
-                description: {{ (localized(item, 'description', lang) or '') | tojson }},
-                price: {{ item.price }},
-                image_url: {{ (item.image_url or '') | tojson }},
-                calories: {{ item.calories if item.calories is not none else 'null' }},
-                prep_time: {{ item.prep_time if item.prep_time is not none else 'null' }},
-                allergens: {{ (item.allergens or '') | tojson }},
-                customizations: [
-                    {% for cust in item.active_customizations %}
-                    {
-                        id: {{ cust.id }},
-                        name: {{ localized(cust, 'group_name', lang) | tojson }},
-                        type: {{ cust.selection_type | tojson }},
-                        required: {{ 'true' if cust.is_required else 'false' }},
-                        max_selections: {{ cust.max_selections if cust.max_selections else 'null' }},
-                        options: [
-                            {% for opt in cust.active_options %}
-                            { id: {{ opt.id }}, name: {{ localized(opt, 'name', lang) | tojson }}, extra_price: {{ opt.extra_price }}, is_default: {{ 'true' if opt.is_default else 'false' }} },
-                            {% endfor %}
-                        ]
-                    },
-                    {% endfor %}
-                ]
-            },
-            {% endfor %}
+    const menuItems = {
+    {% for category in categories %}
+        {% for item in category.active_items %}
+        {{ item.id }}: {
+            id: {{ item.id }},
+            name: {{ localized(item, 'name', lang) | tojson }},
+            description: {{ (localized(item, 'description', lang) or '') | tojson }},
+            price: {{ item.price }},
+            image_url: {{ (item.image_url or '') | tojson }},
+            calories: {{ item.calories if item.calories is not none else 'null' }},
+            prep_time: {{ item.prep_time if item.prep_time is not none else 'null' }},
+            allergens: {{ (item.allergens or '') | tojson }},
+            customizations: [
+                {% for cust in item.active_customizations %}
+                {
+                    id: {{ cust.id }},
+                    name: {{ localized(cust, 'group_name', lang) | tojson }},
+                    type: {{ cust.selection_type | tojson }},
+                    required: {{ 'true' if cust.is_required else 'false' }},
+                    max_selections: {{ cust.max_selections if cust.max_selections else 'null' }},
+                    options: [
+                        {% for opt in cust.active_options %}
+                        { id: {{ opt.id }}, name: {{ localized(opt, 'name', lang) | tojson }}, extra_price: {{ opt.extra_price }}, is_default: {{ 'true' if opt.is_default else 'false' }} },
+                        {% endfor %}
+                    ]
+                },
+                {% endfor %}
+            ]
+        },
         {% endfor %}
-        };
+    {% endfor %}
+    };
 
     function quickAdd(id, name, price, imageUrl) {
         cart.addItem({ id, name, price, quantity: 1, options: [], image_url: imageUrl });
@@ -255,67 +259,61 @@
         document.getElementById("cart-total").textContent = cart.getSubtotal().toFixed(3) + " " + currency;
     }
 
+    let modalQty = 1;
+
     function openItemModal(itemId) {
         const item = menuItems[itemId];
         if (!item) return;
+        modalQty = 1;
 
         let html = `
-            <div class="relative w-full h-64 bg-charcoal-800 border-b border-charcoal-700/50">
-                ${item.image_url ? 
-                    `<img src="${item.image_url}" class="w-full h-full object-cover opacity-90" alt="${item.name}">` : 
-                    `<div class="w-full h-full bg-gradient-to-br from-charcoal-800 to-charcoal-900 flex items-center justify-center"><span class="text-amber-900/40 text-7xl font-display italic tracking-widest">Tablii</span></div>`
+            <div class="relative h-64 w-full bg-cream-200">
+                ${item.image_url ?
+                    `<img src="${item.image_url}" class="h-full w-full object-cover" alt="${item.name}">` :
+                    `<div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-cream-100 to-amber-100 text-4xl font-black text-amber-700">T</div>`
                 }
-                <div class="absolute inset-0 bg-gradient-to-t from-charcoal-900 via-transparent to-transparent"></div>
-                
-                <button onclick="closeItemModal()" class="absolute top-4 right-4 w-10 h-10 bg-charcoal-900/50 backdrop-blur-md rounded-none border border-charcoal-700/50 flex items-center justify-center text-cream-100 hover:text-amber-500 hover:bg-charcoal-800 transition-colors z-10">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <div class="absolute inset-0 bg-gradient-to-t from-charcoal-900/65 via-transparent to-transparent"></div>
+                <button onclick="closeItemModal()" class="absolute right-4 top-4 customer-icon-btn bg-white/95" aria-label="Close">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            
-            <div class="p-6 md:p-8">
-                <div class="flex justify-between items-start gap-4 mb-3">
-                    <h2 class="text-3xl font-display italic tracking-wide text-cream-50 leading-tight">${item.name}</h2>
-                    <div class="text-amber-500 font-bold text-xl whitespace-nowrap pt-1">${item.price.toFixed(3)} <span class="text-xs uppercase opacity-70 font-normal">${currency}</span></div>
+
+            <div class="p-5">
+                <div class="mb-3 flex items-start justify-between gap-4">
+                    <h2 class="text-2xl font-extrabold leading-tight text-charcoal-900">${item.name}</h2>
+                    <div class="shrink-0 pt-1 text-lg font-black text-amber-700">${item.price.toFixed(3)} <span class="text-xs uppercase">${currency}</span></div>
                 </div>
-                
-                ${item.description ? `<p class="text-charcoal-400 text-sm leading-relaxed mb-6 font-light">${item.description}</p>` : ''}
-                
-                <div class="flex flex-wrap gap-4 pt-4 border-t border-charcoal-800/60 mb-8">
-                    ${item.prep_time ? `
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-amber-600/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.prep_time} ${_t.min}</span>
-                    </div>` : ''}
-                    
-                    ${item.calories ? `
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-amber-600/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-                        <span class="text-xs text-charcoal-300 font-medium tracking-wide">${item.calories} ${_t.kcal}</span>
-                    </div>` : ''}
-                    
-                    ${item.allergens ? `
-                    <div class="flex items-center gap-2 bg-ruby-900/20 border border-ruby-900/50 px-2 py-0.5 mt-[-2px]">
-                        <span class="text-[10px] uppercase tracking-widest text-ruby-400 font-bold">${_t.contains}: ${item.allergens}</span>
-                    </div>` : ''}
+
+                ${item.description ? `<p class="mb-5 text-sm leading-relaxed text-charcoal-500">${item.description}</p>` : ''}
+
+                <div class="mb-6 flex flex-wrap gap-2 border-y border-cream-300 py-3">
+                    ${item.prep_time ? `<span class="customer-pill bg-white">${item.prep_time} ${_t.min}</span>` : ''}
+                    ${item.calories ? `<span class="customer-pill bg-white">${item.calories} ${_t.kcal}</span>` : ''}
+                    ${item.allergens ? `<span class="customer-pill border-ruby-200 bg-ruby-50 text-ruby-700">${_t.contains}: ${item.allergens}</span>` : ''}
                 </div>
         `;
 
         item.customizations.forEach(cust => {
-            const maxLabel = cust.max_selections ? ` <span class="text-[10px] uppercase tracking-widest text-charcoal-400 ml-2">(${_t.max} ${cust.max_selections})</span>` : '';
-            html += `<div class="mb-8" data-cust-id="${cust.id}" data-max="${cust.max_selections || ''}"><div class="flex items-baseline gap-3 mb-4"><h3 class="font-display text-lg text-cream-100">${cust.name}${maxLabel}</h3> ${cust.required ? '<span class="text-[10px] uppercase tracking-widest font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 border border-amber-500/20">' + _t.required + '</span>' : ''}</div><div class="space-y-2">`;
+            const maxLabel = cust.max_selections ? ` <span class="text-xs font-bold text-charcoal-400">(${_t.max} ${cust.max_selections})</span>` : '';
+            html += `<div class="mb-6" data-cust-id="${cust.id}" data-max="${cust.max_selections || ''}">
+                <div class="mb-3 flex items-center gap-2">
+                    <h3 class="text-sm font-extrabold text-charcoal-800">${cust.name}${maxLabel}</h3>
+                    ${cust.required ? '<span class="customer-pill bg-amber-50 text-amber-800">' + _t.required + '</span>' : ''}
+                </div>
+                <div class="space-y-2">`;
             cust.options.forEach(opt => {
                 const inputType = cust.type === 'single' ? 'radio' : 'checkbox';
                 const checkedAttr = opt.is_default ? 'checked' : '';
                 html += `
-                    <label class="flex items-center gap-4 py-3 px-4 border border-charcoal-700/40 bg-charcoal-800/20 hover:bg-charcoal-800 hover:border-charcoal-600/60 transition-colors cursor-pointer group">
-                        <div class="relative flex items-center justify-center">
+                    <label class="flex cursor-pointer items-center gap-3 border border-cream-300 bg-white px-3 py-3 transition-colors hover:border-amber-300" style="border-radius: 8px;">
+                        <span class="relative flex items-center justify-center">
                             <input type="${inputType}" name="cust_${cust.id}" value="${opt.id}" data-extra="${opt.extra_price}" data-cust-id="${cust.id}" ${checkedAttr} class="modal-option peer sr-only" onchange="enforceMaxSelections(${cust.id}, ${cust.max_selections || 0})">
-                            <div class="w-5 h-5 border border-charcoal-500 peer-checked:bg-amber-500 peer-checked:border-amber-500 ${inputType === 'radio' ? 'rounded-full' : 'rounded-none'} transition-all flex items-center justify-center mt-[1px]">
-                                <svg class="w-3 h-3 text-charcoal-900 opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                        </div>
-                        <span class="flex-1 text-sm text-charcoal-200 group-hover:text-cream-50 transition-colors">${opt.name}</span>
-                        ${opt.extra_price > 0 ? `<span class="text-xs text-amber-500/80 font-mono tracking-wide">+${opt.extra_price.toFixed(3)}</span>` : ''}
+                            <span class="flex h-5 w-5 items-center justify-center border border-cream-400 peer-checked:border-charcoal-800 peer-checked:bg-charcoal-800 ${inputType === 'radio' ? 'rounded-full' : ''}">
+                                <svg class="h-3 w-3 text-cream-50 opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </span>
+                        </span>
+                        <span class="option-name flex-1 text-sm font-semibold text-charcoal-700">${opt.name}</span>
+                        ${opt.extra_price > 0 ? `<span class="font-mono text-xs font-bold text-amber-700">+${opt.extra_price.toFixed(3)}</span>` : ''}
                     </label>
                 `;
             });
@@ -323,14 +321,14 @@
         });
 
         html += `
-                <div class="flex items-stretch gap-4 mt-10 mb-2">
-                    <div class="flex items-center border border-charcoal-600 bg-charcoal-800/50">
-                        <button onclick="changeQty(-1)" class="w-12 h-12 flex items-center justify-center text-charcoal-400 hover:text-amber-500 hover:bg-charcoal-700 transition-colors text-xl font-light">−</button>
-                        <span id="modal-qty" class="w-10 text-center text-base font-bold text-cream-50">1</span>
-                        <button onclick="changeQty(1)" class="w-12 h-12 flex items-center justify-center text-charcoal-400 hover:text-amber-500 hover:bg-charcoal-700 transition-colors text-xl font-light">+</button>
+                <div class="mt-8 flex items-stretch gap-3">
+                    <div class="flex items-center border border-cream-300 bg-white shadow-sm" style="border-radius: 8px;">
+                        <button onclick="changeQty(-1)" class="h-12 w-12 text-lg font-bold text-charcoal-500 hover:text-amber-700">-</button>
+                        <span id="modal-qty" class="w-10 text-center text-base font-black text-charcoal-900">1</span>
+                        <button onclick="changeQty(1)" class="h-12 w-12 text-lg font-bold text-charcoal-500 hover:text-amber-700">+</button>
                     </div>
-                    <button onclick="addFromModal(${item.id})" class="btn-primary flex-1 !p-0 flex items-center justify-center">
-                        <span class="tracking-wider uppercase text-sm">${_t.add_to_order}</span>
+                    <button onclick="addFromModal(${item.id})" class="customer-btn-primary flex-1">
+                        ${_t.add_to_order}
                     </button>
                 </div>
             </div>
@@ -339,33 +337,23 @@
         document.getElementById("modal-content").innerHTML = html;
         const modal = document.getElementById("item-modal");
         const panel = document.getElementById("modal-panel");
-        
         modal.classList.remove("hidden");
         modal.classList.add("flex");
-        
-        // Trigger reflow for transition
         void modal.offsetWidth;
-        
         modal.classList.remove("opacity-0");
         panel.classList.remove("translate-y-full");
 
-        // Enforce max_selections for pre-checked defaults
         item.customizations.forEach(cust => {
-            if (cust.max_selections) {
-                enforceMaxSelections(cust.id, cust.max_selections);
-            }
+            if (cust.max_selections) enforceMaxSelections(cust.id, cust.max_selections);
         });
     }
 
     function closeItemModal(e) {
-        if(e && e.target !== document.getElementById('item-modal')) return;
-        
+        if (e && e.target !== document.getElementById('item-modal')) return;
         const modal = document.getElementById("item-modal");
         const panel = document.getElementById("modal-panel");
-        
         modal.classList.add("opacity-0");
         panel.classList.add("translate-y-full");
-        
         setTimeout(() => {
             modal.classList.add("hidden");
             modal.classList.remove("flex");
@@ -373,7 +361,6 @@
         }, 300);
     }
 
-    let modalQty = 1;
     function changeQty(delta) {
         modalQty = Math.max(1, Math.min(20, modalQty + delta));
         document.getElementById("modal-qty").textContent = modalQty;
@@ -383,7 +370,11 @@
         const item = menuItems[itemId];
         const selectedOptions = [];
         document.querySelectorAll(".modal-option:checked").forEach(el => {
-            selectedOptions.push({ id: parseInt(el.value), extra_price: parseFloat(el.dataset.extra), name: el.closest('label').querySelector('.flex-1').textContent.trim() });
+            selectedOptions.push({
+                id: parseInt(el.value),
+                extra_price: parseFloat(el.dataset.extra),
+                name: el.closest('label').querySelector('.option-name').textContent.trim()
+            });
         });
 
         cart.addItem({
@@ -421,18 +412,13 @@
         });
     }
 
-    const activeTabClasses = ['bg-amber-600/10', 'text-amber-500', 'border-amber-500/50', 'shadow-inner-glow'];
-    const inactiveTabClasses = ['bg-charcoal-800/30', 'text-charcoal-400', 'border-charcoal-700/50'];
     const searchInput = document.getElementById('menu-search');
     const noResults = document.getElementById('menu-no-results');
     let activeCategory = 'all';
 
     function setActiveCategoryTab() {
         document.querySelectorAll('.category-tab').forEach(tab => {
-            const isActive = tab.dataset.categoryTarget === activeCategory;
-            tab.classList.toggle('active', isActive);
-            tab.classList.remove(...(isActive ? inactiveTabClasses : activeTabClasses));
-            tab.classList.add(...(isActive ? activeTabClasses : inactiveTabClasses));
+            tab.classList.toggle('active', tab.dataset.categoryTarget === activeCategory);
         });
     }
 
@@ -442,42 +428,27 @@
 
         document.querySelectorAll('.menu-category').forEach(section => {
             let visibleItems = 0;
-
             section.querySelectorAll('.menu-item-card').forEach(card => {
                 const haystacks = [card.dataset.name || '', card.dataset.desc || ''];
                 const matchesSearch = !query || haystacks.some(value => value.includes(query));
                 card.style.display = matchesSearch ? '' : 'none';
-
-                if (matchesSearch) {
-                    visibleItems += 1;
-                }
+                if (matchesSearch) visibleItems += 1;
             });
 
             const hasVisibleItems = visibleItems > 0;
             const matchesCategory = activeCategory === 'all' || section.dataset.category === activeCategory;
             section.style.display = hasVisibleItems && matchesCategory ? 'block' : 'none';
-
-            if (hasVisibleItems) {
-                visibleCategories.add(section.dataset.category);
-            }
+            if (hasVisibleItems) visibleCategories.add(section.dataset.category);
         });
 
         document.querySelectorAll('.category-tab').forEach(tab => {
             const target = tab.dataset.categoryTarget;
-            if (target === 'all') {
-                tab.style.display = '';
-                tab.disabled = false;
-                return;
-            }
-
-            const shouldShowTab = !query || visibleCategories.has(target);
+            const shouldShowTab = target === 'all' || !query || visibleCategories.has(target);
             tab.style.display = shouldShowTab ? '' : 'none';
             tab.disabled = !shouldShowTab;
         });
 
-        const hasVisibleSection = Array.from(document.querySelectorAll('.menu-category')).some(
-            section => section.style.display !== 'none'
-        );
+        const hasVisibleSection = Array.from(document.querySelectorAll('.menu-category')).some(section => section.style.display !== 'none');
         noResults.classList.toggle('hidden', hasVisibleSection);
     }
 
@@ -485,7 +456,6 @@
         activeCategory = catId;
         setActiveCategoryTab();
         applyMenuFilters();
-
         if (button && activeCategory !== 'all') {
             const targetSection = document.querySelector(`.menu-category[data-category="${catId}"]`);
             if (targetSection && targetSection.style.display !== 'none') {
@@ -504,7 +474,6 @@
     setActiveCategoryTab();
     applyMenuFilters();
 
-    // Customer identification prompt
     {% if not guest_name %}
     (function() {
         const slug = "{{ restaurant.slug }}";
@@ -513,21 +482,26 @@
         if (prompted) return;
 
         const overlay = document.createElement('div');
-        overlay.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center';
+        overlay.className = 'fixed inset-0 z-50 flex items-end justify-center bg-charcoal-900/55 backdrop-blur-sm';
         overlay.innerHTML = `
-            <div class="bg-charcoal-900 border-t border-charcoal-700 w-full max-w-lg p-6 pb-8 space-y-4">
-                <h3 class="font-display italic text-lg text-amber-500">{{ t('welcome_back', lang) }} 👋</h3>
-                <div>
-                    <label class="text-xs text-charcoal-400 uppercase tracking-wider font-bold block mb-1">{{ t('your_name', lang) }}</label>
-                    <input id="id-name" type="text" maxlength="100" class="w-full bg-charcoal-800 border border-charcoal-700 px-3 py-2 text-sm text-cream-50 focus:outline-none focus:border-amber-500">
+            <div class="w-full max-w-lg border-t border-cream-300 bg-cream-50 p-5 pb-7 shadow-2xl" style="border-radius: 8px 8px 0 0;">
+                <div class="mb-4">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">{{ t('digital_menu', lang) }}</p>
+                    <h3 class="text-xl font-extrabold text-charcoal-900">{{ t('welcome_back', lang) }}</h3>
                 </div>
-                <div>
-                    <label class="text-xs text-charcoal-400 uppercase tracking-wider font-bold block mb-1">{{ t('your_phone', lang) }}</label>
-                    <input id="id-phone" type="tel" maxlength="20" class="w-full bg-charcoal-800 border border-charcoal-700 px-3 py-2 text-sm text-cream-50 focus:outline-none focus:border-amber-500">
+                <div class="space-y-3">
+                    <div>
+                        <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-charcoal-500">{{ t('your_name', lang) }}</label>
+                        <input id="id-name" type="text" maxlength="100" class="customer-input">
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-charcoal-500">{{ t('your_phone', lang) }}</label>
+                        <input id="id-phone" type="tel" maxlength="20" class="customer-input">
+                    </div>
                 </div>
-                <div class="flex gap-3">
-                    <button id="id-skip" class="flex-1 py-2 text-sm text-charcoal-400 border border-charcoal-700 hover:bg-charcoal-800 transition-colors">{{ t('skip', lang) }}</button>
-                    <button id="id-save" class="flex-1 py-2 text-sm font-medium bg-amber-600 text-charcoal-950 hover:bg-amber-500 transition-colors">{{ t('save_profile', lang) }}</button>
+                <div class="mt-4 flex gap-3">
+                    <button id="id-skip" class="customer-btn-secondary flex-1">{{ t('skip', lang) }}</button>
+                    <button id="id-save" class="customer-btn-primary flex-1">{{ t('save_profile', lang) }}</button>
                 </div>
             </div>
         `;
@@ -546,10 +520,10 @@
             });
             overlay.remove();
             const greetEl = document.createElement('div');
-            greetEl.className = 'mx-5 mt-4 px-4 py-2.5 bg-amber-900/10 border border-amber-500/20 flex items-center gap-2';
-            greetEl.innerHTML = `<span class="text-amber-500 text-sm">👋</span><span class="text-cream-100/80 text-sm font-light">{{ t('welcome_back', lang) }}, <strong class="font-medium text-amber-400">${name}</strong></span>`;
-            const searchBar = document.querySelector('#menu-search')?.closest('section');
-            if (searchBar) searchBar.parentNode.insertBefore(greetEl, searchBar);
+            greetEl.className = 'mx-4 mt-4 customer-card bg-white/80';
+            greetEl.innerHTML = `<p class="text-[10px] font-black uppercase tracking-widest text-amber-700">{{ t('welcome_back', lang) }}</p><p class="truncate text-sm font-bold text-charcoal-800">${name}</p>`;
+            const stickySearch = document.querySelector('#menu-search')?.closest('section');
+            if (stickySearch) stickySearch.parentNode.insertBefore(greetEl, stickySearch);
         };
     })();
     {% endif %}

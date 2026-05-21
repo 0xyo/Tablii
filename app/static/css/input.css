@@ -95,6 +95,101 @@
     content: "";
     @apply absolute w-3 h-3 bg-green-400 rounded-full animate-ping;
   }
+
+  /* Customer ordering shell */
+  .customer-app {
+    color: #2d2926;
+    background:
+      linear-gradient(180deg, rgba(255, 252, 247, 0.95) 0%, rgba(246, 238, 228, 0.95) 45%, rgba(250, 248, 245, 0.98) 100%),
+      radial-gradient(circle at 15% 0%, rgba(196, 149, 106, 0.18), transparent 34%),
+      radial-gradient(circle at 100% 12%, rgba(59, 130, 246, 0.08), transparent 26%);
+    @apply relative mx-auto min-h-screen w-full max-w-lg overflow-hidden border-x border-cream-300 shadow-2xl;
+  }
+
+  .customer-header {
+    @apply sticky top-0 z-40 border-b border-cream-300/90 bg-cream-50/90 px-4 py-3 backdrop-blur-xl;
+  }
+
+  .customer-logo {
+    @apply h-11 w-11 object-cover border border-cream-300 bg-white shadow-sm;
+    border-radius: 8px;
+  }
+
+  .customer-logo-fallback {
+    @apply flex h-11 w-11 items-center justify-center border border-cream-300 bg-white text-lg font-bold text-amber-700 shadow-sm;
+    border-radius: 8px;
+  }
+
+  .customer-pill,
+  .customer-chip {
+    @apply inline-flex items-center justify-center gap-1.5 border border-cream-300 bg-white/85 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-charcoal-600 shadow-sm transition-colors;
+    border-radius: 999px;
+  }
+
+  .customer-chip:hover,
+  .customer-pill:hover {
+    @apply border-amber-300 text-charcoal-800;
+  }
+
+  .customer-surface {
+    @apply border border-cream-300 bg-white/85 shadow-sm backdrop-blur-sm;
+    border-radius: 8px;
+  }
+
+  .customer-card {
+    @apply border border-cream-300 bg-white/90 p-4 shadow-sm transition-colors;
+    border-radius: 8px;
+  }
+
+  .customer-card:hover {
+    @apply border-amber-300/80;
+  }
+
+  .customer-muted {
+    @apply text-charcoal-500;
+  }
+
+  .customer-input {
+    @apply w-full border border-cream-300 bg-white px-4 py-3 text-sm text-charcoal-800 shadow-sm transition-all placeholder:text-charcoal-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20;
+    border-radius: 8px;
+  }
+
+  .customer-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 border border-amber-600 bg-charcoal-800 px-5 py-3 text-sm font-bold text-cream-50 shadow-sm transition-all hover:-translate-y-px hover:bg-charcoal-900 hover:shadow-gold focus:outline-none focus:ring-2 focus:ring-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    border-radius: 8px;
+  }
+
+  .customer-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 border border-cream-300 bg-white px-4 py-3 text-sm font-bold text-charcoal-700 shadow-sm transition-all hover:border-amber-300 hover:text-charcoal-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20;
+    border-radius: 8px;
+  }
+
+  .customer-icon-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center border border-cream-300 bg-white text-charcoal-600 shadow-sm transition-colors hover:border-amber-300 hover:text-amber-700;
+    border-radius: 8px;
+  }
+
+  .customer-bottom {
+    @apply fixed bottom-0 left-0 right-0 z-50 mx-auto w-full max-w-lg pointer-events-none;
+  }
+
+  .customer-bottom-panel {
+    @apply border-t border-cream-300 bg-cream-50/95 px-4 py-3 shadow-[0_-18px_48px_rgba(45,41,38,0.13)] backdrop-blur-xl pointer-events-auto;
+  }
+
+  .customer-category-tab {
+    @apply shrink-0 border border-cream-300 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-charcoal-500 shadow-sm transition-all;
+    border-radius: 999px;
+  }
+
+  .customer-category-tab.active {
+    @apply border-charcoal-800 bg-charcoal-800 text-cream-50;
+  }
+
+  .customer-modal-panel {
+    @apply w-full max-w-lg overflow-y-auto border-t border-cream-300 bg-cream-50 shadow-2xl transition-transform duration-300 ease-out;
+    border-radius: 8px 8px 0 0;
+  }
 }
 
 @layer utilities {

@@ -17,35 +17,35 @@ function updateOrderStatus(status) {
         const el = document.querySelector(`[data-step="${step}"]`);
         if (!el) return;
 
-        const dot = el.querySelector("div:first-child");
-        const label = el.querySelector("div:last-child p:first-child");
-        const line = el.querySelector(".absolute");
+        const dot = el.querySelector(".status-dot");
+        const label = el.querySelector(".status-label");
+        const line = el.querySelector(".status-line");
+        if (!dot) return;
 
-        // Reset dot styles
-        dot.className = "w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10";
+        dot.className = "status-dot z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black";
 
         if (idx < currentIdx) {
-            dot.classList.add("bg-orange-500", "text-white");
+            dot.classList.add("bg-amber-600", "text-white");
             dot.textContent = "✓";
-            if (label) label.classList.remove("text-gray-400");
-            if (label) label.classList.add("text-gray-900");
+            if (label) label.classList.remove("text-charcoal-400");
+            if (label) label.classList.add("text-charcoal-900");
             if (line) {
-                line.classList.remove("bg-gray-200");
-                line.classList.add("bg-orange-400");
+                line.classList.remove("bg-cream-300");
+                line.classList.add("bg-amber-500");
             }
         } else if (idx === currentIdx) {
-            dot.classList.add("bg-orange-500", "text-white", "animate-pulse");
+            dot.classList.add("bg-charcoal-800", "text-cream-50", "animate-pulse");
             dot.textContent = "●";
-            if (label) label.classList.remove("text-gray-400");
-            if (label) label.classList.add("text-gray-900");
+            if (label) label.classList.remove("text-charcoal-400");
+            if (label) label.classList.add("text-charcoal-900");
         } else {
-            dot.classList.add("bg-gray-200", "text-gray-400");
+            dot.classList.add("bg-cream-200", "text-charcoal-400");
             dot.textContent = "○";
-            if (label) label.classList.remove("text-gray-900");
-            if (label) label.classList.add("text-gray-400");
+            if (label) label.classList.remove("text-charcoal-900");
+            if (label) label.classList.add("text-charcoal-400");
             if (line) {
-                line.classList.remove("bg-orange-400");
-                line.classList.add("bg-gray-200");
+                line.classList.remove("bg-amber-500");
+                line.classList.add("bg-cream-300");
             }
         }
     });
@@ -57,10 +57,10 @@ function updateOrderStatus(status) {
  */
 function showStatusNotification(status) {
     const messages = {
-        accepted: "Your order has been accepted! 🎉",
-        preparing: "Your food is being prepared! 👨‍🍳",
-        ready: "Your order is ready! 🔔",
-        served: "Enjoy your meal! 🍽️",
+        accepted: "Your order has been accepted.",
+        preparing: "Your food is being prepared.",
+        ready: "Your order is ready.",
+        served: "Enjoy your meal.",
     };
 
     const msg = messages[status];

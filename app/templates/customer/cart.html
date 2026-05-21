@@ -3,56 +3,65 @@
 {% block title %}{{ t('your_cart', lang) }} — {{ restaurant.name }}{% endblock %}
 
 {% block customer_content %}
-<section class="px-4 pt-4">
-    <h2 class="text-xl font-bold mb-4">{{ t('your_cart', lang) }}</h2>
-
-    <!-- Empty state -->
-    <div id="cart-empty" class="hidden text-center py-12">
-        <p class="text-5xl mb-4">🛒</p>
-        <p class="text-gray-500">{{ t('cart_empty', lang) }}</p>
-        <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="btn-primary inline-block mt-4">{{ t('browse_menu', lang) }}</a>
+<section class="px-4 pt-5">
+    <div class="mb-5 flex items-end justify-between gap-3">
+        <div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-amber-700">{{ restaurant.name }}</p>
+            <h2 class="font-body text-2xl font-extrabold text-charcoal-900">{{ t('your_cart', lang) }}</h2>
+        </div>
+        <span class="customer-pill bg-white">{{ t('table', lang) }} {{ table.table_number }}</span>
     </div>
 
-    <!-- Cart items -->
+    <div id="cart-empty" class="customer-card hidden py-10 text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center border border-cream-300 bg-cream-100 text-charcoal-600" style="border-radius: 8px;">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 10-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+        </div>
+        <p class="mt-4 text-sm font-bold text-charcoal-700">{{ t('cart_empty', lang) }}</p>
+        <a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="customer-btn-primary mt-5 inline-flex">{{ t('browse_menu', lang) }}</a>
+    </div>
+
     <div id="cart-items" class="space-y-3"></div>
 
-    <!-- Special notes -->
-    <div id="cart-notes-section" class="mt-6">
-        <label for="special-notes" class="block text-sm font-medium text-gray-700 mb-1">{{ t('special_notes', lang) }}</label>
-        <textarea id="special-notes" class="input-field" rows="2" placeholder="{{ t('notes_placeholder', lang) }}"></textarea>
+    <div id="cart-notes-section" class="mt-5">
+        <label for="special-notes" class="mb-2 block text-xs font-black uppercase tracking-wider text-charcoal-500">{{ t('special_notes', lang) }}</label>
+        <textarea id="special-notes" class="customer-input" rows="3" placeholder="{{ t('notes_placeholder', lang) }}"></textarea>
     </div>
 
-    <!-- Summary -->
-    <div id="cart-summary" class="mt-6 card">
-        <div class="flex justify-between text-sm text-gray-600 mb-2">
+    <div id="cart-summary" class="customer-card mt-5 bg-white/90">
+        <div class="flex justify-between text-sm text-charcoal-500">
             <span>{{ t('subtotal', lang) }}</span>
-            <span id="summary-subtotal">0.000 {{ restaurant.currency }}</span>
+            <span id="summary-subtotal" class="font-mono font-bold text-charcoal-800">0.000 {{ restaurant.currency }}</span>
         </div>
         {% if restaurant.tax_rate > 0 %}
-        <div class="flex justify-between text-sm text-gray-600 mb-2">
+        <div class="mt-2 flex justify-between text-sm text-charcoal-500">
             <span>{{ t('tax', lang) }} ({{ restaurant.tax_rate }}%)</span>
-            <span id="summary-tax">0.000 {{ restaurant.currency }}</span>
+            <span id="summary-tax" class="font-mono font-bold text-charcoal-800">0.000 {{ restaurant.currency }}</span>
         </div>
         {% endif %}
         {% if restaurant.service_charge > 0 %}
-        <div class="flex justify-between text-sm text-gray-600 mb-2">
+        <div class="mt-2 flex justify-between text-sm text-charcoal-500">
             <span>{{ t('service_charge', lang) }} ({{ restaurant.service_charge }}%)</span>
-            <span id="summary-service-charge">0.000 {{ restaurant.currency }}</span>
+            <span id="summary-service-charge" class="font-mono font-bold text-charcoal-800">0.000 {{ restaurant.currency }}</span>
         </div>
         {% endif %}
-        <div class="flex justify-between text-base font-bold border-t pt-2 mt-2">
+        <div class="mt-4 flex justify-between border-t border-cream-300 pt-4 text-base font-black text-charcoal-900">
             <span>{{ t('total', lang) }}</span>
-            <span id="summary-total">0.000 {{ restaurant.currency }}</span>
+            <span id="summary-total" class="font-mono">0.000 {{ restaurant.currency }}</span>
         </div>
     </div>
 </section>
 {% endblock %}
 
 {% block bottom_bar %}
-<a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="text-gray-500 hover:text-orange-500 text-sm font-medium">
-    {{ t('back_to_menu', lang) }}
+<a href="{{ url_for('customer.menu', slug=restaurant.slug, table_id=table.id) }}" class="customer-btn-secondary px-3 py-2.5">
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7"/>
+    </svg>
+    <span class="hidden sm:inline">{{ t('back_to_menu', lang)|replace('← ', '') }}</span>
 </a>
-<a href="{{ url_for('customer.checkout', slug=restaurant.slug, table_id=table.id) }}" id="checkout-btn" class="btn-primary">
+<a href="{{ url_for('customer.checkout', slug=restaurant.slug, table_id=table.id) }}" id="checkout-btn" class="customer-btn-primary flex-1">
     {{ t('checkout', lang) }}
 </a>
 {% endblock %}
@@ -92,27 +101,30 @@
             const optExtra = item.options.reduce((s, o) => s + o.extra_price, 0);
             const lineTotal = (item.price + optExtra) * item.quantity;
             html += `
-                <div class="card flex gap-3">
-                    ${item.image_url ? `<img src="${item.image_url}" class="w-16 h-16 rounded-lg object-cover shrink-0">` : `<div class="w-16 h-16 rounded-lg bg-orange-50 flex items-center justify-center text-2xl shrink-0">🍽️</div>`}
-                    <div class="flex-1 min-w-0">
-                        <h3 class="font-medium text-sm truncate">${item.name}</h3>
-                        ${item.options.length ? `<p class="text-xs text-gray-400">${item.options.map(o => o.name || '').filter(n => n).join(", ")}</p>` : ""}
-                        <div class="flex items-center justify-between mt-2">
-                            <div class="flex items-center border border-gray-200 rounded-lg">
-                                <button onclick="updateQty(${idx}, -1)" class="px-2 py-1 text-gray-500 hover:text-orange-500">−</button>
-                                <span class="px-2 text-sm font-semibold">${item.quantity}</span>
-                                <button onclick="updateQty(${idx}, 1)" class="px-2 py-1 text-gray-500 hover:text-orange-500">+</button>
+                <div class="customer-card flex gap-3">
+                    ${item.image_url ? `<img src="${item.image_url}" class="h-[72px] w-[72px] shrink-0 object-cover" style="border-radius: 8px;" alt="${item.name}">` : `<div class="flex h-[72px] w-[72px] shrink-0 items-center justify-center bg-cream-100 text-lg font-black text-amber-700" style="border-radius: 8px;">T</div>`}
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                            <h3 class="line-clamp-2 text-sm font-extrabold leading-snug text-charcoal-800">${item.name}</h3>
+                            <button onclick="removeItem(${idx})" class="customer-icon-btn h-8 w-8 shrink-0 border-ruby-100 text-ruby-500 hover:border-ruby-200 hover:text-ruby-600" aria-label="Remove">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        ${item.options.length ? `<p class="mt-1 line-clamp-2 text-xs text-charcoal-500">${item.options.map(o => o.name || '').filter(n => n).join(", ")}</p>` : ""}
+                        <div class="mt-3 flex items-center justify-between gap-3">
+                            <div class="flex items-center border border-cream-300 bg-white" style="border-radius: 8px;">
+                                <button onclick="updateQty(${idx}, -1)" class="h-9 w-9 text-base font-bold text-charcoal-500 hover:text-amber-700">-</button>
+                                <span class="w-8 text-center text-sm font-black text-charcoal-900">${item.quantity}</span>
+                                <button onclick="updateQty(${idx}, 1)" class="h-9 w-9 text-base font-bold text-charcoal-500 hover:text-amber-700">+</button>
                             </div>
-                            <span class="text-sm font-semibold text-orange-600">${lineTotal.toFixed(3)} ${currency}</span>
+                            <span class="font-mono text-sm font-black text-amber-700">${lineTotal.toFixed(3)} ${currency}</span>
                         </div>
                     </div>
-                    <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 self-start text-lg">✕</button>
                 </div>
             `;
         });
         container.innerHTML = html;
 
-        // Update summary
         const subtotal = cart.getSubtotal();
         const tax = cart.getTax(taxRate);
         const svcCharge = cart.getServiceCharge(serviceChargeRate);
