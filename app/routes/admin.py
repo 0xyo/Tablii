@@ -10,6 +10,7 @@ from app import db
 from app.models.order import Order
 from app.models.restaurant import Restaurant, Subscription
 from app.models.user import User
+from app.services.subscription_service import PLAN_LIMITS
 from app.services.upload_service import delete_file, save_uploaded_file, validate_image
 from app.utils.decorators import super_admin_required
 from app.utils.validators import validate_email
@@ -96,8 +97,7 @@ def restaurants():
     pagination = (
         Restaurant.query
         .options(
-            joinedload(Restaurant.owner),
-            joinedload(Restaurant.subscription),
+            joinedload(Restaurant.owner).joinedload(User.subscription),
         )
         .order_by(Restaurant.created_at.desc())
         .paginate(page=page, per_page=per_page, error_out=False)
@@ -165,10 +165,16 @@ def subscriptions():
     """List all subscriptions with restaurant name and plan info."""
     subs = (
         Subscription.query
+        .options(joinedload(Subscription.owner))
         .options(joinedload(Subscription.restaurant))
         .order_by(Subscription.started_at.desc())
         .all()
     )
+    for sub in subs:
+        sub.active_location_count = Restaurant.query.filter_by(
+            owner_id=sub.owner_id,
+            is_active=True,
+        ).count()
     return render_template('admin/subscriptions.html', subscriptions=subs)
 
 
@@ -180,23 +186,29 @@ def subscriptions():
 @login_required
 @super_admin_required
 def update_subscription(sub_id):
-    """Update plan, max_tables, max_items, and expires_at for a subscription."""
+    """Update plan, limits, payment status, and expiry for a subscription."""
     sub = Subscription.query.get_or_404(sub_id)
 
     plan = request.form.get('plan', '').strip()
+    max_locations = request.form.get('max_locations', type=int)
     max_tables = request.form.get('max_tables', type=int)
     max_items = request.form.get('max_items', type=int)
     expires_at_str = request.form.get('expires_at', '').strip()
 
-    valid_plans = {'free', 'starter', 'pro', 'enterprise'}
+    valid_plans = set(PLAN_LIMITS)
     if plan and plan in valid_plans:
         sub.plan = plan
+
+    if max_locations is not None and max_locations > 0:
+        sub.max_locations = max_locations
 
     if max_tables is not None and max_tables > 0:
         sub.max_tables = max_tables
 
     if max_items is not None and max_items > 0:
         sub.max_items = max_items
+
+    sub.payment_completed = 'payment_completed' in request.form
 
     if expires_at_str:
         try:

@@ -1,11 +1,14 @@
 from app import db, create_app
-from app.models.restaurant import Subscription, Restaurant
+from app.models.restaurant import Subscription
 
 app = create_app()
 with app.app_context():
     subs = Subscription.query.all()
     print(f'Total subscriptions: {len(subs)}')
     for sub in subs:
-        rest = Restaurant.query.get(sub.restaurant_id)
-        name = rest.name if rest else 'N/A'
-        print(f'Restaurant: {name}, Plan: {sub.plan}, Payment: {sub.payment_completed}')
+        owner = sub.owner
+        name = owner.email if owner else 'N/A'
+        print(
+            f'Owner: {name}, Plan: {sub.plan}, '
+            f'Locations: {sub.max_locations}, Payment: {sub.payment_completed}'
+        )

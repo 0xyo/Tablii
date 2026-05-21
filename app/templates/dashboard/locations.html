@@ -1,0 +1,366 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% block title %}Locations{% endblock %}
+{% block page_title %}Locations{% endblock %}
+
+{% block dashboard_content %}
+{% set location_pct = ((locations_used if locations_used <= max_locations else max_locations) / max_locations * 100) | int if max_locations > 0 else 0 %}
+{% set plan_name = subscription.plan|title if subscription else 'Free' %}
+
+<style>
+  .locations-shell {
+    max-width: 78rem;
+  }
+
+  .location-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding: 1.35rem;
+  }
+
+  .location-capacity {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+  }
+
+  .location-meter {
+    height: 0.5rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--soft-border);
+  }
+
+  .location-meter > span {
+    display: block;
+    height: 100%;
+    width: var(--location-progress);
+    border-radius: inherit;
+    background: var(--bold-accent);
+  }
+
+  .location-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .location-summary-item,
+  .location-usage-item {
+    border: 1px solid var(--soft-border);
+    border-radius: 8px;
+    background: rgba(245, 237, 231, 0.58);
+  }
+
+  .location-summary-item {
+    padding: 0.95rem 1rem;
+  }
+
+  .location-list-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .location-row {
+    border: 1px solid var(--soft-border);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .location-row:hover {
+    border-color: rgba(127, 152, 127, 0.46);
+    box-shadow: var(--shadow-panel);
+    transform: translateY(-1px);
+  }
+
+  .location-row.archived {
+    background: rgba(255, 253, 250, 0.58);
+  }
+
+  .location-row-inner {
+    display: grid;
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+
+  .location-name-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .location-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .location-meta {
+    max-width: 58ch;
+    color: var(--soft-text-light);
+  }
+
+  .location-slug {
+    display: inline-flex;
+    max-width: 100%;
+    margin-top: 0.55rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: 999px;
+    padding: 0.28rem 0.62rem;
+    background: rgba(197, 212, 200, 0.16);
+    color: var(--soft-sage-dark);
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .location-usage {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .location-usage-item {
+    min-height: 4.7rem;
+    padding: 0.85rem;
+  }
+
+  .location-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  .location-action-muted {
+    border-color: rgba(118, 111, 104, 0.28) !important;
+    color: var(--soft-text) !important;
+    background: rgba(245, 237, 231, 0.48) !important;
+  }
+
+  .location-form-panel {
+    position: static;
+  }
+
+  .location-input {
+    min-height: 44px;
+    width: 100%;
+    border: 1px solid var(--soft-border);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--bold-dark);
+    padding: 0.78rem 0.9rem;
+    font-size: 0.9rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .location-input:focus {
+    border-color: rgba(184, 95, 59, 0.42);
+    box-shadow: 0 0 0 3px rgba(184, 95, 59, 0.1);
+    outline: none;
+  }
+
+  .location-limit-note {
+    border: 1px solid rgba(184, 95, 59, 0.24);
+    border-radius: 8px;
+    background: rgba(184, 95, 59, 0.08);
+    padding: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .location-row-inner {
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 21rem);
+      align-items: start;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .location-hero {
+      grid-template-columns: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
+      padding: 1.75rem;
+    }
+
+    .location-form-panel {
+      position: sticky;
+      top: 6rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .location-list-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .location-actions,
+    .location-actions form,
+    .location-actions button,
+    .location-actions a {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="locations-shell space-y-8">
+  <section class="dashboard-card-static location-hero">
+    <div>
+      <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-3" style="color: var(--soft-sage-dark);">Locations</p>
+      <h2 class="font-display italic text-4xl lg:text-5xl tracking-normal mb-4" style="color: var(--bold-dark);">
+        Manage every branch from one account.
+      </h2>
+      <p class="text-sm leading-6 max-w-2xl" style="color: var(--soft-text);">
+        Each location keeps its own tables, menu, staff, orders, settings, and analytics.
+      </p>
+    </div>
+
+    <div class="location-capacity">
+      <div class="flex items-end justify-between gap-4">
+        <div>
+          <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--soft-text-light);">{{ plan_name }} plan</p>
+          <p class="font-display italic text-4xl tracking-normal" style="color: var(--bold-accent);">
+            {{ locations_used }} / {{ 'Unlimited' if max_locations >= 999 else max_locations }}
+          </p>
+        </div>
+        <a href="{{ url_for('dashboard.subscription') }}" class="dashboard-action location-action-muted">Plan</a>
+      </div>
+
+      <div class="location-meter" aria-label="Location usage">
+        <span style="--location-progress: {{ location_pct }}%;"></span>
+      </div>
+
+      <div class="location-summary">
+        <div class="location-summary-item">
+          <p class="font-display italic text-3xl tracking-normal" style="color: var(--bold-dark);">{{ locations_used }}</p>
+          <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--soft-text-light);">Active</p>
+        </div>
+        <div class="location-summary-item">
+          <p class="font-display italic text-3xl tracking-normal" style="color: var(--bold-dark);">{{ locations|length - locations_used }}</p>
+          <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--soft-text-light);">Archived</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid lg:grid-cols-[minmax(0,1fr)_24rem] gap-6 items-start">
+    <section class="space-y-4">
+      <div class="location-list-header">
+        <div>
+          <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--soft-sage-dark);">Branches</p>
+          <h3 class="font-display italic text-3xl tracking-normal" style="color: var(--bold-dark);">Location workspace</h3>
+        </div>
+        <p class="text-sm max-w-md" style="color: var(--soft-text-light);">
+          Switch locations before editing menus, tables, or staff.
+        </p>
+      </div>
+
+      {% for location in locations %}
+      {% set usage = location_usage.get(location.id, {}) %}
+      {% set is_current = restaurant and location.id == restaurant.id %}
+      <article class="location-row {{ 'archived' if not location.is_active }}" aria-label="{{ location.name }}">
+        <div class="location-row-inner">
+          <div class="min-w-0">
+            <div class="location-name-line">
+              <h4 class="location-title font-display italic text-2xl tracking-normal" style="color: var(--bold-dark);">{{ location.name }}</h4>
+              {% if is_current %}
+              <span class="status-pill" style="background: rgba(197,212,200,0.22); color: var(--soft-sage-dark);">
+                <span class="status-dot" style="background: currentColor;"></span>
+                Current
+              </span>
+              {% elif location.is_active %}
+              <span class="status-pill" style="background: rgba(245,237,231,0.86); color: var(--soft-text);">Active</span>
+              {% else %}
+              <span class="status-pill" style="background: rgba(184,95,59,0.1); color: var(--bold-accent);">Archived</span>
+              {% endif %}
+            </div>
+
+            <p class="location-meta text-sm leading-6 mt-2">
+              {{ location.city or 'City not set' }}{% if location.address %} - {{ location.address }}{% endif %}
+            </p>
+            <span class="location-slug">{{ location.slug }}</span>
+          </div>
+
+          <div class="space-y-4">
+            <div class="location-usage">
+              <div class="location-usage-item">
+                <p class="font-display italic text-2xl tracking-normal" style="color: var(--bold-accent);">{{ usage.get('tables', 0) }}</p>
+                <p class="text-[9px] uppercase tracking-[0.12em] font-bold" style="color: var(--soft-text-light);">Tables</p>
+              </div>
+              <div class="location-usage-item">
+                <p class="font-display italic text-2xl tracking-normal" style="color: var(--bold-accent);">{{ usage.get('items', 0) }}</p>
+                <p class="text-[9px] uppercase tracking-[0.12em] font-bold" style="color: var(--soft-text-light);">Items</p>
+              </div>
+              <div class="location-usage-item">
+                <p class="font-display italic text-2xl tracking-normal" style="color: var(--bold-accent);">{{ usage.get('staff', 0) }}</p>
+                <p class="text-[9px] uppercase tracking-[0.12em] font-bold" style="color: var(--soft-text-light);">Staff</p>
+              </div>
+            </div>
+
+            {% if location.is_active %}
+            <div class="location-actions">
+              {% if not is_current %}
+              <form method="POST" action="{{ url_for('dashboard.location_switch', id=location.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="next" value="{{ url_for('dashboard.locations') }}">
+                <button type="submit" class="dashboard-action primary">Switch</button>
+              </form>
+              {% endif %}
+              <form method="POST" action="{{ url_for('dashboard.location_archive', id=location.id) }}" onsubmit="return confirm('Archive this location? Its data will stay saved.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="dashboard-action location-action-muted">Archive</button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+      {% else %}
+      <div class="dashboard-card-static p-8 text-center">
+        <p class="font-display italic text-2xl mb-2" style="color: var(--bold-dark);">No locations yet.</p>
+        <p class="text-sm" style="color: var(--soft-text-light);">Create the first location to activate the manager dashboard.</p>
+      </div>
+      {% endfor %}
+    </section>
+
+    <aside class="dashboard-card-static location-form-panel p-5 sm:p-6">
+      <p class="text-[10px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--soft-sage-dark);">Add Location</p>
+      <h3 class="font-display italic text-2xl tracking-normal mb-2" style="color: var(--bold-dark);">New branch</h3>
+      <p class="text-sm leading-6 mb-5" style="color: var(--soft-text-light);">
+        Create an independent workspace for a branch or service point.
+      </p>
+
+      {% if can_add_location %}
+      <form method="POST" action="{{ url_for('dashboard.location_add') }}" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div>
+          <label for="location-name" class="block text-[10px] uppercase tracking-[0.12em] font-bold mb-2" style="color: var(--soft-text-light);">Name</label>
+          <input id="location-name" name="name" required class="location-input" placeholder="El Weed La Marsa">
+        </div>
+        <div>
+          <label for="location-city" class="block text-[10px] uppercase tracking-[0.12em] font-bold mb-2" style="color: var(--soft-text-light);">City</label>
+          <input id="location-city" name="city" class="location-input" placeholder="Tunis">
+        </div>
+        <div>
+          <label for="location-address" class="block text-[10px] uppercase tracking-[0.12em] font-bold mb-2" style="color: var(--soft-text-light);">Address</label>
+          <textarea id="location-address" name="address" rows="3" class="location-input resize-none" placeholder="Street and neighborhood"></textarea>
+        </div>
+        <div>
+          <label for="location-phone" class="block text-[10px] uppercase tracking-[0.12em] font-bold mb-2" style="color: var(--soft-text-light);">Phone</label>
+          <input id="location-phone" name="phone" class="location-input" placeholder="+216">
+        </div>
+        <button type="submit" class="dashboard-action primary w-full">Create Location</button>
+      </form>
+      {% else %}
+      <div class="location-limit-note">
+        <p class="text-sm leading-6" style="color: var(--soft-text);">
+          This plan is using all {{ max_locations }} active location{{ 's' if max_locations != 1 else '' }}.
+        </p>
+        <a href="{{ url_for('dashboard.subscription') }}" class="dashboard-action mt-4 w-full">View Subscription</a>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

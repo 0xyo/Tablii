@@ -112,25 +112,36 @@ class Restaurant(db.Model):
     tables = db.relationship('Table', backref='restaurant', lazy='dynamic')
     staff_users = db.relationship('StaffUser', backref='restaurant', lazy='dynamic')
     orders = db.relationship('Order', backref='restaurant', lazy='dynamic')
-    subscription = db.relationship(
-        'Subscription', back_populates='restaurant', uselist=False
-    )
     operating_hours = db.relationship(
         'OperatingHours', backref='restaurant', lazy='dynamic'
     )
 
+    @property
+    def subscription(self):
+        """Return the owner-level subscription for compatibility."""
+        if self.owner_id:
+            sub = Subscription.query.filter_by(owner_id=self.owner_id).first()
+            if sub:
+                return sub
+        return Subscription.query.filter_by(restaurant_id=self.id).first()
+
 
 class Subscription(db.Model):
-    """Subscription plan tied to a restaurant."""
+    """Subscription plan tied to a restaurant owner."""
 
     __tablename__ = 'subscriptions'
 
     id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(
+        db.Integer, db.ForeignKey('users.id'),
+        unique=True, nullable=False, index=True
+    )
     restaurant_id = db.Column(
         db.Integer, db.ForeignKey('restaurants.id'),
-        unique=True, nullable=False
+        nullable=True
     )
     plan = db.Column(db.String(30), default='free')
+    max_locations = db.Column(db.Integer, default=1)
     max_tables = db.Column(db.Integer, default=5)
     max_items = db.Column(db.Integer, default=20)
     started_at = db.Column(
@@ -139,7 +150,8 @@ class Subscription(db.Model):
     expires_at = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     payment_completed = db.Column(db.Boolean, default=False)
-    restaurant = db.relationship('Restaurant', back_populates='subscription')
+    owner = db.relationship('User', back_populates='subscription')
+    restaurant = db.relationship('Restaurant', foreign_keys=[restaurant_id])
 
 
 class OperatingHours(db.Model):

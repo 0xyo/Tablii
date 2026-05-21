@@ -240,6 +240,18 @@
         transform: translateY(-1px);
       }
 
+      .location-switch {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--soft-border);
+        border-radius: 8px;
+        background: rgba(255, 253, 250, 0.78);
+        color: var(--bold-dark);
+        padding: 0.55rem 0.7rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
       .table-soft tbody tr {
         transition: background-color 160ms ease;
       }
@@ -323,6 +335,28 @@
             </p>
           </div>
         </div>
+        {% if current_user.role is defined and current_user.role == 'owner' and g.get('owner_locations') %}
+        <form id="location-switch-form" method="POST" class="mt-5">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <label for="location-switcher" class="block text-[9px] uppercase tracking-[0.14em] font-bold mb-2" style="color: var(--soft-text-light);">Active Location</label>
+          <select
+            id="location-switcher"
+            class="location-switch"
+            aria-label="Switch active location"
+            onchange="if (this.value) { this.form.action = this.value; this.form.submit(); }"
+          >
+            {% for owner_location in g.owner_locations %}
+            <option
+              value="{{ url_for('dashboard.location_switch', id=owner_location.id) }}"
+              {{ 'selected' if g.restaurant and owner_location.id == g.restaurant.id }}
+            >
+              {{ owner_location.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </form>
+        {% endif %}
       </div>
 
       <nav class="flex-1 py-5 flex flex-col gap-1.5 overflow-y-auto relative z-10 px-3">
@@ -330,6 +364,12 @@
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 13h6V5H4v8Zm10 6h6V5h-6v14ZM4 19h6v-3H4v3Z"/></svg>
           <span>Overview</span>
         </a>
+        {% if current_user.role is defined and current_user.role == 'owner' %}
+        <a href="{{ url_for('dashboard.locations') }}" class="sidebar-link {{ 'active' if 'location' in (request.endpoint or '') }}">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20V7l8-4 8 4v13M8 20v-8h8v8M4 10l8 4 8-4"/></svg>
+          <span>Locations</span>
+        </a>
+        {% endif %}
         <a href="{{ url_for('dashboard.categories') }}" class="sidebar-link {{ 'active' if 'menu' in (request.endpoint or '') }}">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3v18M10 3v7a4 4 0 0 1-4 4m12-11v18m0-18c2 2 3 4.2 3 7.2 0 2.4-1.2 4.8-3 5.8"/></svg>
           <span>Menu</span>

@@ -1,0 +1,53 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - link "Tablii homepage" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e7]: T
+        - generic [ref=e8]: Tablii
+      - link "Create account" [ref=e9] [cursor=pointer]:
+        - /url: /register
+    - main [ref=e10]:
+      - generic [ref=e11]:
+        - paragraph [ref=e12]: Manager Access
+        - heading "Return to the room." [level=1] [ref=e13]
+        - paragraph [ref=e14]: Sign in to watch orders, tables, staff, and service flow from one calm workspace.
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - paragraph [ref=e17]: Live
+            - paragraph [ref=e18]: Orders
+          - generic [ref=e19]:
+            - paragraph [ref=e20]: Roles
+            - paragraph [ref=e21]: Staff
+          - generic [ref=e22]:
+            - paragraph [ref=e23]: Data
+            - paragraph [ref=e24]: Insights
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - paragraph [ref=e27]: Sign In
+          - heading "Choose your workspace." [level=2] [ref=e28]
+          - paragraph [ref=e29]: Owners use management access. Team members use floor staff access.
+        - tablist "Login type" [ref=e30]:
+          - tab "Management" [ref=e31] [cursor=pointer]
+          - tab "Floor Staff" [selected] [ref=e32] [cursor=pointer]
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]: Restaurant ID
+            - textbox "Restaurant ID" [ref=e36]:
+              - /placeholder: chez-ahmed
+              - text: chez-ahmed
+          - generic [ref=e37]:
+            - generic [ref=e38]: Username
+            - textbox "Username" [ref=e39]:
+              - /placeholder: cashier1
+              - text: caisse1
+          - generic [ref=e40]:
+            - generic [ref=e41]: Password
+            - textbox "Password" [active] [ref=e42]:
+              - /placeholder: Your password
+              - text: staff1234
+          - button "Begin Shift" [ref=e43] [cursor=pointer]
+        - paragraph [ref=e44]:
+          - text: New to Tablii?
+          - link "Create your restaurant account" [ref=e45] [cursor=pointer]:
+            - /url: /register

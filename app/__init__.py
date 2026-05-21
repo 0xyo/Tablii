@@ -94,7 +94,8 @@ def _ensure_owner_from_env(app):
         return
 
     from app.models.user import User
-    from app.models.restaurant import Restaurant, Subscription
+    from app.models.restaurant import Restaurant
+    from app.services.subscription_service import apply_plan_limits, ensure_owner_subscription
 
     try:
         user = User.query.filter_by(email=email).first()
@@ -140,14 +141,15 @@ def _ensure_owner_from_env(app):
             restaurant.is_active = True
             restaurant.is_open = True
 
-        if not restaurant.subscription:
-            db.session.add(Subscription(
-                restaurant_id=restaurant.id,
-                plan='pro',
-                max_tables=20,
-                max_items=100,
-                is_active=True,
-            ))
+        sub = ensure_owner_subscription(
+            user,
+            restaurant=restaurant,
+            plan='pro',
+            payment_completed=True,
+        )
+        apply_plan_limits(sub, 'pro')
+        sub.is_active = True
+        sub.payment_completed = True
 
         db.session.commit()
     except Exception:

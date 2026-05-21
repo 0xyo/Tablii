@@ -200,10 +200,13 @@ See the full step-by-step guide: **[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)**
 
 | Document | Description |
 |----------|-------------|
-| [docs/API.md](./docs/API.md) | REST API endpoint reference with curl examples |
-| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Step-by-step deployment guide for Render.com |
-| [docs/USER_MANUAL.md](./docs/USER_MANUAL.md) | End-user guide for restaurant owners |
-| [docs/DATABASE_SCHEMA.md](./docs/DATABASE_SCHEMA.md) | Full database schema with ER diagram |
+| [docs/BACKEND.md](./docs/BACKEND.md) | Backend architecture, models, services, auth, subscriptions, and operations |
+| [docs/BACKEND_WORKFLOW.md](./docs/BACKEND_WORKFLOW.md) | Step-by-step backend workflow and logic with "why use this?" reasoning |
+| [docs/ALGORITHMS_AND_LIBRARIES.md](./docs/ALGORITHMS_AND_LIBRARIES.md) | Backend algorithms, libraries, and why each one is used |
+| [docs/FRONTEND_REPORT.md](./docs/FRONTEND_REPORT.md) | Complete frontend report covering templates, styling, JS, realtime UI, and PWA behavior |
+| [docs/API.md](./docs/API.md) | JSON API, customer endpoints, staff routes, admin routes, and Socket.IO events |
+| [docs/er_diagram.md](./docs/er_diagram.md) | Entity relationship notes and database diagram reference |
+| [docs/database.dbml](./docs/database.dbml) | DBML database schema source |
 
 ---
 

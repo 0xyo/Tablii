@@ -6,6 +6,11 @@ from flask import abort, flash, g, redirect, request, url_for
 from flask_login import current_user
 
 from app.models.user import User, StaffUser
+from app.services.subscription_service import (
+    active_locations_for_owner,
+    get_owner_subscription,
+    resolve_active_restaurant,
+)
 
 
 def role_required(*roles: str):
@@ -52,11 +57,15 @@ def restaurant_required(f):
             abort(401)
 
         if isinstance(current_user, User):
-            restaurant = current_user.restaurants[0] if current_user.restaurants else None
+            restaurant = resolve_active_restaurant(current_user)
             if restaurant is None:
                 abort(404, description='No restaurant found')
+            g.owner_locations = active_locations_for_owner(current_user)
+            g.owner_subscription = get_owner_subscription(current_user)
         elif isinstance(current_user, StaffUser):
             restaurant = current_user.restaurant
+            g.owner_locations = []
+            g.owner_subscription = restaurant.subscription if restaurant else None
         else:
             abort(403)
 
@@ -101,11 +110,11 @@ def payment_required(f):
         if current_user.role == 'super_admin':
             return f(*args, **kwargs)
         
-        restaurant = current_user.restaurants[0] if current_user.restaurants else None
+        restaurant = resolve_active_restaurant(current_user)
         if not restaurant:
             abort(404, description='No restaurant found')
         
-        sub = restaurant.subscription
+        sub = get_owner_subscription(current_user)
         if not sub or not sub.payment_completed:
             return redirect(url_for('onboarding.plans', next=request.url))
         

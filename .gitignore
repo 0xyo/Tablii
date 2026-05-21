@@ -43,3 +43,4 @@ phase-*
 # Docs
 *.md
 !README.md
+!docs/*.md

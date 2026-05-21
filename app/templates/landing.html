@@ -445,9 +445,9 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 max-w-6xl mx-auto">
                     {% set plans = [
-                        ('Free', 'Get Started', '0', 'Start Free', ['Up to 5 tables', 'Up to 20 menu items', 'QR code menus', 'Real-time orders', 'Basic analytics'], False),
-                        ('Pro', 'For Growing Restaurants', '49', 'Get Started', ['Up to 25 tables', 'Up to 100 menu items', 'Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode'], True),
-                        ('Enterprise', 'Unlimited Scale', '129', 'Contact Sales', ['Unlimited tables', 'Unlimited menu items', 'Everything in Pro', 'Multi-branch support', 'Priority support', 'Custom integrations'], False)
+                        ('Free', 'Get Started', '0', 'Start Free', ['1 location', 'Up to 5 tables', 'Up to 20 menu items', 'QR code menus', 'Real-time orders', 'Basic analytics'], False),
+                        ('Pro', 'For Growing Restaurants', '49', 'Get Started', ['Up to 3 locations', 'Up to 25 tables', 'Up to 100 menu items', 'Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode'], True),
+                        ('Enterprise', 'Unlimited Scale', '129', 'Contact Sales', ['Unlimited locations', 'Unlimited tables', 'Unlimited menu items', 'Everything in Pro', 'Priority support', 'Custom integrations'], False)
                     ] %}
                     {% for name, label, price, cta, items, featured in plans %}
                     <article class="pricing-card {% if featured %}featured{% endif %} p-7 lg:p-8 flex flex-col relative">

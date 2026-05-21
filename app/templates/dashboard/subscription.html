@@ -6,6 +6,7 @@
 {% set current_plan_key = current_plan if current_plan is defined else (subscription.plan if subscription else 'free') %}
 {% set safe_plan_order = plan_order if plan_order is defined else ['free', 'pro', 'enterprise'] %}
 {% set current_plan_key = current_plan_key if current_plan_key in safe_plan_order else 'free' %}
+{% set locations_pct = ((locations_used if locations_used <= max_locations else max_locations) / max_locations * 100) | int if max_locations > 0 else 0 %}
 {% set tables_pct = ((tables_used if tables_used <= max_tables else max_tables) / max_tables * 100) | int if max_tables > 0 else 0 %}
 {% set items_pct = ((items_used if items_used <= max_items else max_items) / max_items * 100) | int if max_items > 0 else 0 %}
 
@@ -30,7 +31,16 @@
                 {% endif %}
             </div>
 
-            <div class="grid sm:grid-cols-2 gap-4">
+            <div class="grid sm:grid-cols-3 gap-4">
+                <div class="dashboard-card-static p-5" style="background: rgba(245,237,231,0.62);">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <p class="font-display italic text-4xl" style="color: var(--bold-accent);">{{ locations_used }}</p>
+                        <p class="text-[10px] uppercase tracking-[0.12em] font-bold text-right" style="color: var(--soft-text-light);">of {{ 'Unlimited' if max_locations >= 999 else max_locations }} locations</p>
+                    </div>
+                    <div class="mt-4 h-1.5 rounded-full overflow-hidden" style="background: var(--soft-border);">
+                        <div class="h-full rounded-full" style="width: {{ locations_pct }}%; background: var(--bold-accent);"></div>
+                    </div>
+                </div>
                 <div class="dashboard-card-static p-5" style="background: rgba(245,237,231,0.62);">
                     <div class="flex items-baseline justify-between gap-3">
                         <p class="font-display italic text-4xl" style="color: var(--bold-accent);">{{ tables_used }}</p>
@@ -64,9 +74,9 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {% set plans = [
-                {'key': 'free', 'name': 'Free', 'price': '0', 'label': 'First QR launch', 'tables': 5, 'items': 20, 'features': ['QR code menus', 'Real-time orders', 'Basic analytics', 'Core staff workflow']},
-                {'key': 'pro', 'name': 'Pro', 'price': '49', 'label': 'Daily service', 'tables': 25, 'items': 100, 'features': ['Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode', 'Unlimited staff']},
-                {'key': 'enterprise', 'name': 'Enterprise', 'price': '129', 'label': 'High-volume teams', 'tables': 999, 'items': 999, 'features': ['Everything in Pro', 'Unlimited tables', 'Unlimited items', 'Multi-branch support', 'Priority support', 'Custom integrations']}
+                {'key': 'free', 'name': 'Free', 'price': '0', 'label': 'First QR launch', 'locations': plan_limits['free']['max_locations'], 'tables': plan_limits['free']['max_tables'], 'items': plan_limits['free']['max_items'], 'features': ['1 location', 'QR code menus', 'Real-time orders', 'Basic analytics', 'Core staff workflow']},
+                {'key': 'pro', 'name': 'Pro', 'price': '49', 'label': 'Daily service', 'locations': plan_limits['pro']['max_locations'], 'tables': plan_limits['pro']['max_tables'], 'items': plan_limits['pro']['max_items'], 'features': ['Up to 3 locations', 'Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode', 'Unlimited staff']},
+                {'key': 'enterprise', 'name': 'Enterprise', 'price': '129', 'label': 'High-volume teams', 'locations': plan_limits['enterprise']['max_locations'], 'tables': plan_limits['enterprise']['max_tables'], 'items': plan_limits['enterprise']['max_items'], 'features': ['Unlimited locations', 'Everything in Pro', 'Unlimited tables', 'Unlimited items', 'Priority support', 'Custom integrations']}
             ] %}
 
             {% for plan in plans %}
@@ -92,7 +102,11 @@
                     <span class="text-sm" style="color: var(--soft-text-light);">TND / month</span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="dashboard-card-static p-4" style="background: rgba(245,237,231,0.62);">
+                        <p class="font-display italic text-2xl" style="color: var(--bold-dark);">{{ 'Unlimited' if plan['locations'] >= 999 else plan['locations'] }}</p>
+                        <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--soft-text-light);">Locations</p>
+                    </div>
                     <div class="dashboard-card-static p-4" style="background: rgba(245,237,231,0.62);">
                         <p class="font-display italic text-2xl" style="color: var(--bold-dark);">{{ 'Unlimited' if plan['tables'] >= 999 else plan['tables'] }}</p>
                         <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--soft-text-light);">Tables</p>

@@ -1,11 +1,14 @@
 # Rapport PFE Tablii tunis
 
-Ce dossier est prêt pour Overleaf.
+Ce dossier est prêt pour Overleaf et contient maintenant les ressources exploitées depuis `docs/`.
 
-Fichiers inclus :
-- `main.tex` : rapport LaTeX complet avec page de garde, résumé, acronymes, diagrammes UML/TikZ, tests, bibliographie et annexes.
-- `images/customer-menu.png` : interface client.
-- `images/dashboard.png` : dashboard de gestion.
-- `images/admin-panel.png` : panel administrateur.
+Fichiers principaux :
+- `main.tex` : rapport LaTeX complet avec design nettoyé, page de garde, résumé, acronymes, diagrammes, tests, bibliographie et annexes.
+- `images/` : images principales du rapport.
+- `images/screenshots/` : portfolio complet des captures issues de `docs/screenshots/`.
+- `resources/` : copies des guides Markdown, DBML, cahier des charges PDF et synthèse projet utilisés comme sources.
 
-Dans Overleaf, importer l'archive `pfe-overleaf.zip`, sélectionner `main.tex` comme fichier principal, puis compiler avec pdfLaTeX.
+Compilation :
+1. Importer le dossier `pfe` dans Overleaf.
+2. Sélectionner `main.tex` comme fichier principal.
+3. Compiler avec pdfLaTeX.

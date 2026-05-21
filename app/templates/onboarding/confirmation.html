@@ -126,6 +126,10 @@
                 <dd class="font-bold text-right" style="color: var(--done-dark);">{{ restaurant.name }}</dd>
               </div>
               <div class="flex justify-between gap-4">
+                <dt style="color: var(--done-muted);">Locations</dt>
+                <dd class="font-bold" style="color: var(--done-dark);">{{ 'Unlimited' if subscription.max_locations == 999 else subscription.max_locations }}</dd>
+              </div>
+              <div class="flex justify-between gap-4">
                 <dt style="color: var(--done-muted);">Tables</dt>
                 <dd class="font-bold" style="color: var(--done-dark);">{{ 'Unlimited' if subscription.max_tables == 999 else subscription.max_tables }}</dd>
               </div>

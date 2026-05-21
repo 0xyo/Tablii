@@ -50,9 +50,7 @@ class TestSubscriptionManagement:
         assert response.status_code == 200
         assert b'Paid upgrades are not self-serve yet' in response.data
 
-        sub = Subscription.query.filter_by(
-            restaurant_id=sample_restaurant.id
-        ).first()
+        sub = Subscription.query.filter_by(owner_id=sample_user.id).first()
         assert sub is None or sub.plan == 'free'
 
     def test_staff_cannot_access_subscription_routes(
@@ -77,11 +75,127 @@ class TestSubscriptionManagement:
         response = client.get('/dashboard/subscription')
         assert response.status_code == 403
 
+        locations_response = client.get('/dashboard/locations')
+        assert locations_response.status_code == 403
+
         post_response = client.post(
             '/dashboard/subscription/change',
             data={'plan': 'free'},
         )
         assert post_response.status_code == 403
+
+    def test_free_plan_blocks_second_location(
+        self, client, db, sample_user, sample_restaurant
+    ):
+        """Free owner subscriptions should allow only one active location."""
+        from app.models.restaurant import Restaurant, Subscription
+
+        db.session.add(Subscription(
+            owner_id=sample_user.id,
+            restaurant_id=sample_restaurant.id,
+            plan='free',
+            max_locations=1,
+            max_tables=5,
+            max_items=20,
+            payment_completed=True,
+        ))
+        db.session.commit()
+
+        login_response = _login_owner(client, sample_user)
+        assert login_response.status_code == 302
+
+        response = client.post(
+            '/dashboard/locations/add',
+            data={'name': 'Second Branch'},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b'Location limit reached' in response.data
+        assert Restaurant.query.filter_by(
+            owner_id=sample_user.id,
+            is_active=True,
+        ).count() == 1
+
+    def test_pro_plan_can_create_and_switch_location_scope(
+        self, client, db, sample_user, sample_restaurant
+    ):
+        """Switching active locations should change dashboard data scope."""
+        from app.models.restaurant import Restaurant, Subscription
+        from app.models.table import Table
+
+        db.session.add(Subscription(
+            owner_id=sample_user.id,
+            restaurant_id=sample_restaurant.id,
+            plan='pro',
+            max_locations=3,
+            max_tables=25,
+            max_items=100,
+            payment_completed=True,
+        ))
+        db.session.add(Table(
+            restaurant_id=sample_restaurant.id,
+            table_number=1,
+            capacity=4,
+        ))
+        db.session.commit()
+
+        login_response = _login_owner(client, sample_user)
+        assert login_response.status_code == 302
+
+        response = client.post(
+            '/dashboard/locations/add',
+            data={'name': 'Branch Two'},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b'Branch Two created and selected' in response.data
+
+        branch_two = Restaurant.query.filter_by(
+            owner_id=sample_user.id,
+            name='Branch Two',
+        ).first()
+        assert branch_two is not None
+        db.session.add(Table(
+            restaurant_id=branch_two.id,
+            table_number=9,
+            capacity=2,
+        ))
+        db.session.commit()
+
+        response = client.get('/dashboard/tables')
+        assert response.status_code == 200
+        assert b'>T9<' in response.data
+        assert b'>T1<' not in response.data
+
+        response = client.post(
+            f'/dashboard/locations/{sample_restaurant.id}/switch',
+            data={'next': '/dashboard/tables'},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b'>T1<' in response.data
+        assert b'>T9<' not in response.data
+
+        response = client.post(
+            '/dashboard/locations/add',
+            data={'name': 'Branch Three'},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b'Branch Three created and selected' in response.data
+
+        response = client.post(
+            '/dashboard/locations/add',
+            data={'name': 'Branch Four'},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b'Location limit reached' in response.data
+        assert Restaurant.query.filter_by(
+            owner_id=sample_user.id,
+            is_active=True,
+        ).count() == 3
 
 
 class TestRamadanMode:

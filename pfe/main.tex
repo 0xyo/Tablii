@@ -9,24 +9,32 @@
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
 \usepackage{lmodern}
+\usepackage{microtype}
 
 % --- Page Layout ---
 \usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
 
 % --- Colors ---
 \usepackage{xcolor}
-\definecolor{primary}{RGB}{220,38,38}
-\definecolor{secondary}{RGB}{37,99,235}
-\definecolor{dark}{RGB}{17,24,39}
-\definecolor{lightgray}{RGB}{243,244,246}
-\definecolor{accent}{RGB}{16,185,129}
-\definecolor{orange}{RGB}{234,88,12}
-\definecolor{purple}{RGB}{124,58,237}
+\definecolor{primary}{RGB}{185,28,28}
+\definecolor{secondary}{RGB}{15,76,117}
+\definecolor{dark}{RGB}{15,23,42}
+\definecolor{ink}{RGB}{31,41,55}
+\definecolor{muted}{RGB}{100,116,139}
+\definecolor{lightgray}{RGB}{248,250,252}
+\definecolor{linegray}{RGB}{226,232,240}
+\definecolor{cream}{RGB}{255,251,235}
+\definecolor{accent}{RGB}{5,150,105}
+\definecolor{orange}{RGB}{217,119,6}
+\definecolor{purple}{RGB}{109,40,217}
 \definecolor{teal}{RGB}{13,148,136}
+\definecolor{sapphire}{RGB}{37,99,235}
+\definecolor{ruby}{RGB}{190,18,60}
+\definecolor{topaz}{RGB}{245,158,11}
 
 % --- Graphics & Diagrams ---
 \usepackage{graphicx}
-\graphicspath{{images/}}
+\graphicspath{{images/}{images/screenshots/}{resources/}}
 \usepackage{tikz}
 \usetikzlibrary{
     shapes.geometric,
@@ -60,18 +68,24 @@
     keywordstyle=\color{secondary}\bfseries,
     commentstyle=\color{gray}\itshape,
     stringstyle=\color{accent},
+    backgroundcolor=\color{lightgray},
     numbers=left,
     numberstyle=\tiny\color{gray},
     frame=single,
-    rulecolor=\color{lightgray},
+    framesep=5pt,
+    rulecolor=\color{linegray},
     breaklines=true,
     breakatwhitespace=true,
+    columns=fullflexible,
+    keepspaces=true,
+    numbersep=8pt,
     tabsize=4,
     captionpos=b,
     language=Python
 }
 
 % --- Hyperlinks & References ---
+\usepackage{xurl}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks=true,
@@ -90,6 +104,9 @@
 \usepackage{float}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage[most]{tcolorbox}
+\usepackage{pdfpages}
+\usepackage{needspace}
 \usepackage{makecell}
 \usepackage{ragged2e}
 \usepackage{setspace}
@@ -100,22 +117,41 @@
 % --- Header & Footer ---
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\textcolor{primary}{\leftmark}}
-\fancyhead[R]{\textcolor{dark}{Tablii tunis -- Rapport PFE}}
+\setlength{\headheight}{15pt}
+\fancyhead[L]{\nouppercase{\textcolor{primary}{\leftmark}}}
+\fancyhead[R]{\textcolor{muted}{Tablii tunis -- Rapport PFE}}
 \fancyfoot[C]{\textcolor{gray}{\thepage}}
-\renewcommand{\headrulewidth}{1pt}
-\renewcommand{\headrule}{\color{primary}\hrule height 1pt}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\headrule}{\color{linegray}\hrule height 0.6pt}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
 
 % --- Section Formatting ---
 \titleformat{\chapter}[display]
-    {\normalfont\huge\bfseries\color{primary}}
-    {\chaptertitlename\ \thechapter}{20pt}{\Huge\color{dark}}
+    {\normalfont\bfseries\color{dark}}
+    {\filleft\Large\textcolor{primary}{\chaptertitlename\ \thechapter}}
+    {0.8ex}
+    {\titlerule[1.2pt]\vspace{1.2ex}\Huge}
+    [\vspace{0.6ex}{\titlerule[0.4pt]}]
+\titlespacing*{\chapter}{0pt}{-0.3cm}{1.1cm}
 \titleformat{\section}
-    {\normalfont\Large\bfseries\color{dark}}
+    {\normalfont\Large\bfseries\color{primary}}
     {\thesection}{1em}{}
 \titleformat{\subsection}
     {\normalfont\large\bfseries\color{secondary}}
     {\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+    {\normalfont\normalsize\bfseries\color{ink}}
+    {\thesubsubsection}{1em}{}
+\captionsetup{
+    font=small,
+    labelfont={bf,color=primary},
+    textfont={color=ink},
+    justification=centering
+}
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{6pt}
+\setlist[itemize]{topsep=0.25cm,itemsep=0.18cm}
+\setlist[enumerate]{topsep=0.25cm,itemsep=0.18cm}
 
 % --- Custom Commands ---
 \newcommand{\checkmarkitem}{\ding{51}}
@@ -128,6 +164,51 @@
         \node[char, rectangle, rounded corners=2pt, inner sep=3pt,
               fill=#1!10, draw=#1, text=#1, font=\small\ttfamily] {#2};
     }
+}
+
+\newtcolorbox{summarybox}[1][]{
+    enhanced,
+    breakable,
+    colback=primary!3,
+    colframe=primary!60!black,
+    boxrule=0.6pt,
+    arc=3pt,
+    left=8pt,
+    right=8pt,
+    top=8pt,
+    bottom=8pt,
+    fonttitle=\bfseries,
+    coltitle=dark,
+    title=#1
+}
+
+\newtcolorbox{designbox}[1][]{
+    enhanced,
+    breakable,
+    colback=lightgray,
+    colframe=linegray,
+    boxrule=0.5pt,
+    arc=3pt,
+    left=8pt,
+    right=8pt,
+    top=8pt,
+    bottom=8pt,
+    fonttitle=\bfseries,
+    coltitle=secondary,
+    title=#1
+}
+
+\newcommand{\resourcepath}[1]{\texttt{\footnotesize #1}}
+\newcommand{\screenshotTile}[2]{%
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \IfFileExists{images/screenshots/#1}{%
+            \includegraphics[width=\linewidth]{screenshots/#1}%
+        }{%
+            \fbox{\parbox[c][3cm][c]{0.92\linewidth}{\centering Capture manquante\\\texttt{#1}}}%
+        }
+        \captionof{figure}{#2}
+    \end{minipage}%
 }
 
 % --- Line Spacing ---
@@ -156,15 +237,12 @@
     \vspace{3.5cm}
     
     % University Logo Area
-    \begin{tikzpicture}
-        \node[draw=primary, line width=2pt, rounded corners, minimum width=6cm, minimum height=2cm, fill=primary!5] (univ) {
-            \parbox{5.5cm}{\centering
-                \textbf{\Large Universit\'e TEK-UP}\\[0.3cm]
-                \textcolor{primary}{\textbf{Ecole d'Ing\'enieurs}}\\
-                \textcolor{gray}{\small Sp\'ecialit\'e : GLSI}
-            }
-        };
-    \end{tikzpicture}
+    \IfFileExists{images/TEK-UP_University.png}{%
+        \includegraphics[height=2.2cm]{TEK-UP_University.png}\\[0.35cm]
+    }{}
+    {\Large\bfseries Universit\'e TEK-UP}\\[0.2cm]
+    \textcolor{primary}{\textbf{Ecole d'Ing\'enieurs}}\\
+    \textcolor{muted}{\small Sp\'ecialit\'e : GLSI}
     
     \vspace{1.5cm}
     
@@ -249,12 +327,9 @@ Nous tenons \`a exprimer notre profonde gratitude \`a :
 \chapter*{R\'esum\'e}
 \addcontentsline{toc}{chapter}{R\'esum\'e}
 
-\begin{center}
-    \fbox{\parbox{0.9\textwidth}{
-        \textbf{Mots-cl\'es :} Restaurant, Multi-tenant, QR Code, WebSocket, Flask, Python, 
-        Temps r\'eel, SaaS, Paiement en ligne, PWA, Analytics, Fid\'elisation, Tunisie
-    }}
-\end{center}
+\begin{summarybox}[Mots-cl\'es]
+Restaurant, Multi-tenant, QR Code, WebSocket, Flask, Python, Temps r\'eel, SaaS, Paiement en ligne, PWA, Analytics, Fid\'elisation, Tunisie
+\end{summarybox}
 
 \vspace{0.5cm}
 
@@ -318,11 +393,15 @@ and trends, Flouci payment gateway integration (Tunisian), a loyalty system, Ram
     SaaS & Software as a Service \\
     PWA & Progressive Web Application \\
     API & Application Programming Interface \\
+    REST & Representational State Transfer \\
+    JSON & JavaScript Object Notation \\
     ORM & Object-Relational Mapping \\
     WebSocket & Protocole de communication bidirectionnelle temps r\'eel \\
     QR Code & Quick Response Code \\
     CSRF & Cross-Site Request Forgery \\
+    DBML & Database Markup Language \\
     ER & Entity-Relationship \\
+    UML & Unified Modeling Language \\
     MVP & Minimum Viable Product \\
     CI/CD & Continuous Integration / Continuous Deployment \\
     KDS & Kitchen Display System \\
@@ -346,12 +425,38 @@ L'objectif principal de ce projet est de concevoir et de développer une applica
 
 Sur le plan technique, le choix d'architecture a été guidé par la nécessité d'une performance optimale et d'une accessibilité universelle. Le frontend a été développé en \textbf{Vanilla JavaScript} couplé à \textbf{Tailwind CSS}, garantissant une légèreté exemplaire et une fluidité d'exécution même sur les appareils mobiles d'entrée de gamme souvent utilisés dans les environnements de restauration, tout en évitant la surcharge liée aux frameworks lourds. Le backend, basé sur \textbf{Flask (Python)}, assure une gestion rigoureuse du multi-tenancy, permettant à plusieurs établissements de coexister sur la même infrastructure avec une isolation stricte des données.
 
-Le présent rapport s'articule autour de quatre chapitres principaux :
+\begin{summarybox}[Base documentaire exploit\'ee]
+La version finale du rapport a \'et\'e consolid\'ee \`a partir de l'ensemble du dossier \resourcepath{docs/}. Les guides backend, frontend, API, workflow, algorithmes, DBML, diagrammes, cahier des charges, captures d'\'ecran et synth\`ese Repomix ont servi de sources de v\'erification pour aligner la r\'edaction avec l'application r\'eellement impl\'ement\'ee.
+\end{summarybox}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{4.2cm} X}
+        \toprule
+        \rowcolor{secondary!10}
+        \textbf{Ressource} & \textbf{Utilisation dans le rapport} \\
+        \midrule
+        \resourcepath{FRONTEND\_REPORT.md} & Architecture des templates, design system, modules JavaScript, PWA, responsive design, accessibilit\'e et performance frontend. \\
+        \resourcepath{BACKEND.md} et \resourcepath{BACKEND\_WORKFLOW.md} & Organisation Flask, blueprints, services, multi-tenant, workflows de requ\^ete, abonnements, paiement et temps r\'eel. \\
+        \resourcepath{API.md} & R\'ef\'erence REST, endpoints client/staff/dashboard/admin, \'ev\'enements Socket.IO et statuts m\'etier. \\
+        \resourcepath{ALGORITHMS\_AND\_LIBRARIES.md} & Algorithmes de cr\'eation de commande, machine d'\'etat, QR Code, analytics, upload, paiement, localisation et fid\'elit\'e. \\
+        \resourcepath{database.dbml}, \resourcepath{er\_diagram.md}, \resourcepath{diagram\_bd.png} & Mod\`ele de donn\'ees, relations principales et justification de l'isolation par \texttt{restaurant\_id}. \\
+        \resourcepath{cahier\_des\_charges\_tablii.pdf} & Rappel des besoins initiaux et validation de la couverture fonctionnelle en annexe. \\
+        \resourcepath{screenshots/*.png} & Validation visuelle des parcours public, client, dashboard, staff, onboarding et administration. \\
+        \resourcepath{projet\_resume.txt} & Corpus consolid\'e du code source utilis\'e comme support d'audit et de coh\'erence technique. \\
+    \bottomrule
+    \end{tabularx}
+    \caption{Tra\c{c}abilit\'e des ressources documentaires}
+    \label{tab:resource-map}
+\end{table}
+
+Le présent rapport s'articule autour de cinq chapitres principaux :
 \begin{itemize}
     \item Le \textbf{Chapitre 1} dresse le cadre général du projet, présente l'étude de l'existant et justifie la solution proposée.
     \item Le \textbf{Chapitre 2} détaille l'analyse et la spécification des besoins fonctionnels et non-fonctionnels, illustrés par les diagrammes UML pertinents.
     \item Le \textbf{Chapitre 3} expose la conception architecturale de l'application, incluant le modèle de données multi-tenant et les diagrammes de conception.
     \item Le \textbf{Chapitre 4} est consacré à la réalisation et à l'implémentation, mettant en avant les choix techniques, les interfaces développées et les résultats obtenus.
+    \item Le \textbf{Chapitre 5} pr\'esente la strat\'egie de test, les validations fonctionnelles et les contr\^oles non fonctionnels.
 \end{itemize}
 
 Enfin, une conclusion générale viendra synthétiser les apports de ce travail et ouvrir sur les perspectives d'évolution de Tablii.
@@ -942,6 +1047,13 @@ La base de données de Tablii tunis comprend \textbf{19 tables} organisées en d
     \label{tab:schema}
 \end{table}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{diagram_bd.png}
+    \caption{Diagramme entité-relation généré depuis la ressource \texttt{diagram\_bd.png}}
+    \label{fig:database-diagram-resource}
+\end{figure}
+
 \section{Flux de Statut des Commandes}
 
 Le cycle de vie d'une commande suit une machine d'état stricte. Chaque transition correspond à une action métier réalisée par un acteur autorisé ; cette règle évite qu'une commande passe directement d'un état client à un état final sans validation opérationnelle.
@@ -1012,6 +1124,31 @@ Le cycle de vie d'une commande suit une machine d'état stricte. Chaque transiti
     \caption{Diagramme de séquence -- Processus de commande}
     \label{fig:sequence}
 \end{figure}
+
+\section{Synthèse des Workflows Backend}
+
+Les workflows documentés dans \resourcepath{BACKEND\_WORKFLOW.md} ont été intégrés à la conception afin de relier chaque choix architectural à une règle opérationnelle claire. Cette lecture séquentielle rend le comportement du système plus vérifiable : une requête n'est jamais seulement une route Flask, elle traverse aussi l'authentification, la résolution du tenant, les services métier, la base de données et les notifications temps réel.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{3.7cm} X X}
+        \toprule
+        \rowcolor{secondary!10}
+        \textbf{Workflow} & \textbf{Étapes principales} & \textbf{Règle de conception retenue} \\
+        \midrule
+        Démarrage application & \texttt{create\_app()}, configuration, extensions, événements Socket.IO, blueprints, helpers Jinja. & Factory pattern pour tester, déployer et configurer l'application sans duplication. \\
+        Requête dashboard & Route Flask, décorateurs, \texttt{restaurant\_required}, service métier, réponse HTML/JSON. & Les routes coordonnent ; les règles métier restent dans \texttt{app/services/}. \\
+        Multi-location gérant & Connexion owner, résolution de \texttt{session['active\_restaurant\_id']}, fallback vers une location active. & Chaque écran dashboard est explicitement borné par \texttt{g.restaurant}. \\
+        Abonnement & Lecture du plan, limites de locations/tables/articles, blocage des créations hors quota. & Les downgrades ne détruisent pas les données existantes ; ils limitent seulement les nouvelles créations. \\
+        Commande QR client & Scan table, session active, validation panier, calcul serveur, sauvegarde, notification. & Le frontend aide l'utilisateur, mais le backend recalcule les prix et vérifie le tenant. \\
+        Temps réel & Connexion Socket.IO, salle par rôle, événement ciblé vers caissier, cuisine, serveur ou client. & Diffusion minimale pour préserver l'isolation et éviter le bruit opérationnel. \\
+        Paiement & Création Flouci, redirection, callback, vérification, mise à jour \texttt{payment\_status}. & Les secrets et la validation du paiement restent exclusivement côté serveur. \\
+        Administration & Accès super admin, gestion restaurants, abonnements et analytics plateforme. & Les opérations plateforme sont séparées des workflows restaurant. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Synthèse des workflows backend exploités dans la conception}
+    \label{tab:backend-workflows}
+\end{table}
 
 \section{Architecture des Blueprints Flask}
 
@@ -1144,6 +1281,68 @@ Le choix d'un frontend minimaliste en \textbf{Vanilla JavaScript} et \textbf{Tai
     \item \textbf{Maintenance simplifiée} : Pas de build step complexe pour le JavaScript, pas de gestion de dépendances npm côté frontend, ce qui réduit la complexité opérationnelle.
     \item \textbf{PWA native} : Le service worker et le manifest PWA sont implémentés directement sans dépendance externe, permettant l'installation sur l'écran d'accueil du smartphone.
 \end{itemize}
+
+\section{Architecture Frontend et Design System}
+
+Le rapport frontend du dossier \resourcepath{docs/} montre que l'interface de Tablii n'est pas une page unique, mais un ensemble de surfaces adaptées à des contextes très différents : client mobile, staff en service, gérant en analyse et super administrateur. La conception visuelle repose donc sur une base commune tout en variant la densité, les contrastes et les actions selon le rôle.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{3.8cm} X X}
+        \toprule
+        \rowcolor{primary!10}
+        \textbf{Surface} & \textbf{Templates principaux} & \textbf{Intention UX} \\
+        \midrule
+        Public et authentification & \texttt{landing.html}, \texttt{auth/login.html}, \texttt{auth/register.html} & Présenter la valeur du produit et séparer clairement la connexion gérant/staff. \\
+        Client QR & \texttt{customer/menu.html}, \texttt{cart.html}, \texttt{checkout.html}, \texttt{order\_tracking.html} & Expérience mobile-first, panier persistant par restaurant/table et actions rapides. \\
+        Dashboard gérant & \texttt{dashboard/overview.html}, menu, tables, staff, settings, analytics & Interface dense pour gérer les opérations, les lieux et les indicateurs. \\
+        Staff & \texttt{cashier/orders.html}, \texttt{kitchen/display.html}, \texttt{waiter/tables.html} & Écrans tactiles, lisibles et orientés statut pour le service en temps réel. \\
+        Admin plateforme & \texttt{admin/*.html} & Pilotage des restaurants, abonnements et statistiques globales. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Organisation frontend par parcours utilisateur}
+    \label{tab:frontend-surfaces}
+\end{table}
+
+\begin{designbox}[Système visuel]
+Le design system combine des couleurs chaleureuses pour l'expérience client (\texttt{amber}, \texttt{cream}, \texttt{charcoal}) avec des états opérationnels explicites : \texttt{emerald} pour le succès, \texttt{sapphire} pour l'information, \texttt{ruby} pour les erreurs et \texttt{topaz} pour l'attente/préparation. La typographie associe \textit{DM Sans} pour la lisibilité, \textit{Playfair Display} pour les titres de marque, \textit{Cairo/Noto Sans Arabic} pour le support arabe et \textit{JetBrains Mono} pour les identifiants de commandes.
+\end{designbox}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{4.2cm} X}
+        \toprule
+        \rowcolor{secondary!10}
+        \textbf{Module JavaScript} & \textbf{Responsabilité} \\
+        \midrule
+        \texttt{cart.js} & Panier client stocké dans \texttt{localStorage}, isolé par restaurant et table. \\
+        \texttt{socket.js} & Connexion Socket.IO paresseuse et jointure des salles par rôle. \\
+        \texttt{order\_tracking.js} & Suivi client des changements de statut de commande. \\
+        \texttt{cashier\_board.js} et \texttt{kitchen\_display.js} & Traitement des commandes, timers et transitions opérationnelles. \\
+        \texttt{waiter\_calls.js} & Réception et résolution des appels serveur. \\
+        \texttt{analytics\_charts.js} & Rendu Chart.js pour revenus, articles populaires, heures de pointe et statuts. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Modules JavaScript issus de la documentation frontend}
+    \label{tab:frontend-js}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{l X}
+        \toprule
+        \rowcolor{accent!10}
+        \textbf{Qualité frontend} & \textbf{Application dans Tablii} \\
+        \midrule
+        PWA & \texttt{manifest.json} et \texttt{sw.js} rendent l'application installable et mettent en cache uniquement les assets statiques. \\
+        Responsive & Menu client contraint en \texttt{max-w-lg}, dashboards denses sur desktop/tablette, cartes alternatives sur mobile. \\
+        Accessibilité & États texte + couleur, grands boutons staff, focus visible et support RTL à poursuivre sur chaque écran. \\
+        Performance & Rendu serveur Jinja, Tailwind minifié, JS léger et absence de framework SPA lourd. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Synthèse PWA, responsive, accessibilité et performance}
+    \label{tab:frontend-quality}
+\end{table}
 
 \section{Structure du Projet}
 
@@ -1409,6 +1608,27 @@ Le tableau de bord gérant fournit des statistiques en temps réel :
     \caption{Capture réelle du panel administrateur}
     \label{fig:admin-real}
 \end{figure}
+
+\section{Validation Visuelle des Parcours}
+
+Les captures importées depuis \resourcepath{docs/screenshots/} complètent les maquettes TikZ par des preuves d'interface réelles. Elles couvrent les parcours publics, l'authentification, l'onboarding, le menu client, la caisse, la cuisine, le serveur, le dashboard gérant et l'administration plateforme.
+
+\begin{center}
+    \centering
+    \screenshotTile{01-landing.png}{Page publique de présentation}
+    \hfill
+    \screenshotTile{40-customer-menu.png}{Menu client après scan QR}
+    \vspace{0.55cm}
+
+    \screenshotTile{10-dashboard-overview.png}{Dashboard gérant -- vue d'ensemble}
+    \hfill
+    \screenshotTile{50-cashier-orders.png}{Interface caissier -- commandes}
+    \vspace{0.55cm}
+
+    \screenshotTile{60-kitchen-display.png}{Kitchen Display System}
+    \hfill
+    \screenshotTile{80-admin-restaurants.png}{Administration plateforme}
+\end{center}
 
 \section{Mode Ramadan}
 
@@ -1817,26 +2037,57 @@ python run.py
 
 \chapter{API REST -- Référence Rapide}
 
+La documentation \resourcepath{API.md} précise que l'API actuelle est non versionnée. Les endpoints publics sont majoritairement exempts de CSRF, tandis que les routes dashboard, staff et admin restent protégées par session Flask, décorateurs de rôle et CSRF lorsque cela s'applique.
+
 \begin{table}[H]
     \centering
-    \begin{tabularx}{\textwidth}{l l X}
+    \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{2cm} >{\RaggedRight\arraybackslash}p{5.1cm} X}
         \toprule
         \rowcolor{primary!10}
         \textbf{Méthode} & \textbf{Endpoint} & \textbf{Description} \\
         \midrule
-        \texttt{GET} & \texttt{/api/v1/menu/\{slug\}} & Récupérer le menu d'un restaurant \\
-        \texttt{POST} & \texttt{/api/v1/order} & Créer une nouvelle commande \\
-        \texttt{GET} & \texttt{/api/v1/order/\{id\}} & Détails d'une commande \\
-        \texttt{PUT} & \texttt{/api/v1/order/\{id\}/status} & Mettre à jour le statut \\
-        \texttt{POST} & \texttt{/api/v1/payment} & Initier un paiement \\
-        \texttt{GET} & \texttt{/api/v1/analytics} & Statistiques du restaurant \\
-        \texttt{GET} & \texttt{/api/v1/reviews} & Avis du restaurant \\
-        \texttt{POST} & \texttt{/api/v1/review} & Soumettre un avis \\
+        \texttt{GET} & \texttt{/api/restaurant/\{slug\}/menu} & Menu public d'un restaurant avec paramètre de langue optionnel. \\
+        \texttt{GET} & \texttt{/api/menu-item/\{id\}} & Détail public d'un article, options et prix associés. \\
+        \texttt{GET} & \texttt{/api/order/\{order\_id\}/status} & Suivi public du statut d'une commande. \\
+        \texttt{POST} & \texttt{/api/upload-image} & Upload d'image par utilisateur authentifié. \\
+        \texttt{POST} & \texttt{/r/\{slug\}/table/\{table\_id\}/identify} & Identification légère du client dans la session de table. \\
+        \texttt{POST} & \texttt{/r/\{slug\}/table/\{table\_id\}/order} & Création d'une commande client depuis le menu QR. \\
+        \texttt{GET} & \texttt{/r/\{slug\}/table/\{table\_id\}/occupied-tables} & Tables occupées utiles pour commandes groupées ou cadeaux. \\
+        \texttt{POST} & \texttt{/r/\{slug\}/table/\{table\_id\}/call-waiter} & Appel serveur depuis une table client. \\
+        \texttt{POST} & \texttt{/cashier/orders/\{id\}/status} & Mise à jour caissier d'une commande. \\
+        \texttt{POST} & \texttt{/kitchen/orders/\{id\}/\{status\}} & Transition cuisine vers préparation ou prêt. \\
+        \texttt{POST} & \texttt{/waiter/orders/\{id\}/served} & Confirmation de service par le serveur. \\
+        \texttt{GET} & \texttt{/admin/analytics} & Analytics plateforme pour super administrateur. \\
         \bottomrule
     \end{tabularx}
-    \caption{Principaux endpoints API REST}
+    \caption{Principaux endpoints REST et HTML action}
     \label{tab:api}
 \end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{4cm} X X}
+        \toprule
+        \rowcolor{secondary!10}
+        \textbf{Événement Socket.IO} & \textbf{Données principales} & \textbf{Déclencheur} \\
+        \midrule
+        \texttt{new\_order} & \texttt{order\_id}, numéro, table, items, total, statut & Commande créée par client ou caissier. \\
+        \texttt{kitchen\_new\_order} & Détails commande et lignes & Commande acceptée et envoyée en cuisine. \\
+        \texttt{order\_status\_update} & \texttt{order\_id}, statut, timestamps & Changement d'état de commande. \\
+        \texttt{order\_ready} & Commande et table & Cuisine marque une commande prête. \\
+        \texttt{waiter\_call} & \texttt{call\_id}, table, type, message & Client demande serveur, eau, addition ou aide. \\
+        \texttt{table\_status\_change} & Détails table et statut & Libération ou changement d'état d'une table. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Événements temps réel exposés aux interfaces}
+    \label{tab:socket-events}
+\end{table}
+
+\begin{designbox}[Valeurs de statut]
+\textbf{Commandes :} \texttt{new}, \texttt{accepted}, \texttt{preparing}, \texttt{ready}, \texttt{served}, \texttt{completed}, \texttt{cancelled}.\\
+\textbf{Paiements :} \texttt{pending}, \texttt{paid}, \texttt{failed}, \texttt{refunded}.\\
+\textbf{Méthodes :} \texttt{cash}, \texttt{online}.
+\end{designbox}
 
 \chapter{Diagrammes et Annexes Techniques Complémentaires}
 
@@ -1909,5 +2160,161 @@ notifications(id, restaurant_id, target_role, type, is_read)
 \end{lstlisting}
 
 Cet extrait montre que les tables métier critiques sont rattachées directement ou indirectement à \texttt{restaurants}. Cette règle de conception est le mécanisme principal d'isolation des tenants. Elle simplifie également les requêtes de filtrage, les statistiques par établissement et les notifications ciblées.
+
+\chapter{Portfolio Visuel des Interfaces}
+
+Cette annexe regroupe l'ensemble des captures importées depuis \resourcepath{docs/screenshots/}. Elle sert de preuve visuelle pour les parcours décrits dans le rapport : accès public, authentification, onboarding, dashboard, expérience client QR, postes staff et administration plateforme.
+
+\section{Parcours Public, Authentification et Onboarding}
+
+\begin{center}
+\screenshotTile{01-landing.png}{Landing page publique}
+\hfill
+\screenshotTile{02-login-owner.png}{Connexion gérant}
+\vspace{0.55cm}
+
+\screenshotTile{03-login-staff.png}{Connexion staff}
+\hfill
+\screenshotTile{04-register.png}{Inscription gérant}
+\vspace{0.55cm}
+
+\screenshotTile{26-onboarding-plans.png}{Onboarding -- choix du plan}
+\hfill
+\screenshotTile{27-onboarding-payment.png}{Onboarding -- paiement}
+\vspace{0.55cm}
+
+\screenshotTile{28-onboarding-confirmation.png}{Onboarding -- confirmation}
+\end{center}
+
+\section{Dashboard Gérant}
+
+\begin{center}
+\screenshotTile{10-dashboard-overview.png}{Dashboard -- vue d'ensemble}
+\hfill
+\screenshotTile{11-dashboard-locations.png}{Dashboard -- gestion des locations}
+\vspace{0.55cm}
+
+\screenshotTile{12-dashboard-menu-categories.png}{Dashboard -- catégories menu}
+\hfill
+\screenshotTile{13-dashboard-menu-items.png}{Dashboard -- articles menu}
+\vspace{0.55cm}
+
+\screenshotTile{14-dashboard-menu-item-new.png}{Dashboard -- nouvel article}
+\hfill
+\screenshotTile{15-dashboard-menu-customizations.png}{Dashboard -- personnalisations}
+\vspace{0.55cm}
+
+\screenshotTile{16-dashboard-tables.png}{Dashboard -- tables}
+\hfill
+\screenshotTile{17-dashboard-staff.png}{Dashboard -- personnel}
+\vspace{0.55cm}
+
+\screenshotTile{18-dashboard-staff-add.png}{Dashboard -- ajout staff}
+\hfill
+\screenshotTile{19-dashboard-profile.png}{Dashboard -- profil}
+\vspace{0.55cm}
+
+\screenshotTile{20-dashboard-orders-history.png}{Dashboard -- historique commandes}
+\hfill
+\screenshotTile{21-dashboard-settings.png}{Dashboard -- paramètres}
+\vspace{0.55cm}
+
+\screenshotTile{22-dashboard-analytics.png}{Dashboard -- analytics}
+\hfill
+\screenshotTile{23-dashboard-reviews.png}{Dashboard -- avis clients}
+\vspace{0.55cm}
+
+\screenshotTile{25-dashboard-subscription.png}{Dashboard -- abonnement}
+\hfill
+\screenshotTile{dashboard.png}{Capture dashboard complète}
+\end{center}
+
+\section{Parcours Client QR}
+
+\begin{center}
+\screenshotTile{40-customer-menu.png}{Client -- menu}
+\hfill
+\screenshotTile{41-customer-cart.png}{Client -- panier}
+\vspace{0.55cm}
+
+\screenshotTile{42-customer-checkout.png}{Client -- checkout}
+\hfill
+\screenshotTile{43-customer-call-waiter.png}{Client -- appel serveur}
+\vspace{0.55cm}
+
+\screenshotTile{customer-menu.png}{Client -- menu alternatif}
+\end{center}
+
+\section{Postes Staff}
+
+\begin{center}
+\screenshotTile{50-cashier-orders.png}{Caissier -- commandes}
+\hfill
+\screenshotTile{51-cashier-manual-order.png}{Caissier -- commande manuelle}
+\vspace{0.55cm}
+
+\screenshotTile{52-cashier-profile.png}{Caissier -- profil}
+\hfill
+\screenshotTile{60-kitchen-display.png}{Cuisine -- kitchen display}
+\vspace{0.55cm}
+
+\screenshotTile{61-kitchen-profile.png}{Cuisine -- profil}
+\hfill
+\screenshotTile{70-waiter-tables.png}{Serveur -- tables}
+\vspace{0.55cm}
+
+\screenshotTile{71-waiter-profile.png}{Serveur -- profil}
+\end{center}
+
+\section{Administration Plateforme}
+
+\begin{center}
+\screenshotTile{80-admin-restaurants.png}{Admin -- restaurants}
+\hfill
+\screenshotTile{81-admin-subscriptions.png}{Admin -- abonnements}
+\vspace{0.55cm}
+
+\screenshotTile{82-admin-analytics.png}{Admin -- analytics}
+\hfill
+\screenshotTile{83-admin-profile.png}{Admin -- profil}
+\end{center}
+
+\chapter{Traçabilité des Sources Documentaires}
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{>{\RaggedRight\arraybackslash}p{5cm} X}
+        \toprule
+        \rowcolor{primary!10}
+        \textbf{Fichier importé dans \resourcepath{pfe/resources/}} & \textbf{Rôle dans le dossier PFE} \\
+        \midrule
+        \resourcepath{ALGORITHMS\_AND\_LIBRARIES.md} & Support des sections algorithmes, bibliothèques, machine d'état, analytics, paiement, QR, upload et localisation. \\
+        \resourcepath{API.md} & Source des endpoints REST/HTML, événements Socket.IO et valeurs de statut. \\
+        \resourcepath{BACKEND.md} & Référence de l'architecture Flask, des blueprints, modèles et services métier. \\
+        \resourcepath{BACKEND\_WORKFLOW.md} & Source des workflows séquentiels exploités dans la conception. \\
+        \resourcepath{FRONTEND\_REPORT.md} & Source de l'architecture frontend, design system, JavaScript, PWA, responsive et accessibilité. \\
+        \resourcepath{database.dbml} & Spécification structurée du schéma multi-tenant. \\
+        \resourcepath{er\_diagram.md} & Version textuelle des diagrammes ER et mapping des fonctionnalités. \\
+        \resourcepath{cahier\_des\_charges\_tablii.pdf} & Cahier des charges initial joint ci-après. \\
+        \resourcepath{projet\_resume.txt} & Représentation consolidée du code source utilisée comme corpus d'audit. \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Inventaire des ressources documentaires intégrées au dossier PFE}
+    \label{tab:source-inventory}
+\end{table}
+
+\section{Extrait DBML}
+
+\lstinputlisting[firstline=1,lastline=120,caption={Extrait du fichier \texttt{database.dbml}}]{resources/database.dbml}
+
+\section{Cahier des Charges}
+
+\IfFileExists{resources/cahier_des_charges_tablii.pdf}{%
+    \includepdf[pages=-,scale=0.92,pagecommand={\thispagestyle{fancy}}]{resources/cahier_des_charges_tablii.pdf}
+}{%
+    \begin{designbox}[Cahier des charges non trouvé]
+    Le fichier \resourcepath{resources/cahier\_des\_charges\_tablii.pdf} doit être présent dans le dossier \resourcepath{pfe/resources/} pour compiler cette annexe.
+    \end{designbox}
+}
 
 \end{document}

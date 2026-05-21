@@ -4,7 +4,7 @@ from datetime import date, datetime, time, timedelta, timezone
 
 from flask import (
     Blueprint, abort, current_app, flash, g, jsonify, redirect,
-    render_template, request, send_file, url_for,
+    render_template, request, send_file, session, url_for,
 )
 from flask_login import current_user, login_required
 from sqlalchemy import func
@@ -16,7 +16,6 @@ from app.models.restaurant import (
     DEFAULT_RAMADAN_IFTAR_TIME,
     OperatingHours,
     Restaurant,
-    Subscription,
 )
 from app.models.review import Review
 from app.models.table import Table, TableSession
@@ -25,6 +24,19 @@ from app.services.notification_service import (
     get_unread_notifications, mark_all_read, mark_notification_read,
 )
 from app.services.qr_service import generate_table_qr as _generate_table_qr
+from app.services.subscription_service import (
+    PLAN_LIMITS,
+    PLAN_ORDER,
+    active_location_count,
+    active_locations_for_owner,
+    apply_plan_limits,
+    can_create_location,
+    create_default_operating_hours,
+    ensure_owner_subscription,
+    generate_unique_restaurant_slug,
+    get_owner_subscription,
+    resolve_active_restaurant,
+)
 from app.services.upload_service import delete_file, save_uploaded_file, validate_image
 from app.utils.decorators import restaurant_required, role_required, payment_required
 from app.utils.validators import validate_email, validate_price
@@ -73,6 +85,162 @@ def overview():
         active_staff=active_staff,
         recent_orders=recent_orders,
     )
+
+
+# ──────────────────────────────────────────────
+# 1b. Locations
+# ──────────────────────────────────────────────
+
+@dashboard_bp.route('/locations')
+@login_required
+@role_required('owner')
+def locations():
+    """List and manage owner locations."""
+    if not isinstance(current_user, User):
+        abort(403)
+
+    active_restaurant = resolve_active_restaurant(current_user)
+    sub = get_owner_subscription(current_user)
+
+    owner_locations = (
+        Restaurant.query
+        .filter_by(owner_id=current_user.id)
+        .order_by(Restaurant.is_active.desc(), Restaurant.id)
+        .all()
+    )
+    active_locations = active_locations_for_owner(current_user)
+
+    location_usage = {}
+    for location in owner_locations:
+        location_usage[location.id] = {
+            'tables': Table.query.filter_by(restaurant_id=location.id).count(),
+            'items': MenuItem.query.filter(
+                MenuItem.restaurant_id == location.id,
+                MenuItem.deleted_at.is_(None),
+            ).count(),
+            'staff': StaffUser.query.filter_by(
+                restaurant_id=location.id,
+                is_active=True,
+            ).count(),
+        }
+
+    g.restaurant = active_restaurant
+    g.owner_locations = active_locations
+    g.owner_subscription = sub
+
+    return render_template(
+        'dashboard/locations.html',
+        restaurant=active_restaurant,
+        locations=owner_locations,
+        location_usage=location_usage,
+        subscription=sub,
+        locations_used=len(active_locations),
+        max_locations=sub.max_locations if sub else PLAN_LIMITS['free']['max_locations'],
+        can_add_location=can_create_location(current_user, sub),
+    )
+
+
+@dashboard_bp.route('/locations/add', methods=['POST'])
+@login_required
+@role_required('owner')
+def location_add():
+    """Create a new independent restaurant location for the owner."""
+    if not isinstance(current_user, User):
+        abort(403)
+
+    active_restaurant = resolve_active_restaurant(current_user)
+    sub = ensure_owner_subscription(current_user, restaurant=active_restaurant)
+
+    if not can_create_location(current_user, sub):
+        max_locations = sub.max_locations if sub else PLAN_LIMITS['free']['max_locations']
+        flash(
+            f'Location limit reached ({max_locations} location{"s" if max_locations != 1 else ""}).',
+            'error',
+        )
+        return redirect(url_for('dashboard.locations'))
+
+    name = request.form.get('name', '').strip()
+    if not name:
+        flash('Location name is required.', 'error')
+        return redirect(url_for('dashboard.locations'))
+
+    location = Restaurant(
+        owner_id=current_user.id,
+        name=name,
+        slug=generate_unique_restaurant_slug(name),
+        city=request.form.get('city', '').strip() or None,
+        address=request.form.get('address', '').strip() or None,
+        phone=request.form.get('phone', '').strip() or None,
+        currency=active_restaurant.currency if active_restaurant else 'TND',
+        tax_rate=active_restaurant.tax_rate if active_restaurant else 0.0,
+        service_charge=active_restaurant.service_charge if active_restaurant else 0.0,
+        default_language=active_restaurant.default_language if active_restaurant else 'fr',
+        is_active=True,
+        is_open=True,
+    )
+    db.session.add(location)
+    db.session.flush()
+    create_default_operating_hours(location)
+    db.session.commit()
+
+    session['active_restaurant_id'] = location.id
+    flash(f'{location.name} created and selected.', 'success')
+    return redirect(url_for('dashboard.locations'))
+
+
+@dashboard_bp.route('/locations/<int:id>/switch', methods=['POST'])
+@login_required
+@role_required('owner')
+def location_switch(id):
+    """Switch the manager dashboard to another active location."""
+    location = Restaurant.query.filter_by(
+        id=id,
+        owner_id=current_user.id,
+        is_active=True,
+    ).first_or_404()
+    session['active_restaurant_id'] = location.id
+    flash(f'Switched to {location.name}.', 'success')
+
+    next_url = request.form.get('next', '').strip()
+    if not next_url.startswith('/dashboard'):
+        next_url = url_for('dashboard.overview')
+    return redirect(next_url)
+
+
+@dashboard_bp.route('/locations/<int:id>/archive', methods=['POST'])
+@login_required
+@role_required('owner')
+def location_archive(id):
+    """Archive a location without deleting its operational data."""
+    location = Restaurant.query.filter_by(
+        id=id,
+        owner_id=current_user.id,
+        is_active=True,
+    ).first_or_404()
+
+    if active_location_count(current_user) <= 1:
+        flash('At least one active location is required.', 'error')
+        return redirect(url_for('dashboard.locations'))
+
+    location.is_active = False
+    if session.get('active_restaurant_id') == location.id:
+        session.pop('active_restaurant_id', None)
+        replacement = (
+            Restaurant.query
+            .filter(
+                Restaurant.owner_id == current_user.id,
+                Restaurant.is_active.is_(True),
+                Restaurant.id != location.id,
+            )
+            .order_by(Restaurant.id)
+            .first()
+        )
+        if replacement:
+            session['active_restaurant_id'] = replacement.id
+
+    db.session.commit()
+    flash(f'{location.name} archived. Its data is preserved.', 'success')
+    return redirect(url_for('dashboard.locations'))
 
 
 # ──────────────────────────────────────────────
@@ -1307,14 +1475,6 @@ def notifications_read_all():
 # 12. Subscription Management
 # ──────────────────────────────────────────────
 
-PLAN_LIMITS = {
-    'free':       {'max_tables': 5,   'max_items': 20},
-    'pro':        {'max_tables': 25,  'max_items': 100},
-    'enterprise': {'max_tables': 999, 'max_items': 999},
-}
-PLAN_ORDER = ('free', 'pro', 'enterprise')
-
-
 @dashboard_bp.route('/subscription')
 @login_required
 @role_required('owner')
@@ -1322,16 +1482,18 @@ PLAN_ORDER = ('free', 'pro', 'enterprise')
 def subscription():
     """View current subscription and plan options."""
     restaurant = g.restaurant
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
 
     tables_used = Table.query.filter_by(restaurant_id=restaurant.id).count()
     items_used = MenuItem.query.filter(
         MenuItem.restaurant_id == restaurant.id,
         MenuItem.deleted_at.is_(None),
     ).count()
+    locations_used = active_location_count(current_user)
 
-    max_tables = sub.max_tables if sub else 5
-    max_items = sub.max_items if sub else 20
+    max_locations = sub.max_locations if sub else PLAN_LIMITS['free']['max_locations']
+    max_tables = sub.max_tables if sub else PLAN_LIMITS['free']['max_tables']
+    max_items = sub.max_items if sub else PLAN_LIMITS['free']['max_items']
     current_plan = sub.plan if sub and sub.plan in PLAN_ORDER else 'free'
 
     return render_template(
@@ -1340,6 +1502,9 @@ def subscription():
         subscription=sub,
         current_plan=current_plan,
         plan_order=PLAN_ORDER,
+        plan_limits=PLAN_LIMITS,
+        locations_used=locations_used,
+        max_locations=max_locations,
         tables_used=tables_used,
         items_used=items_used,
         max_tables=max_tables,
@@ -1352,7 +1517,7 @@ def subscription():
 @role_required('owner')
 @restaurant_required
 def subscription_change():
-    """Switch the restaurant to a different plan."""
+    """Switch the owner subscription to a different plan."""
     restaurant = g.restaurant
     plan = request.form.get('plan', '').strip()
 
@@ -1360,20 +1525,20 @@ def subscription_change():
         flash('Invalid plan selected.', 'error')
         return redirect(url_for('dashboard.subscription'))
 
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
     current_plan = sub.plan if sub and sub.plan in PLAN_ORDER else 'free'
     if sub and sub.plan not in PLAN_ORDER:
         current_app.logger.warning(
-            'Unknown current subscription plan for restaurant %s: %s. Falling back to free.',
-            restaurant.id,
+            'Unknown current subscription plan for owner %s: %s. Falling back to free.',
+            current_user.id,
             sub.plan,
         )
 
     current_rank = PLAN_ORDER.index(current_plan)
     if plan not in PLAN_ORDER:
         current_app.logger.error(
-            'Unknown target subscription plan for restaurant %s: %s',
-            restaurant.id,
+            'Unknown target subscription plan for owner %s: %s',
+            current_user.id,
             plan,
         )
         flash('Invalid plan selected.', 'error')
@@ -1392,14 +1557,10 @@ def subscription_change():
         return redirect(url_for('dashboard.subscription'))
 
     if not sub:
-        sub = Subscription(restaurant_id=restaurant.id)
-        db.session.add(sub)
+        sub = ensure_owner_subscription(current_user, restaurant=restaurant)
 
-    limits = PLAN_LIMITS[plan]
     now = datetime.now(timezone.utc)
-    sub.plan = plan
-    sub.max_tables = limits['max_tables']
-    sub.max_items = limits['max_items']
+    apply_plan_limits(sub, plan)
     sub.is_active = True
     sub.started_at = now
     if plan == 'free':

@@ -18,9 +18,10 @@ from datetime import time, timedelta, datetime, timezone
 
 from app import create_app, db
 from app.models.menu import Category, MenuItem
-from app.models.restaurant import OperatingHours, Restaurant, Subscription
+from app.models.restaurant import OperatingHours, Restaurant
 from app.models.table import Table
 from app.models.user import StaffUser, User
+from app.services.subscription_service import apply_plan_limits, ensure_owner_subscription
 from app.utils.helpers import generate_slug
 
 
@@ -108,16 +109,17 @@ def seed_current_app(config_label=None):
         print('  [-] Restaurant already exists, skipped')
 
     # ── Subscription ─────────────────────────────────────────────────────
-    if not restaurant.subscription:
-        sub = Subscription(
-            restaurant_id=restaurant.id,
-            plan='pro',
-            max_tables=20,
-            max_items=100,
-            is_active=True,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=365),
-        )
-        db.session.add(sub)
+    sub = ensure_owner_subscription(
+        owner,
+        restaurant=restaurant,
+        plan='pro',
+        payment_completed=True,
+    )
+    if sub.plan != 'pro' or not sub.payment_completed:
+        apply_plan_limits(sub, 'pro')
+        sub.is_active = True
+        sub.payment_completed = True
+        sub.expires_at = datetime.now(timezone.utc) + timedelta(days=365)
         print('  [+] Subscription (pro) created')
 
     # ── Operating Hours ──────────────────────────────────────────────────

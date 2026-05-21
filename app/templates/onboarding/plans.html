@@ -150,9 +150,10 @@
           'name': 'Free',
           'label': 'For first QR tests',
           'price': plan_limits['free']['price'],
+          'locations': plan_limits['free']['max_locations'],
           'tables': plan_limits['free']['max_tables'],
           'items': plan_limits['free']['max_items'],
-          'features': ['QR code menus', 'Real-time orders', 'Basic analytics', 'Core staff workflow'],
+          'features': ['1 location', 'QR code menus', 'Real-time orders', 'Basic analytics', 'Core staff workflow'],
           'cta': 'Start Free',
           'featured': False
         },
@@ -161,9 +162,10 @@
           'name': 'Pro',
           'label': 'For daily service',
           'price': plan_limits['pro']['price'],
+          'locations': plan_limits['pro']['max_locations'],
           'tables': plan_limits['pro']['max_tables'],
           'items': plan_limits['pro']['max_items'],
-          'features': ['Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode', 'Unlimited staff'],
+          'features': ['Up to 3 locations', 'Everything in Free', 'Online payments', 'Advanced analytics', 'Loyalty program', 'Ramadan mode', 'Unlimited staff'],
           'cta': 'Choose Pro',
           'featured': True
         },
@@ -172,9 +174,10 @@
           'name': 'Enterprise',
           'label': 'For high-volume teams',
           'price': plan_limits['enterprise']['price'],
+          'locations': plan_limits['enterprise']['max_locations'],
           'tables': plan_limits['enterprise']['max_tables'],
           'items': plan_limits['enterprise']['max_items'],
-          'features': ['Everything in Pro', 'Unlimited tables', 'Unlimited items', 'Multi-branch support', 'Priority support', 'Custom integrations'],
+          'features': ['Unlimited locations', 'Everything in Pro', 'Unlimited tables', 'Unlimited items', 'Priority support', 'Custom integrations'],
           'cta': 'Choose Enterprise',
           'featured': False
         }
@@ -197,7 +200,11 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <div class="plan-note p-4">
+            <p class="font-display italic text-2xl" style="color: var(--plan-dark);">{{ 'Unlimited' if plan['locations'] >= 999 else plan['locations'] }}</p>
+            <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--plan-muted);">Locations</p>
+          </div>
           <div class="plan-note p-4">
             <p class="font-display italic text-2xl" style="color: var(--plan-dark);">{{ 'Unlimited' if plan['tables'] >= 999 else plan['tables'] }}</p>
             <p class="text-[10px] uppercase tracking-[0.12em] font-bold mt-1" style="color: var(--plan-muted);">Tables</p>

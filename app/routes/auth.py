@@ -1,13 +1,14 @@
 """Authentication blueprint — login, register, logout."""
-from datetime import datetime, time, timezone
+from datetime import datetime, timezone
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_user, logout_user
 
 from app import db
-from app.models.restaurant import OperatingHours, Restaurant, Subscription
+from app.models.restaurant import Restaurant, Subscription
 from app.models.user import StaffUser, User
 
+from app.services.subscription_service import create_default_operating_hours
 from app.utils.helpers import generate_slug
 from app.utils.validators import validate_email, validate_phone
 
@@ -221,23 +222,21 @@ def register_post():
         db.session.add(restaurant)
         db.session.flush()  # Get restaurant.id
 
-        subscription = Subscription(restaurant_id=restaurant.id, plan='free', payment_completed=False)
+        subscription = Subscription(
+            owner_id=user.id,
+            restaurant_id=restaurant.id,
+            plan='free',
+            payment_completed=False,
+        )
         db.session.add(subscription)
 
         # Default operating hours: Mon–Sun, 09:00–23:00
-        for day in range(7):
-            hours = OperatingHours(
-                restaurant_id=restaurant.id,
-                day_of_week=day,
-                open_time=time(9, 0),
-                close_time=time(23, 0),
-                is_closed=False,
-            )
-            db.session.add(hours)
+        create_default_operating_hours(restaurant)
 
         db.session.commit()
 
         login_user(user)
+        session['active_restaurant_id'] = restaurant.id
         flash('Account created successfully! Now let\'s set up your plan.', 'success')
         return redirect(url_for('onboarding.plans'))
 
@@ -254,6 +253,7 @@ def register_post():
 @auth_bp.route('/logout')
 def logout():
     """Log out the current user."""
+    session.pop('active_restaurant_id', None)
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))

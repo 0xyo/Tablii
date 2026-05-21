@@ -5,18 +5,16 @@ from flask import Blueprint, flash, g, redirect, render_template, request, url_f
 from flask_login import current_user, login_required
 
 from app import db
-from app.models.restaurant import Subscription
-from app.models.user import User
+from app.services.subscription_service import (
+    PLAN_LIMITS,
+    PLAN_ORDER,
+    apply_plan_limits,
+    ensure_owner_subscription,
+    get_owner_subscription,
+)
 from app.utils.decorators import restaurant_required, role_required
 
 onboarding_bp = Blueprint('onboarding', __name__, url_prefix='/onboarding')
-
-PLAN_LIMITS = {
-    'free': {'max_tables': 5, 'max_items': 20, 'price': 0},
-    'pro': {'max_tables': 25, 'max_items': 100, 'price': 49},
-    'enterprise': {'max_tables': 999, 'max_items': 999, 'price': 129},
-}
-PLAN_ORDER = ('free', 'pro', 'enterprise')
 
 
 # ──────────────────────────────────────────────
@@ -30,7 +28,7 @@ PLAN_ORDER = ('free', 'pro', 'enterprise')
 def plans():
     """Display plan selection page."""
     restaurant = g.restaurant
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
     
     # Prevent accessing plan selection if payment is already completed
     if sub and sub.payment_completed:
@@ -61,7 +59,7 @@ def select_plan():
         flash('Invalid plan selected.', 'error')
         return redirect(url_for('onboarding.plans'))
     
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
     
     # Prevent changing plan after payment is completed
     if sub and sub.payment_completed:
@@ -69,14 +67,10 @@ def select_plan():
         return redirect(url_for('dashboard.overview'))
     
     if not sub:
-        sub = Subscription(restaurant_id=restaurant.id)
-        db.session.add(sub)
+        sub = ensure_owner_subscription(current_user, restaurant=restaurant)
     
-    limits = PLAN_LIMITS[plan]
     now = datetime.now(timezone.utc)
-    sub.plan = plan
-    sub.max_tables = limits['max_tables']
-    sub.max_items = limits['max_items']
+    apply_plan_limits(sub, plan)
     sub.is_active = True
     sub.started_at = now
     
@@ -112,7 +106,7 @@ def select_plan():
 def payment():
     """Display payment page."""
     restaurant = g.restaurant
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
     
     if not sub or sub.payment_completed:
         return redirect(url_for('dashboard.overview'))
@@ -137,7 +131,7 @@ def payment():
 def process_payment():
     """Process payment (mock or real payment integration)."""
     restaurant = g.restaurant
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
     
     if not sub or sub.payment_completed or sub.plan == 'free':
         flash('Invalid payment request.', 'error')
@@ -167,7 +161,7 @@ def process_payment():
 def confirmation():
     """Display payment confirmation."""
     restaurant = g.restaurant
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
     
     if not sub or not sub.payment_completed:
         return redirect(url_for('onboarding.plans'))
@@ -186,17 +180,13 @@ def confirmation():
 def skip_upgrade():
     """Skip to free plan and proceed to dashboard."""
     restaurant = g.restaurant
-    sub = restaurant.subscription
+    sub = get_owner_subscription(current_user)
     
     if not sub:
-        sub = Subscription(restaurant_id=restaurant.id)
-        db.session.add(sub)
+        sub = ensure_owner_subscription(current_user, restaurant=restaurant)
     
     if sub.plan != 'free':
-        limits = PLAN_LIMITS['free']
-        sub.plan = 'free'
-        sub.max_tables = limits['max_tables']
-        sub.max_items = limits['max_items']
+        apply_plan_limits(sub, 'free')
         sub.expires_at = None
     
     sub.payment_completed = True
