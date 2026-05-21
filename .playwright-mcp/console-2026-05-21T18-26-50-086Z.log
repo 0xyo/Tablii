@@ -1,9 +1,0 @@
-[  109057ms] TypeError: Cannot read properties of null (reading 'addEventListener')
-    at HTMLDocument.<anonymous> (http://127.0.0.1:5000/dashboard/menu/item/new:748:37)
-[  113403ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:5000/dashboard/staff/add:0
-[  114508ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:5000/dashboard/profile:0
-[  117902ms] [ERROR] Failed to load resource: net::ERR_ADDRESS_UNREACHABLE @ https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js:0
-[  117908ms] ReferenceError: Chart is not defined
-    at renderPeakHoursChart (http://127.0.0.1:5000/static/js/analytics_charts.js:167:30)
-    at HTMLDocument.<anonymous> (http://127.0.0.1:5000/dashboard/analytics:779:5)
-[  120120ms] [ERROR] Failed to load resource: the server responded with a status of 404 (NOT FOUND) @ http://127.0.0.1:5000/favicon.ico:0

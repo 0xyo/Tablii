@@ -40,6 +40,15 @@ tablii/
 # Local planning notes
 phase-*
 
+# Build artifacts and project files
+pfe/
+rapport/
+pfe-overleaf.zip
+rapport_pfe_tablii.tex
+
+# Browser automation logs
+.playwright-mcp/
+
 # Docs
 *.md
 !README.md
