@@ -167,8 +167,6 @@ Primary models:
 | `LoyaltyPoints` | Loyalty balance per customer and restaurant |
 | `Notification` | In-app owner/staff notification |
 
-For schema diagrams, see `docs/er_diagram.md` and `docs/database.dbml`.
-
 ## Services
 
 Business logic should live in `app/services/`, not directly in templates or route handlers.

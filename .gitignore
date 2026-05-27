@@ -53,3 +53,5 @@ rapport_pfe_tablii.tex
 *.md
 !README.md
 !docs/*.md
+docs/database.dbml
+skills-lock.json
