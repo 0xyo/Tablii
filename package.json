@@ -4,7 +4,12 @@
   "private": true,
   "scripts": {
     "build:css": "npx tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --minify",
-    "watch:css": "npx tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --watch"
+    "watch:css": "npx tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --watch",
+    "load:test": "k6 run scripts/k6/restaurant-flow.js",
+    "stress:test": "k6 run -e MODE=stress scripts/k6/restaurant-flow.js",
+    "smoke:cloud": "k6 run -o cloud -e WORKLOAD=read -e VUS=5 -e DURATION=15s -e RAMP_UP=3s scripts/k6/restaurant-flow.js",
+    "load:cloud": "k6 run -o cloud scripts/k6/restaurant-flow.js",
+    "stress:cloud": "k6 run -o cloud -e MODE=stress scripts/k6/restaurant-flow.js"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.0"

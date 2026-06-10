@@ -48,6 +48,7 @@ rapport_pfe_tablii.tex
 
 # Browser automation logs
 .playwright-mcp/
+.loadtest_flask_*.txt
 
 # Docs
 *.md

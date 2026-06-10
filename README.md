@@ -112,6 +112,8 @@ python run.py
 
 - [Backend overview](./docs/BACKEND.md)
 - [API reference](./docs/API.md)
+- [Load and stress testing](./docs/LOAD_TESTING.md)
+- [Performance test report](./docs/PERFORMANCE_TEST_REPORT.md)
 - [Frontend report](./docs/FRONTEND_REPORT.md)
 - [Screenshots](./docs/screenshots)
 
